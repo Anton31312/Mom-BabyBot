@@ -1,0 +1,47 @@
+{% extends "admin/base_site.html" %}
+{% load admin_urls static %}
+
+{% block title %}Удалить пользователя {{ object.telegram_id }} | {{ site_title|default:"Django site admin" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">Главная</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label='botapp' %}">Botapp</a>
+&rsaquo; <a href="{% url 'admin:user_changelist' %}">Пользователи</a>
+&rsaquo; <a href="{% url 'admin:user_change' object.id %}">{{ object.telegram_id }}</a>
+&rsaquo; Удалить
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Удалить пользователя</h1>
+    
+    <p>Вы уверены, что хотите удалить пользователя "{{ object.telegram_id }}"? Все связанные с ним данные будут также удалены:</p>
+    
+    <div class="module">
+        <h2>Информация о пользователе</h2>
+        <ul>
+            <li><strong>Telegram ID:</strong> {{ object.telegram_id }}</li>
+            {% if object.username %}<li><strong>Имя пользователя:</strong> @{{ object.username }}</li>{% endif %}
+            {% if object.first_name %}<li><strong>Имя:</strong> {{ object.first_name }}</li>{% endif %}
+            {% if object.last_name %}<li><strong>Фамилия:</strong> {{ object.last_name }}</li>{% endif %}
+            <li><strong>Беременна:</strong> {% if object.is_pregnant %}Да{% else %}Нет{% endif %}</li>
+            {% if object.pregnancy_week %}<li><strong>Неделя беременности:</strong> {{ object.pregnancy_week }}</li>{% endif %}
+            {% if object.baby_birth_date %}<li><strong>Дата рождения ребенка:</strong> {{ object.baby_birth_date|date:"d.m.Y" }}</li>{% endif %}
+            <li><strong>Премиум:</strong> {% if object.is_premium %}Да{% else %}Нет{% endif %}</li>
+            <li><strong>Администратор:</strong> {% if object.is_admin %}Да{% else %}Нет{% endif %}</li>
+            <li><strong>Дата создания:</strong> {{ object.created_at|date:"d.m.Y H:i:s" }}</li>
+            <li><strong>Дата обновления:</strong> {{ object.updated_at|date:"d.m.Y H:i:s" }}</li>
+        </ul>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="submit-row">
+            <input type="submit" value="Да, я уверен" class="default">
+            <a href="{% url 'admin:user_change' object.id %}" class="button cancel-link">Нет, вернуться</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

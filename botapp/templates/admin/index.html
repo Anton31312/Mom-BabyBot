@@ -1,0 +1,479 @@
+{% extends "admin/base_site.html" %}
+{% load admin_urls static %}
+
+{% block title %}{{ title }} | {{ site_title|default:"Django site admin" }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+.dashboard-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.stat-item {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    flex: 1;
+    min-width: 200px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.stat-item h3 {
+    font-size: 2.2em;
+    margin: 0 0 10px 0;
+    color: #417690;
+}
+
+.stat-item p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.count {
+    font-weight: bold;
+    color: #417690;
+}
+
+.chart-container {
+    width: 100%;
+    height: 300px;
+    margin: 20px 0;
+    position: relative;
+}
+
+.chart-tabs {
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.chart-tab {
+    padding: 10px 15px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+    margin-right: 5px;
+    border-radius: 4px 4px 0 0;
+}
+
+.chart-tab.active {
+    background-color: #f8f9fa;
+    border-color: #ddd;
+    color: #417690;
+    font-weight: bold;
+}
+
+.chart-content {
+    display: none;
+}
+
+.chart-content.active {
+    display: block;
+}
+
+.recent-users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.recent-users-table th, .recent-users-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.recent-users-table th {
+    background-color: #f8f9fa;
+    color: #417690;
+}
+
+.recent-users-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+.status-admin {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-premium {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-pregnant {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-regular {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+
+.activity-indicator {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.activity-label {
+    margin-right: 10px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.activity-bar {
+    height: 6px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.activity-value {
+    height: 100%;
+    background-color: #417690;
+    border-radius: 3px;
+}
+
+.activity-text {
+    margin-left: 10px;
+    font-size: 0.9em;
+    color: #417690;
+    font-weight: bold;
+}
+</style>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module">
+        <h2>Статистика Mom&Baby Bot</h2>
+        <div class="dashboard-stats">
+            <div class="stat-item">
+                <h3>{{ total_users }}</h3>
+                <p>Всего пользователей</p>
+                <div class="activity-indicator">
+                    <div class="activity-label">Сегодня:</div>
+                    <div class="activity-bar">
+                        <div class="activity-value" style="width: {{ active_users_today|default:0|divisibleby:total_users|default:1|floatformat:2|multiply:100 }}%"></div>
+                    </div>
+                    <div class="activity-text">+{{ active_users_today|default:0 }}</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <h3>{{ pregnant_users }}</h3>
+                <p>Беременных пользователей</p>
+                <div class="activity-indicator">
+                    <div class="activity-label">% от общего:</div>
+                    <div class="activity-bar">
+                        <div class="activity-value" style="width: {{ pregnant_users|default:0|divisibleby:total_users|default:1|floatformat:2|multiply:100 }}%"></div>
+                    </div>
+                    <div class="activity-text">{{ pregnant_users|default:0|divisibleby:total_users|default:1|floatformat:2|multiply:100 }}%</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <h3>{{ premium_users }}</h3>
+                <p>Премиум пользователей</p>
+                <div class="activity-indicator">
+                    <div class="activity-label">% от общего:</div>
+                    <div class="activity-bar">
+                        <div class="activity-value" style="width: {{ premium_users|default:0|divisibleby:total_users|default:1|floatformat:2|multiply:100 }}%"></div>
+                    </div>
+                    <div class="activity-text">{{ premium_users|default:0|divisibleby:total_users|default:1|floatformat:2|multiply:100 }}%</div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <h3>{{ admin_users }}</h3>
+                <p>Администраторов</p>
+                <div class="activity-indicator">
+                    <div class="activity-label">% от общего:</div>
+                    <div class="activity-bar">
+                        <div class="activity-value" style="width: {{ admin_users|default:0|divisibleby:total_users|default:1|floatformat:2|multiply:100 }}%"></div>
+                    </div>
+                    <div class="activity-text">{{ admin_users|default:0|divisibleby:total_users|default:1|floatformat:2|multiply:100 }}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="module">
+        <h2>Аналитика</h2>
+        <div class="chart-tabs">
+            <div class="chart-tab active" data-chart="registrations">Регистрации</div>
+            <div class="chart-tab" data-chart="pregnancy">Недели беременности</div>
+        </div>
+        
+        <div class="chart-content active" id="registrations-chart-container">
+            <div class="chart-container">
+                <canvas id="registrationsChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-content" id="pregnancy-chart-container">
+            <div class="chart-container">
+                <canvas id="pregnancyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    {% if recent_users %}
+    <div class="module">
+        <h2>Последние пользователи</h2>
+        <table class="recent-users-table">
+            <thead>
+                <tr>
+                    <th>Telegram ID</th>
+                    <th>Имя пользователя</th>
+                    <th>Имя</th>
+                    <th>Дата регистрации</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in recent_users %}
+                <tr>
+                    <td>
+                        <a href="{% url 'admin:user_change' user.id %}">{{ user.telegram_id }}</a>
+                    </td>
+                    <td>{{ user.username|default:"-" }}</td>
+                    <td>{{ user.first_name|default:"-" }}</td>
+                    <td>{{ user.created_at|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        {% if user.is_admin %}
+                            <span class="status-badge status-admin">Админ</span>
+                        {% elif user.is_premium %}
+                            <span class="status-badge status-premium">Премиум</span>
+                        {% elif user.is_pregnant %}
+                            <span class="status-badge status-pregnant">Беременна</span>
+                        {% else %}
+                            <span class="status-badge status-regular">Обычный</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="module">
+        <h2>Управление</h2>
+        <div class="app-list">
+            <div class="app-botapp module">
+                <table>
+                    <caption>
+                        <a href="{% url 'admin:app_list' app_label='botapp' %}" class="section" title="Модели в приложении botapp">Botapp</a>
+                    </caption>
+                    <tbody>
+                        {% for model in sqlalchemy_models %}
+                        <tr class="model-user">
+                            <th scope="row">
+                                <a href="{{ model.url }}">{{ model.name }}</a>
+                            </th>
+                            <td>
+                                <a href="{{ model.url }}" class="changelink">Изменить</a>
+                            </td>
+                            <td>
+                                <a href="{{ model.url }}add/" class="addlink">Добавить</a>
+                            </td>
+                            <td class="count">{{ model.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% if app_list %}
+    <div class="module">
+        <h2>Django модели</h2>
+        {% for app in app_list %}
+            <div class="app-{{ app.app_label }} module">
+                <table>
+                    <caption>
+                        <a href="{{ app.app_url }}" class="section" title="Модели в приложении {{ app.name }}">{{ app.name }}</a>
+                    </caption>
+                    <tbody>
+                        {% for model in app.models %}
+                            <tr class="model-{{ model.object_name|lower }}">
+                                <th scope="row">
+                                    <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                                </th>
+                                {% if model.admin_url %}
+                                    <td><a href="{{ model.admin_url }}" class="changelink">Изменить</a></td>
+                                {% else %}
+                                    <td>&nbsp;</td>
+                                {% endif %}
+                                {% if model.add_url %}
+                                    <td><a href="{{ model.add_url }}" class="addlink">Добавить</a></td>
+                                {% else %}
+                                    <td>&nbsp;</td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализация графика регистраций
+    const registrationsCtx = document.getElementById('registrationsChart').getContext('2d');
+    const registrationsChart = new Chart(registrationsCtx, {
+        type: 'line',
+        data: {
+            labels: {{ registration_dates|safe }},
+            datasets: [{
+                label: 'Количество регистраций',
+                data: {{ registration_counts|safe }},
+                backgroundColor: 'rgba(65, 118, 144, 0.2)',
+                borderColor: 'rgba(65, 118, 144, 1)',
+                borderWidth: 2,
+                tension: 0.3,
+                pointBackgroundColor: 'rgba(65, 118, 144, 1)',
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Регистрации пользователей за последние 30 дней',
+                    font: {
+                        size: 16
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    titleColor: '#333',
+                    bodyColor: '#666',
+                    borderColor: '#ddd',
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            return `Регистраций: ${context.raw}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+    
+    // Инициализация графика недель беременности
+    const pregnancyCtx = document.getElementById('pregnancyChart').getContext('2d');
+    const pregnancyChart = new Chart(pregnancyCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ pregnancy_week_labels|safe }},
+            datasets: [{
+                label: 'Количество пользователей',
+                data: {{ pregnancy_week_counts|safe }},
+                backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                borderColor: 'rgba(220, 53, 69, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Распределение пользователей по неделям беременности',
+                    font: {
+                        size: 16
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+    
+    // Переключение между вкладками графиков
+    const chartTabs = document.querySelectorAll('.chart-tab');
+    const chartContents = document.querySelectorAll('.chart-content');
+    
+    chartTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const chartId = tab.getAttribute('data-chart');
+            
+            // Активация вкладки
+            chartTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Активация содержимого
+            chartContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(`${chartId}-chart-container`).classList.add('active');
+            
+            // Обновление графиков для корректного отображения
+            if (chartId === 'registrations') {
+                registrationsChart.update();
+            } else if (chartId === 'pregnancy') {
+                pregnancyChart.update();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

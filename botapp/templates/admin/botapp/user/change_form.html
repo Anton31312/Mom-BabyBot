@@ -1,0 +1,166 @@
+{% extends "admin/base_site.html" %}
+{% load admin_urls static %}
+
+{% block title %}
+    {% if original %}
+        Изменить пользователя {{ original.telegram_id }}
+    {% else %}
+        Добавить пользователя
+    {% endif %}
+    | {{ site_title|default:"Django site admin" }}
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">Главная</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label='botapp' %}">Botapp</a>
+&rsaquo; <a href="{% url 'admin:user_changelist' %}">Пользователи</a>
+&rsaquo; {% if original %}{{ original.telegram_id }}{% else %}Добавить{% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form method="post" id="user_form" novalidate>
+        {% csrf_token %}
+        
+        <div>
+            <fieldset class="module aligned">
+                <h2>Основная информация</h2>
+                
+                <div class="form-row field-telegram_id">
+                    <div>
+                        <label class="required" for="id_telegram_id">Telegram ID:</label>
+                        <input type="number" name="telegram_id" value="{% if original %}{{ original.telegram_id }}{% endif %}" class="vIntegerField" required id="id_telegram_id">
+                        <div class="help">Уникальный идентификатор пользователя в Telegram</div>
+                    </div>
+                </div>
+
+                <div class="form-row field-username">
+                    <div>
+                        <label for="id_username">Имя пользователя:</label>
+                        <input type="text" name="username" value="{% if original %}{{ original.username|default:'' }}{% endif %}" maxlength="64" id="id_username">
+                        <div class="help">Имя пользователя в Telegram (без @)</div>
+                    </div>
+                </div>
+
+                <div class="form-row field-first_name">
+                    <div>
+                        <label for="id_first_name">Имя:</label>
+                        <input type="text" name="first_name" value="{% if original %}{{ original.first_name|default:'' }}{% endif %}" maxlength="64" id="id_first_name">
+                    </div>
+                </div>
+
+                <div class="form-row field-last_name">
+                    <div>
+                        <label for="id_last_name">Фамилия:</label>
+                        <input type="text" name="last_name" value="{% if original %}{{ original.last_name|default:'' }}{% endif %}" maxlength="64" id="id_last_name">
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="module aligned">
+                <h2>Статус беременности</h2>
+                
+                <div class="form-row field-is_pregnant">
+                    <div>
+                        <label for="id_is_pregnant">Беременна:</label>
+                        <input type="checkbox" name="is_pregnant" id="id_is_pregnant"{% if original.is_pregnant %} checked{% endif %}>
+                    </div>
+                </div>
+
+                <div class="form-row field-pregnancy_week">
+                    <div>
+                        <label for="id_pregnancy_week">Неделя беременности:</label>
+                        <input type="number" name="pregnancy_week" value="{% if original and original.pregnancy_week %}{{ original.pregnancy_week }}{% endif %}" min="1" max="42" id="id_pregnancy_week">
+                        <div class="help">Текущая неделя беременности (1-42)</div>
+                    </div>
+                </div>
+
+                <div class="form-row field-baby_birth_date">
+                    <div>
+                        <label for="id_baby_birth_date">Дата рождения ребенка:</label>
+                        <input type="date" name="baby_birth_date" value="{% if original and original.baby_birth_date %}{{ original.baby_birth_date|date:'Y-m-d' }}{% endif %}" id="id_baby_birth_date">
+                        <div class="help">Дата рождения ребенка (если уже родился)</div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="module aligned">
+                <h2>Права доступа</h2>
+                
+                <div class="form-row field-is_premium">
+                    <div>
+                        <label for="id_is_premium">Премиум пользователь:</label>
+                        <input type="checkbox" name="is_premium" id="id_is_premium"{% if original.is_premium %} checked{% endif %}>
+                        <div class="help">Доступ к премиум функциям</div>
+                    </div>
+                </div>
+
+                <div class="form-row field-is_admin">
+                    <div>
+                        <label for="id_is_admin">Администратор:</label>
+                        <input type="checkbox" name="is_admin" id="id_is_admin"{% if original.is_admin %} checked{% endif %}>
+                        <div class="help">Административные права в боте</div>
+                    </div>
+                </div>
+            </fieldset>
+
+            {% if original %}
+            <fieldset class="module aligned">
+                <h2>Системная информация</h2>
+                
+                <div class="form-row field-created_at">
+                    <div>
+                        <label>Дата создания:</label>
+                        <div class="readonly">{{ original.created_at|date:"d.m.Y H:i:s" }}</div>
+                    </div>
+                </div>
+
+                <div class="form-row field-updated_at">
+                    <div>
+                        <label>Дата обновления:</label>
+                        <div class="readonly">{{ original.updated_at|date:"d.m.Y H:i:s" }}</div>
+                    </div>
+                </div>
+            </fieldset>
+            {% endif %}
+        </div>
+
+        <div class="submit-row">
+            <input type="submit" value="Сохранить" class="default" name="_save">
+            <input type="submit" value="Сохранить и продолжить редактирование" name="_continue">
+            <input type="submit" value="Сохранить и добавить другой объект" name="_addanother">
+            {% if original %}
+                <p class="deletelink-box">
+                    <a href="{% url 'admin:user_delete' original.id %}" class="deletelink">Удалить</a>
+                </p>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Автоматическое управление полями беременности
+    const isPregnantCheckbox = document.getElementById('id_is_pregnant');
+    const pregnancyWeekField = document.getElementById('id_pregnancy_week');
+    const babyBirthDateField = document.getElementById('id_baby_birth_date');
+    
+    function togglePregnancyFields() {
+        if (isPregnantCheckbox.checked) {
+            pregnancyWeekField.parentElement.parentElement.style.display = 'block';
+            babyBirthDateField.parentElement.parentElement.style.display = 'none';
+            babyBirthDateField.value = '';
+        } else {
+            pregnancyWeekField.parentElement.parentElement.style.display = 'none';
+            pregnancyWeekField.value = '';
+            babyBirthDateField.parentElement.parentElement.style.display = 'block';
+        }
+    }
+    
+    isPregnantCheckbox.addEventListener('change', togglePregnancyFields);
+    togglePregnancyFields(); // Инициализация при загрузке
+});
+</script>
+{% endblock %}

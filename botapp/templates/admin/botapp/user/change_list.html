@@ -1,0 +1,255 @@
+{% extends "admin/base_site.html" %}
+{% load admin_urls static admin_list %}
+
+{% block title %}Пользователи | {{ site_title|default:"Django site admin" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">Главная</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label='botapp' %}">Botapp</a>
+&rsaquo; Пользователи
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="module filtered" id="changelist">
+    <div class="results">
+        <table id="result_list">
+            <thead>
+                <tr>
+                    <th scope="col">
+                        <div class="text">
+                            <a href="?o=1">Telegram ID</a>
+                        </div>
+                    </th>
+                    <th scope="col">
+                        <div class="text">Имя пользователя</div>
+                    </th>
+                    <th scope="col">
+                        <div class="text">Имя</div>
+                    </th>
+                    <th scope="col">
+                        <div class="text">Фамилия</div>
+                    </th>
+                    <th scope="col">
+                        <div class="text">Беременна</div>
+                    </th>
+                    <th scope="col">
+                        <div class="text">Премиум</div>
+                    </th>
+                    <th scope="col">
+                        <div class="text">Админ</div>
+                    </th>
+                    <th scope="col">
+                        <div class="text">Дата создания</div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for obj in objects %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <th class="field-telegram_id">
+                        <a href="{% url 'admin:user_change' obj.id %}">{{ obj.telegram_id }}</a>
+                    </th>
+                    <td class="field-username">{{ obj.username|default:"-" }}</td>
+                    <td class="field-first_name">{{ obj.first_name|default:"-" }}</td>
+                    <td class="field-last_name">{{ obj.last_name|default:"-" }}</td>
+                    <td class="field-is_pregnant">
+                        {% if obj.is_pregnant %}
+                            <img src="{% static "admin/img/icon-yes.svg" %}" alt="True">
+                        {% else %}
+                            <img src="{% static "admin/img/icon-no.svg" %}" alt="False">
+                        {% endif %}
+                    </td>
+                    <td class="field-is_premium">
+                        {% if obj.is_premium %}
+                            <img src="{% static "admin/img/icon-yes.svg" %}" alt="True">
+                        {% else %}
+                            <img src="{% static "admin/img/icon-no.svg" %}" alt="False">
+                        {% endif %}
+                    </td>
+                    <td class="field-is_admin">
+                        {% if obj.is_admin %}
+                            <img src="{% static "admin/img/icon-yes.svg" %}" alt="True">
+                        {% else %}
+                            <img src="{% static "admin/img/icon-no.svg" %}" alt="False">
+                        {% endif %}
+                    </td>
+                    <td class="field-created_at">{{ obj.created_at|date:"d.m.Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">Пользователи не найдены</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <p class="paginator">
+        {{ total_count }} пользователей
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if is_pregnant_filter %}&is_pregnant={{ is_pregnant_filter }}{% endif %}{% if is_premium_filter %}&is_premium={{ is_premium_filter }}{% endif %}{% if is_admin_filter %}&is_admin={{ is_admin_filter }}{% endif %}" class="prev">предыдущая</a>
+        {% endif %}
+        
+        <span class="this-page">
+            Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if is_pregnant_filter %}&is_pregnant={{ is_pregnant_filter }}{% endif %}{% if is_premium_filter %}&is_premium={{ is_premium_filter }}{% endif %}{% if is_admin_filter %}&is_admin={{ is_admin_filter }}{% endif %}" class="next">следующая</a>
+        {% endif %}
+    </p>
+    {% endif %}
+</div>
+
+<div class="actions">
+    <label>Действие: <select name="action" required>
+        <option value="" selected>---------</option>
+    </select></label>
+    <button type="submit" class="button" title="Выполнить выбранное действие" name="index" value="0">Выполнить</button>
+</div>
+
+<div class="module filtered" id="changelist-search">
+    <div class="results">
+        <form id="changelist-search-form" method="get">
+            <div>
+                <label for="searchbar"><img src="{% static "admin/img/search.svg" %}" alt="Поиск"></label>
+                <input type="text" size="40" name="q" value="{{ search_query }}" id="searchbar" autofocus>
+                <input type="submit" value="Поиск">
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="module filtered" id="changelist-filter">
+    <h2>Фильтр</h2>
+    <form method="get">
+        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+        
+        <h3>По статусу беременности</h3>
+        <ul>
+            <li{% if not is_pregnant_filter %} class="selected"{% endif %}>
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if is_premium_filter %}is_premium={{ is_premium_filter }}&{% endif %}{% if is_admin_filter %}is_admin={{ is_admin_filter }}{% endif %}">Все</a>
+            </li>
+            <li{% if is_pregnant_filter == 'true' %} class="selected"{% endif %}>
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}is_pregnant=true{% if is_premium_filter %}&is_premium={{ is_premium_filter }}{% endif %}{% if is_admin_filter %}&is_admin={{ is_admin_filter }}{% endif %}">Беременные</a>
+                {% if filter_stats.pregnant_count %}<span class="count">({{ filter_stats.pregnant_count }})</span>{% endif %}
+            </li>
+            <li{% if is_pregnant_filter == 'false' %} class="selected"{% endif %}>
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}is_pregnant=false{% if is_premium_filter %}&is_premium={{ is_premium_filter }}{% endif %}{% if is_admin_filter %}&is_admin={{ is_admin_filter }}{% endif %}">Не беременные</a>
+            </li>
+        </ul>
+
+        <h3>По премиум статусу</h3>
+        <ul>
+            <li{% if not is_premium_filter %} class="selected"{% endif %}>
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if is_pregnant_filter %}is_pregnant={{ is_pregnant_filter }}&{% endif %}{% if is_admin_filter %}is_admin={{ is_admin_filter }}{% endif %}">Все</a>
+            </li>
+            <li{% if is_premium_filter == 'true' %} class="selected"{% endif %}>
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if is_pregnant_filter %}is_pregnant={{ is_pregnant_filter }}&{% endif %}is_premium=true{% if is_admin_filter %}&is_admin={{ is_admin_filter }}{% endif %}">Премиум</a>
+                {% if filter_stats.premium_count %}<span class="count">({{ filter_stats.premium_count }})</span>{% endif %}
+            </li>
+            <li{% if is_premium_filter == 'false' %} class="selected"{% endif %}>
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if is_pregnant_filter %}is_pregnant={{ is_pregnant_filter }}&{% endif %}is_premium=false{% if is_admin_filter %}&is_admin={{ is_admin_filter }}{% endif %}">Обычные</a>
+            </li>
+        </ul>
+
+        <h3>По админ статусу</h3>
+        <ul>
+            <li{% if not is_admin_filter %} class="selected"{% endif %}>
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if is_pregnant_filter %}is_pregnant={{ is_pregnant_filter }}&{% endif %}{% if is_premium_filter %}is_premium={{ is_premium_filter }}{% endif %}">Все</a>
+            </li>
+            <li{% if is_admin_filter == 'true' %} class="selected"{% endif %}>
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if is_pregnant_filter %}is_pregnant={{ is_pregnant_filter }}&{% endif %}{% if is_premium_filter %}is_premium={{ is_premium_filter }}&{% endif %}is_admin=true">Админы</a>
+                {% if filter_stats.admin_count %}<span class="count">({{ filter_stats.admin_count }})</span>{% endif %}
+            </li>
+            <li{% if is_admin_filter == 'false' %} class="selected"{% endif %}>
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if is_pregnant_filter %}is_pregnant={{ is_pregnant_filter }}&{% endif %}{% if is_premium_filter %}is_premium={{ is_premium_filter }}&{% endif %}is_admin=false">Пользователи</a>
+            </li>
+        </ul>
+        
+        <!-- Расширенные фильтры -->
+        <h3>Расширенные фильтры</h3>
+        <div class="advanced-filters">
+            <div class="filter-group">
+                <label for="created_from">Дата регистрации от:</label>
+                <input type="date" id="created_from" name="created_from" value="{{ created_from|default:'' }}">
+            </div>
+            
+            <div class="filter-group">
+                <label for="created_to">Дата регистрации до:</label>
+                <input type="date" id="created_to" name="created_to" value="{{ created_to|default:'' }}">
+            </div>
+            
+            <div class="filter-group">
+                <label for="pregnancy_week_min">Неделя беременности от:</label>
+                <input type="number" id="pregnancy_week_min" name="pregnancy_week_min" min="1" max="42" value="{{ pregnancy_week_min|default:'' }}">
+            </div>
+            
+            <div class="filter-group">
+                <label for="pregnancy_week_max">Неделя беременности до:</label>
+                <input type="number" id="pregnancy_week_max" name="pregnancy_week_max" min="1" max="42" value="{{ pregnancy_week_max|default:'' }}">
+            </div>
+            
+            <div class="filter-group">
+                <label for="baby_age_months">Возраст ребенка (месяцев):</label>
+                <input type="number" id="baby_age_months" name="baby_age_months" min="0" value="{{ baby_age_months|default:'' }}">
+            </div>
+            
+            <div class="filter-actions">
+                <button type="submit" class="button">Применить фильтры</button>
+                <a href="?" class="button">Сбросить</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+.advanced-filters {
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.filter-group {
+    margin-bottom: 10px;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 3px;
+    font-weight: normal;
+    font-size: 12px;
+}
+
+.filter-group input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.filter-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.count {
+    color: #999;
+    font-size: 0.9em;
+    margin-left: 3px;
+}
+</style>
+
+<ul class="object-tools">
+    <li>
+        <a href="{% url 'admin:user_add' %}" class="addlink">
+            Добавить пользователя
+        </a>
+    </li>
+</ul>
+{% endblock %}
