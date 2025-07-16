@@ -1,0 +1,50 @@
+{% comment %}
+    Glassmorphic Dropdown Component
+    
+    Usage:
+    {% include 'components/glass_dropdown.html' with toggle_text="Dropdown" items=dropdown_items %}
+    
+    Parameters:
+    - toggle_text: Text to display in the dropdown toggle
+    - items: List of dictionaries with 'text' and 'url' keys
+    - dropdown_id: Optional unique ID for the dropdown
+    - dropdown_class: Optional additional CSS classes
+{% endcomment %}
+
+{% if not dropdown_id %}
+    {% with dropdown_id="glass-dropdown-"|add:toggle_text|slugify %}
+        {% include 'components/glass_dropdown.html' with toggle_text=toggle_text items=items dropdown_id=dropdown_id dropdown_class=dropdown_class %}
+    {% endwith %}
+{% else %}
+    <div class="glass-dropdown {% if dropdown_class %}{{ dropdown_class }}{% endif %}" id="{{ dropdown_id }}">
+        <div class="glass-dropdown-toggle" onclick="toggleGlassDropdown('{{ dropdown_id }}')">
+            <span>{{ toggle_text }}</span>
+            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+        </div>
+        
+        <div class="glass-dropdown-menu">
+            {% for item in items %}
+                <a href="{{ item.url }}" class="glass-dropdown-item">{{ item.text }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <script>
+        function toggleGlassDropdown(id) {
+            const dropdown = document.getElementById(id);
+            if (dropdown) {
+                dropdown.classList.toggle('active');
+                
+                // Close when clicking outside
+                document.addEventListener('click', function closeDropdown(e) {
+                    if (!dropdown.contains(e.target)) {
+                        dropdown.classList.remove('active');
+                        document.removeEventListener('click', closeDropdown);
+                    }
+                });
+            }
+        }
+    </script>
+{% endif %}

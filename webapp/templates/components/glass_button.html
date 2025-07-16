@@ -1,0 +1,23 @@
+{% comment %}
+    Glassmorphic Button Component
+    
+    Usage:
+    {% include 'components/glass_button.html' with text="Button Text" href="#" %}
+    
+    Parameters:
+    - text: The button text
+    - href: Optional link URL (if provided, renders as <a> instead of <button>)
+    - type: Optional button type (default: "button")
+    - button_class: Optional additional CSS classes
+    - onclick: Optional JavaScript onclick handler
+{% endcomment %}
+
+{% if href %}
+<a href="{{ href }}" class="glass-button {% if button_class %}{{ button_class }}{% endif %}" {% if onclick %}onclick="{{ onclick }}"{% endif %}>
+    {{ text }}
+</a>
+{% else %}
+<button type="{{ type|default:'button' }}" class="glass-button {% if button_class %}{{ button_class }}{% endif %}" {% if onclick %}onclick="{{ onclick }}"{% endif %}>
+    {{ text }}
+</button>
+{% endif %}

@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Mom&BabyBot - Счетчик шевелений{% endblock %}
+
+{% block content %}
+<div class="glass-container mb-6">
+    <h1 class="text-2xl font-bold mb-4">Счетчик шевелений</h1>
+    <p class="text-dark-gray mb-4">Отслеживайте шевеления вашего малыша для контроля его активности и здоровья.</p>
+</div>
+
+<div class="neo-container mb-6">
+    <div class="flex flex-col items-center justify-center py-6">
+        <div id="timer" class="text-5xl font-bold mb-6 neo-card px-8 py-4 bg-white">00:00:00</div>
+        
+        <div class="flex flex-wrap justify-center gap-4 mb-6">
+            <button id="startButton" class="neo-button bg-primary px-8 py-3 hover:bg-opacity-80 transition-all">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Начать
+                </div>
+            </button>
+            <button id="kickButton" class="neo-button bg-accent px-8 py-3 hover:bg-opacity-80 transition-all" disabled>
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <span>Шевеление</span>
+                </div>
+            </button>
+            <button id="stopButton" class="neo-button bg-accent-secondary px-8 py-3 hover:bg-opacity-80 transition-all" disabled>
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+                    </svg>
+                    Завершить
+                </div>
+            </button>
+        </div>
+        
+        <div id="kickStats" class="glass-card w-full max-w-md p-4">
+            <h3 class="text-lg font-semibold mb-3">Статистика текущей сессии</h3>
+            <div id="stats" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="neo-card p-3 text-center">
+                    <div class="text-sm text-dark-gray mb-1">Количество</div>
+                    <div id="kickCount" class="text-xl font-bold">0</div>
+                </div>
+                <div class="neo-card p-3 text-center">
+                    <div class="text-sm text-dark-gray mb-1">Ср. интервал</div>
+                    <div id="avgInterval" class="text-xl font-bold">-</div>
+                </div>
+                <div class="neo-card p-3 text-center">
+                    <div class="text-sm text-dark-gray mb-1">Шевелений в час</div>
+                    <div id="kicksPerHour" class="text-xl font-bold">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="glass-container mb-6">
+    <h2 class="text-xl font-bold mb-4">Рекомендации по шевелениям</h2>
+    <div class="neo-container p-4">
+        <div class="mb-4 text-dark-gray">
+            <p class="mb-2"><strong>Нормальные модели шевелений:</strong></p>
+            <ul class="list-disc pl-5 mb-3">
+                <li>Начиная с 28 недели беременности, рекомендуется отслеживать шевеления ежедневно</li>
+                <li>Норма: 10 или более шевелений за 2 часа</li>
+                <li>Каждый ребенок имеет свой собственный ритм активности</li>
+                <li>Обычно активность выше вечером и ночью</li>
+            </ul>
+            <p class="mb-2"><strong>Когда обратиться к врачу:</strong></p>
+            <ul class="list-disc pl-5">
+                <li>Если вы чувствуете менее 10 шевелений за 2 часа</li>
+                <li>Если заметили значительное снижение активности</li>
+                <li>Если шевеления внезапно прекратились</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="glass-container mb-6">
+    <h2 class="text-xl font-bold mb-4">Визуализация шевелений</h2>
+    <div class="neo-container p-4">
+        <div class="mb-4">
+            <canvas id="kickChart" height="200"></canvas>
+        </div>
+        <div class="text-sm text-dark-gray text-center">
+            График показывает количество и интервалы между шевелениями. Более высокие значения означают более длительные интервалы между шевелениями.
+        </div>
+    </div>
+</div>
+
+<div class="glass-container">
+    <h2 class="text-xl font-bold mb-4">История шевелений</h2>
+    <div id="kickHistory" class="space-y-4">
+        <p class="text-center text-dark-gray">История шевелений будет отображаться здесь</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+// Получаем ID пользователя из контекста
+const userId = {{ user_id|default:1 }};
+{% endblock %}
+
+{% block extra_head %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/kick-counter.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/kick-counter.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% comment %}
+    Glassmorphic Progress Bar Component
+    
+    Usage:
+    {% include 'components/glass_progress.html' with value=75 max=100 variant="primary" %}
+    
+    Parameters:
+    - value: Current value of the progress bar
+    - max: Maximum value of the progress bar (default: 100)
+    - variant: Color variant (primary, secondary, accent, accent-secondary)
+    - progress_class: Optional additional CSS classes
+{% endcomment %}
+
+<div class="glass-progress {% if progress_class %}{{ progress_class }}{% endif %}">
+    <div class="glass-progress-bar {% if variant %}glass-{{ variant }}{% else %}glass-primary{% endif %}" 
+         style="width: {{ value|default:0 }}{% if max %}{{ value|default:0|divisibleby:max|yesno:",%" }}{% else %}%{% endif %}">
+    </div>
+</div>

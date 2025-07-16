@@ -1,0 +1,30 @@
+{% comment %}
+    Glassmorphic Avatar Component
+    
+    Usage:
+    {% include 'components/glass_avatar.html' with image_url="path/to/image.jpg" alt_text="User Name" size="md" %}
+    
+    Parameters:
+    - image_url: URL to the avatar image
+    - alt_text: Alternative text for the image
+    - size: Size of the avatar (sm, md, lg)
+    - avatar_class: Optional additional CSS classes
+{% endcomment %}
+
+{% if not size %}
+    {% with size="md" %}
+        {% include 'components/glass_avatar.html' with image_url=image_url alt_text=alt_text size=size avatar_class=avatar_class %}
+    {% endwith %}
+{% else %}
+    <div class="glass-avatar 
+        {% if size == 'sm' %}w-8 h-8{% elif size == 'lg' %}w-16 h-16{% else %}w-12 h-12{% endif %} 
+        {% if avatar_class %}{{ avatar_class }}{% endif %}">
+        {% if image_url %}
+            <img src="{{ image_url }}" alt="{{ alt_text|default:'Avatar' }}">
+        {% else %}
+            <div class="flex items-center justify-center w-full h-full bg-glass-primary text-dark-gray font-semibold">
+                {{ alt_text|default:'U'|slice:":1" }}
+            </div>
+        {% endif %}
+    </div>
+{% endif %}

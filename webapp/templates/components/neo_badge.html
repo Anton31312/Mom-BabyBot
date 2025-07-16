@@ -1,0 +1,15 @@
+{% comment %}
+    Neomorphic Badge Component
+    
+    Usage:
+    {% include 'components/neo_badge.html' with text="Badge Text" variant="primary" %}
+    
+    Parameters:
+    - text: The text to display in the badge
+    - variant: Color variant (primary, secondary, accent, accent-secondary)
+    - badge_class: Optional additional CSS classes
+{% endcomment %}
+
+<span class="neo-badge {% if variant %}neo-{{ variant }}{% endif %} {% if badge_class %}{{ badge_class }}{% endif %}">
+    {{ text }}
+</span>

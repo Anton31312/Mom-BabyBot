@@ -13,6 +13,11 @@ class BotappConfig(AppConfig):
         Initialize SQLAlchemy when Django app is ready.
         """
         try:
+            # Import models to ensure they are registered with SQLAlchemy
+            from botapp.models import User
+            from botapp.models_child import Child, Measurement
+            
+            # Initialize SQLAlchemy
             from mom_baby_bot.sqlalchemy_utils import init_sqlalchemy
             init_sqlalchemy()
             logger.info("SQLAlchemy initialized for botapp")

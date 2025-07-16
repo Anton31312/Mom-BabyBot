@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}UI Components Showcase{% endblock %}
+
+{% block content %}
+<div class="section">
+    <h1 class="section-title text-2xl font-bold mb-6">UI Components Showcase</h1>
+    
+    <div class="mb-12">
+        <h2 class="text-xl font-semibold mb-4">Neomorphic Components</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Neomorphic Cards -->
+            <div class="neo-card p-6">
+                <h3 class="text-lg font-semibold mb-4">Cards</h3>
+                
+                <div class="space-y-4">
+                    {% include 'components/neo_card.html' with title="Standard Card" content="This is a standard neomorphic card component." %}
+                    
+                    {% include 'components/neo_card.html' with 
+                        title="Card with Icon" 
+                        content="This card includes an icon." 
+                        icon_svg='<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>' 
+                    %}
+                    
+                    {% include 'components/neo_card.html' with 
+                        title="Card with Footer" 
+                        content="This card includes a footer section." 
+                        footer='<div class="flex justify-between"><span>Created: Today</span><span>Author: User</span></div>' 
+                    %}
+                </div>
+            </div>
+            
+            <!-- Neomorphic Buttons -->
+            <div class="neo-card p-6">
+                <h3 class="text-lg font-semibold mb-4">Buttons</h3>
+                
+                <div class="space-y-4">
+                    <div class="flex flex-wrap gap-2">
+                        <button class="neo-button">Default Button</button>
+                        <button class="neo-button neo-primary">Primary</button>
+                        <button class="neo-button neo-secondary">Secondary</button>
+                        <button class="neo-button neo-accent">Accent</button>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2">
+                        <button class="neo-button neo-sm">Small</button>
+                        <button class="neo-button">Medium</button>
+                        <button class="neo-button neo-lg">Large</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Neomorphic Form Elements -->
+            <div class="neo-card p-6">
+                <h3 class="text-lg font-semibold mb-4">Form Elements</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block mb-2">Input</label>
+                        <input type="text" class="neo-input w-full" placeholder="Enter text...">
+                    </div>
+                    
+                    <div>
+                        <label class="block mb-2">Textarea</label>
+                        <textarea class="neo-input w-full" rows="3" placeholder="Enter text..."></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block mb-2">Toggle</label>
+                        <div class="neo-toggle"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Neomorphic Tabs -->
+            <div class="neo-card p-6">
+                <h3 class="text-lg font-semibold mb-4">Tabs</h3>
+                
+                <div data-tab-group="neo-demo-tabs">
+                    <div class="neo-tabs mb-4">
+                        <div class="neo-tab" data-tab-target="neo-tab-1">Tab 1</div>
+                        <div class="neo-tab" data-tab-target="neo-tab-2">Tab 2</div>
+                        <div class="neo-tab" data-tab-target="neo-tab-3">Tab 3</div>
+                    </div>
+                    
+                    <div id="neo-tab-1" class="tab-content">
+                        <p>Content for Tab 1</p>
+                    </div>
+                    <div id="neo-tab-2" class="tab-content">
+                        <p>Content for Tab 2</p>
+                    </div>
+                    <div id="neo-tab-3" class="tab-content">
+                        <p>Content for Tab 3</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Neomorphic Avatars -->
+            <div class="neo-card p-6">
+                <h3 class="text-lg font-semibold mb-4">Avatars</h3>
+                
+                <div class="flex flex-wrap gap-4">
+                    {% include 'components/neo_avatar.html' with size="sm" alt_text="Small" %}
+                    {% include 'components/neo_avatar.html' with alt_text="Medium" %}
+                    {% include 'components/neo_avatar.html' with size="lg" alt_text="Large" %}
+                    {% include 'components/neo_avatar.html' with image_url="https://via.placeholder.com/150" alt_text="With Image" %}
+                </div>
+            </div>
+            
+            <!-- Neomorphic Badges -->
+            <div class="neo-card p-6">
+                <h3 class="text-lg font-semibold mb-4">Badges</h3>
+                
+                <div class="flex flex-wrap gap-2">
+                    {% include 'components/neo_badge.html' with text="Default" %}
+                    {% include 'components/neo_badge.html' with text="Primary" variant="primary" %}
+                    {% include 'components/neo_badge.html' with text="Secondary" variant="secondary" %}
+                    {% include 'components/neo_badge.html' with text="Accent" variant="accent" %}
+                    {% include 'components/neo_badge.html' with text="Lavender" variant="accent-secondary" %}
+                </div>
+            </div>
+            
+            <!-- Neomorphic Progress -->
+            <div class="neo-card p-6">
+                <h3 class="text-lg font-semibold mb-4">Progress Bars</h3>
+                
+                <div class="space-y-4">
+                    {% include 'components/neo_progress.html' with value=25 %}
+                    {% include 'components/neo_progress.html' with value=50 variant="secondary" %}
+                    {% include 'components/neo_progress.html' with value=75 variant="accent" %}
+                    {% include 'components/neo_progress.html' with value=100 variant="accent-secondary" %}
+                </div>
+            </div>
+            
+            <!-- Neomorphic Alerts -->
+            <div class="neo-card p-6">
+                <h3 class="text-lg font-semibold mb-4">Alerts</h3>
+                
+                <div class="space-y-4">
+                    {% include 'components/neo_alert.html' with 
+                        title="Information" 
+                        content="This is an information alert." 
+                        icon_svg='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' 
+                    %}
+                    
+                    {% include 'components/neo_alert.html' with 
+                        title="Success" 
+                        content="Operation completed successfully." 
+                        variant="secondary"
+                        icon_svg='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' 
+                    %}
+                    
+                    {% include 'components/neo_alert.html' with 
+                        title="Warning" 
+                        content="Please check your input." 
+                        variant="accent"
+                        icon_svg='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>' 
+                    %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mb-12">
+        <h2 class="text-xl font-semibold mb-4">Glassmorphic Components</h2>
+        
+        <div class="bg-gradient-pink p-8 rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Glassmorphic Cards -->
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-semibold mb-4">Cards</h3>
+                    
+                    <div class="space-y-4">
+                        {% include 'components/glass_card.html' with title="Standard Card" content="This is a standard glassmorphic card component." %}
+                        
+                        {% include 'components/glass_card.html' with 
+                            title="Card with Icon" 
+                            content="This card includes an icon." 
+                            icon_svg='<svg class="w-6 h-6 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>' 
+                        %}
+                        
+                        {% include 'components/glass_card.html' with 
+                            title="Card with Footer" 
+                            content="This card includes a footer section." 
+                            footer='<div class="flex justify-between"><span>Created: Today</span><span>Author: User</span></div>' 
+                        %}
+                    </div>
+                </div>
+                
+                <!-- Glassmorphic Buttons -->
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-semibold mb-4">Buttons</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="glass-button">Default Button</button>
+                            <button class="glass-button glass-primary">Primary</button>
+                            <button class="glass-button glass-secondary">Secondary</button>
+                            <button class="glass-button glass-accent">Accent</button>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-2">
+                            <button class="glass-button glass-sm">Small</button>
+                            <button class="glass-button">Medium</button>
+                            <button class="glass-button glass-lg">Large</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Glassmorphic Form Elements -->
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-semibold mb-4">Form Elements</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block mb-2">Input</label>
+                            <input type="text" class="glass-input w-full" placeholder="Enter text...">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Glassmorphic Tabs -->
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-semibold mb-4">Tabs</h3>
+                    
+                    <div data-tab-group="glass-demo-tabs">
+                        <div class="glass-tabs mb-4">
+                            <div class="glass-tab" data-tab-target="glass-tab-1">Tab 1</div>
+                            <div class="glass-tab" data-tab-target="glass-tab-2">Tab 2</div>
+                            <div class="glass-tab" data-tab-target="glass-tab-3">Tab 3</div>
+                        </div>
+                        
+                        <div id="glass-tab-1" class="tab-content">
+                            <p>Content for Tab 1</p>
+                        </div>
+                        <div id="glass-tab-2" class="tab-content">
+                            <p>Content for Tab 2</p>
+                        </div>
+                        <div id="glass-tab-3" class="tab-content">
+                            <p>Content for Tab 3</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Glassmorphic Avatars -->
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-semibold mb-4">Avatars</h3>
+                    
+                    <div class="flex flex-wrap gap-4">
+                        {% include 'components/glass_avatar.html' with size="sm" alt_text="Small" %}
+                        {% include 'components/glass_avatar.html' with alt_text="Medium" %}
+                        {% include 'components/glass_avatar.html' with size="lg" alt_text="Large" %}
+                        {% include 'components/glass_avatar.html' with image_url="https://via.placeholder.com/150" alt_text="With Image" %}
+                    </div>
+                </div>
+                
+                <!-- Glassmorphic Badges -->
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-semibold mb-4">Badges</h3>
+                    
+                    <div class="flex flex-wrap gap-2">
+                        {% include 'components/glass_badge.html' with text="Default" %}
+                        {% include 'components/glass_badge.html' with text="Primary" variant="primary" %}
+                        {% include 'components/glass_badge.html' with text="Secondary" variant="secondary" %}
+                        {% include 'components/glass_badge.html' with text="Accent" variant="accent" %}
+                        {% include 'components/glass_badge.html' with text="Lavender" variant="accent-secondary" %}
+                    </div>
+                </div>
+                
+                <!-- Glassmorphic Progress -->
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-semibold mb-4">Progress Bars</h3>
+                    
+                    <div class="space-y-4">
+                        {% include 'components/glass_progress.html' with value=25 %}
+                        {% include 'components/glass_progress.html' with value=50 variant="secondary" %}
+                        {% include 'components/glass_progress.html' with value=75 variant="accent" %}
+                        {% include 'components/glass_progress.html' with value=100 variant="accent-secondary" %}
+                    </div>
+                </div>
+                
+                <!-- Glassmorphic Alerts -->
+                <div class="glass-card p-6">
+                    <h3 class="text-lg font-semibold mb-4">Alerts</h3>
+                    
+                    <div class="space-y-4">
+                        {% include 'components/glass_alert.html' with 
+                            title="Information" 
+                            content="This is an information alert." 
+                            icon_svg='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' 
+                        %}
+                        
+                        {% include 'components/glass_alert.html' with 
+                            title="Success" 
+                            content="Operation completed successfully." 
+                            variant="secondary"
+                            icon_svg='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' 
+                        %}
+                        
+                        {% include 'components/glass_alert.html' with 
+                            title="Warning" 
+                            content="Please check your input." 
+                            variant="accent"
+                            icon_svg='<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>' 
+                        %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mb-12">
+        <h2 class="text-xl font-semibold mb-4">Responsive Layout Examples</h2>
+        
+        <div class="neo-card p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-4">Grid Layout</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {% for i in "12345678"|make_list %}
+                <div class="neo-card p-4">
+                    <h4 class="font-medium">Card {{ i }}</h4>
+                    <p class="text-sm">This card demonstrates responsive grid layout.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="glass-card p-6 bg-gradient-pink">
+            <h3 class="text-lg font-semibold mb-4">Responsive Components</h3>
+            
+            <div class="space-y-6">
+                <!-- Responsive Navigation -->
+                <div class="glass-card p-4">
+                    <h4 class="font-medium mb-2">Navigation</h4>
+                    
+                    <div class="hidden md:flex space-x-4">
+                        <a href="#" class="glass-button">Home</a>
+                        <a href="#" class="glass-button">About</a>
+                        <a href="#" class="glass-button">Services</a>
+                        <a href="#" class="glass-button">Contact</a>
+                    </div>
+                    
+                    <div class="md:hidden">
+                        <button class="glass-button w-full flex justify-between items-center">
+                            <span>Menu</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Responsive Content Layout -->
+                <div class="glass-card p-4">
+                    <h4 class="font-medium mb-2">Content Layout</h4>
+                    
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="md:w-1/3">
+                            <div class="glass-card p-4 h-full">
+                                <h5 class="font-medium">Sidebar</h5>
+                                <p class="text-sm">This sidebar stacks on mobile and appears on the side on larger screens.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="md:w-2/3">
+                            <div class="glass-card p-4 h-full">
+                                <h5 class="font-medium">Main Content</h5>
+                                <p class="text-sm">This main content area takes full width on mobile and 2/3 width on larger screens.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Responsive Form -->
+                <div class="glass-card p-4">
+                    <h4 class="font-medium mb-2">Form Layout</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block mb-1 text-sm">First Name</label>
+                            <input type="text" class="glass-input w-full">
+                        </div>
+                        
+                        <div>
+                            <label class="block mb-1 text-sm">Last Name</label>
+                            <input type="text" class="glass-input w-full">
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block mb-1 text-sm">Email</label>
+                            <input type="email" class="glass-input w-full">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+// Initialize tabs
+document.addEventListener('DOMContentLoaded', function() {
+    // This is handled by the existing tab initialization code
+});
+{% endblock %}

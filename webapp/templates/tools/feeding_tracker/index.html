@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Mom&BabyBot - Отслеживание кормления{% endblock %}
+
+{% block content %}
+<div class="glass-container mb-6">
+    <h1 class="text-2xl font-bold mb-4">Отслеживание кормления</h1>
+    <p class="text-dark-gray mb-4">Записывайте и анализируйте режим кормления вашего ребенка.</p>
+</div>
+
+<div class="neo-container mb-6">
+    <div class="glass-tabs" data-tab-group="feeding-type">
+        <div class="glass-tab active" data-tab-target="breast-feeding">Грудное вскармливание</div>
+        <div class="glass-tab" data-tab-target="bottle-feeding">Кормление из бутылочки</div>
+    </div>
+    
+    <div class="mt-6" data-tab-group="feeding-type">
+        <div id="breast-feeding" class="tab-content">
+            <form id="breastFeedingForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-dark-gray mb-2" for="breastFeedingDate">Дата и время</label>
+                        <input type="datetime-local" id="breastFeedingDate" class="neo-input w-full" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-dark-gray mb-2" for="breastFeedingDuration">Продолжительность (мин)</label>
+                        <input type="number" id="breastFeedingDuration" class="neo-input w-full" min="1" required>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-dark-gray mb-2">Грудь</label>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="breast" value="left" class="mr-2" checked>
+                            <span>Левая</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="breast" value="right" class="mr-2">
+                            <span>Правая</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="breast" value="both" class="mr-2">
+                            <span>Обе</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-dark-gray mb-2" for="breastFeedingNotes">Заметки</label>
+                    <textarea id="breastFeedingNotes" class="neo-input w-full" rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="neo-button bg-primary w-full">Сохранить</button>
+            </form>
+        </div>
+        
+        <div id="bottle-feeding" class="tab-content" style="display: none;">
+            <form id="bottleFeedingForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-dark-gray mb-2" for="bottleFeedingDate">Дата и время</label>
+                        <input type="datetime-local" id="bottleFeedingDate" class="neo-input w-full" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-dark-gray mb-2" for="bottleFeedingAmount">Количество (мл)</label>
+                        <input type="number" id="bottleFeedingAmount" class="neo-input w-full" min="1" required>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-dark-gray mb-2">Тип молока/смеси</label>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="milkType" value="formula" class="mr-2" checked>
+                            <span>Смесь</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="milkType" value="expressed" class="mr-2">
+                            <span>Сцеженное молоко</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-dark-gray mb-2" for="bottleFeedingNotes">Заметки</label>
+                    <textarea id="bottleFeedingNotes" class="neo-input w-full" rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="neo-button bg-primary w-full">Сохранить</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="glass-container mb-6">
+    <h2 class="text-xl font-bold mb-4">История кормлений</h2>
+    <div id="feedingHistory" class="space-y-4">
+        <p class="text-center text-dark-gray">История кормлений будет отображаться здесь</p>
+    </div>
+</div>
+
+<div class="neo-container">
+    <h2 class="text-xl font-bold mb-4">Статистика кормлений</h2>
+    <div id="feedingStats" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="glass-card p-4">
+            <h3 class="text-lg font-semibold mb-2">Сегодня</h3>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span>Количество кормлений:</span>
+                    <span id="todayFeedingCount">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Общая продолжительность:</span>
+                    <span id="todayFeedingDuration">0 мин</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Общий объем:</span>
+                    <span id="todayFeedingAmount">0 мл</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="glass-card p-4">
+            <h3 class="text-lg font-semibold mb-2">За неделю</h3>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span>Среднее количество кормлений в день:</span>
+                    <span id="weeklyFeedingAvg">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Средняя продолжительность:</span>
+                    <span id="weeklyDurationAvg">0 мин</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Средний объем:</span>
+                    <span id="weeklyAmountAvg">0 мл</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Скрытые поля для хранения ID пользователя и ребенка -->
+<input type="hidden" id="userId" value="{{ user_id }}">
+<input type="hidden" id="childId" value="{{ child_id }}">
+
+{% include 'tools/feeding_tracker/feeding_tracker.js' %}
+{% endblock %}

@@ -12,26 +12,163 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <!-- Custom Styles -->
+    <link rel="stylesheet" href="{% static 'css/maternal-theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/neomorphism.css' %}">
+    <link rel="stylesheet" href="{% static 'css/glassmorphism.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f3f4f6;
-        }
-        .gradient-bg {
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-        }
         {% block extra_css %}{% endblock %}
     </style>
     
     {% block extra_head %}{% endblock %}
+    
+    <script>
+        // Configure Tailwind with our custom colors
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FFD6E0',
+                        secondary: '#C9F0E1',
+                        accent: '#FFF3C4',
+                        'accent-secondary': '#E2D6FF',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="min-h-screen">
-    {% block content %}{% endblock %}
+<body class="min-h-screen bg-light-gray">
+    <!-- Navigation -->
+    <nav class="glass-navbar sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                <a href="{% url 'webapp:index' %}" class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-2">
+                        <svg class="w-6 h-6 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold text-dark-gray">Mom&BabyBot</span>
+                </a>
+            </div>
+            
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex space-x-6">
+                <a href="{% url 'webapp:index' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">Главная</a>
+                <a href="{% url 'webapp:pregnancy' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">Беременность</a>
+                <a href="{% url 'webapp:child_development' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">Развитие</a>
+                <a href="{% url 'webapp:nutrition' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">Питание</a>
+                <div class="relative group">
+                    <a href="#" class="text-dark-gray hover:text-black transition-colors duration-200 py-2 flex items-center">
+                        Инструменты
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </a>
+                    <div class="absolute left-0 mt-2 w-56 glass-card hidden group-hover:block transform transition-transform duration-200 origin-top-left">
+                        <div class="py-1" role="menu" aria-orientation="vertical">
+                            <a href="{% url 'webapp:contraction_counter' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">Счетчик схваток</a>
+                            <a href="{% url 'webapp:kick_counter' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">Счетчик шевелений</a>
+                            <a href="{% url 'webapp:sleep_timer' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">Таймер сна</a>
+                            <a href="{% url 'webapp:feeding_tracker' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">Отслеживание кормления</a>
+                            <a href="{% url 'webapp:child_profiles' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">Профили детей</a>
+                            <a href="{% url 'webapp:vaccine_calendar' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">Календарь прививок</a>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'webapp:components_showcase' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">UI Компоненты</a>
+            </div>
+            
+            <!-- Mobile Navigation Toggle -->
+            <button id="nav-toggle" class="md:hidden glass-button p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-nav" class="md:hidden hidden pt-4 pb-2">
+            <div class="container mx-auto space-y-2">
+                <a href="{% url 'webapp:index' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Главная</a>
+                <a href="{% url 'webapp:pregnancy' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Беременность</a>
+                <a href="{% url 'webapp:child_development' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Развитие</a>
+                <a href="{% url 'webapp:nutrition' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Питание</a>
+                <div class="py-1 px-4">
+                    <p class="font-medium mb-2">Инструменты:</p>
+                    <div class="pl-2 space-y-2">
+                        <a href="{% url 'webapp:contraction_counter' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Счетчик схваток</a>
+                        <a href="{% url 'webapp:kick_counter' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Счетчик шевелений</a>
+                        <a href="{% url 'webapp:sleep_timer' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Таймер сна</a>
+                        <a href="{% url 'webapp:feeding_tracker' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Отслеживание кормления</a>
+                        <a href="{% url 'webapp:child_profiles' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Профили детей</a>
+                        <a href="{% url 'webapp:vaccine_calendar' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Календарь прививок</a>
+                    </div>
+                </div>
+                <a href="{% url 'webapp:components_showcase' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">UI Компоненты</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="mt-12 py-8 bg-gradient-pink">
+        <div class="container mx-auto px-4">
+            <div class="glass-card p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Mom&BabyBot</h3>
+                        <p class="text-dark-gray mb-4">Ваш надежный помощник в заботе о материнстве и детях.</p>
+                        <div class="flex space-x-4">
+                            <a href="#" class="neo-button neo-sm">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                            </a>
+                            <a href="#" class="neo-button neo-sm">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Навигация</h3>
+                        <ul class="space-y-2">
+                            <li><a href="{% url 'webapp:index' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Главная</a></li>
+                            <li><a href="{% url 'webapp:pregnancy' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Беременность</a></li>
+                            <li><a href="{% url 'webapp:child_development' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Развитие ребенка</a></li>
+                            <li><a href="{% url 'webapp:nutrition' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Питание</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Инструменты</h3>
+                        <ul class="space-y-2">
+                            <li><a href="{% url 'webapp:contraction_counter' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Счетчик схваток</a></li>
+                            <li><a href="{% url 'webapp:kick_counter' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Счетчик шевелений</a></li>
+                            <li><a href="{% url 'webapp:sleep_timer' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Таймер сна</a></li>
+                            <li><a href="{% url 'webapp:vaccine_calendar' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Календарь прививок</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-6 pt-6 border-t border-medium-gray text-center text-dark-gray">
+                    <p>&copy; 2025 Mom&BabyBot. Все права защищены.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
     
     <!-- Base JavaScript -->
+    <script src="{% static 'js/neomorphism.js' %}"></script>
+    <script src="{% static 'js/glassmorphism.js' %}"></script>
+    <script src="{% static 'js/maternal-app.js' %}"></script>
     <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
         {% block extra_js %}{% endblock %}
     </script>
 </body>

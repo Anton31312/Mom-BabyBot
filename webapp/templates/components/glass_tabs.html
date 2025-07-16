@@ -1,0 +1,25 @@
+{% comment %}
+    Glassmorphic Tabs Component
+    
+    Usage:
+    {% include 'components/glass_tabs.html' with tabs=tabs tab_group="unique_group_id" %}
+    
+    Parameters:
+    - tabs: List of tab objects with 'id', 'title', and optional 'active' properties
+    - tab_group: Unique identifier for the tab group
+    
+    Example tabs list:
+    [
+        {'id': 'tab1', 'title': 'Tab 1', 'active': True},
+        {'id': 'tab2', 'title': 'Tab 2'},
+        {'id': 'tab3', 'title': 'Tab 3'}
+    ]
+{% endcomment %}
+
+<div class="glass-tabs" data-tab-group="{{ tab_group }}">
+    {% for tab in tabs %}
+    <div class="glass-tab {% if tab.active %}active{% endif %}" data-tab-target="{{ tab.id }}">
+        {{ tab.title }}
+    </div>
+    {% endfor %}
+</div>

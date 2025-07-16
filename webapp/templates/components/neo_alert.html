@@ -1,0 +1,31 @@
+{% comment %}
+    Neomorphic Alert Component
+    
+    Usage:
+    {% include 'components/neo_alert.html' with title="Alert Title" content="Alert content here" icon_svg="<svg>...</svg>" variant="primary" %}
+    
+    Parameters:
+    - title: The alert title
+    - content: The alert content
+    - icon_svg: Optional SVG icon code
+    - variant: Color variant (primary, secondary, accent, accent-secondary)
+    - alert_class: Optional additional CSS classes
+{% endcomment %}
+
+<div class="neo-alert {% if variant %}neo-{{ variant }}{% endif %} {% if alert_class %}{{ alert_class }}{% endif %}">
+    {% if icon_svg %}
+    <div class="neo-alert-icon">
+        {{ icon_svg|safe }}
+    </div>
+    {% endif %}
+    
+    <div class="neo-alert-content">
+        {% if title %}
+        <div class="neo-alert-title">{{ title }}</div>
+        {% endif %}
+        
+        {% if content %}
+        <div class="neo-alert-message">{{ content }}</div>
+        {% endif %}
+    </div>
+</div>

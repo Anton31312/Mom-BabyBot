@@ -1,0 +1,32 @@
+{% comment %}
+    Neomorphic Input Component
+    
+    Usage:
+    {% include 'components/neo_input.html' with name="input_name" label="Input Label" %}
+    
+    Parameters:
+    - name: Input name attribute
+    - id: Optional input id attribute (defaults to name)
+    - label: Optional label text
+    - type: Optional input type (default: "text")
+    - placeholder: Optional placeholder text
+    - value: Optional initial value
+    - required: Optional boolean to make the field required
+    - input_class: Optional additional CSS classes for the input
+{% endcomment %}
+
+<div class="mb-4">
+    {% if label %}
+    <label for="{{ id|default:name }}" class="block text-dark-gray mb-2">{{ label }}</label>
+    {% endif %}
+    
+    <input 
+        type="{{ type|default:'text' }}" 
+        name="{{ name }}" 
+        id="{{ id|default:name }}" 
+        class="neo-input w-full {% if input_class %}{{ input_class }}{% endif %}" 
+        {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+        {% if value %}value="{{ value }}"{% endif %}
+        {% if required %}required{% endif %}
+    >
+</div>

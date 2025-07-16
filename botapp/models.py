@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 import os
 
 # SQLAlchemy setup
@@ -23,9 +23,26 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    children = relationship("Child", backref="parent", lazy="dynamic")
 
     def __repr__(self):
         return f'<User {self.telegram_id}>'
+
+# Import child-related models
+from botapp.models_child import Child, Measurement
+
+# Import timer-related models
+from botapp.models_timers import (
+    Contraction, ContractionEvent, 
+    Kick, KickEvent, 
+    SleepSession, 
+    FeedingSession
+)
+
+# Import vaccine-related models
+from botapp.models_vaccine import Vaccine, ChildVaccine
 # SQLAlchemy utilities for Django context
 class SQLAlchemyManager:
     """Утилиты для работы с SQLAlchemy в Django контексте"""

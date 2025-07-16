@@ -1,0 +1,36 @@
+{% comment %}
+    Neomorphic Card Component
+    
+    Usage:
+    {% include 'components/neo_card.html' with title="Card Title" content="Card content here" icon_svg="<svg>...</svg>" %}
+    
+    Parameters:
+    - title: The card title
+    - content: The card content
+    - icon_svg: Optional SVG icon code
+    - icon_class: Optional CSS class for the icon container
+    - card_class: Optional additional CSS classes for the card
+    - footer: Optional footer content
+{% endcomment %}
+
+<div class="neo-card p-6 {% if card_class %}{{ card_class }}{% endif %}">
+    {% if icon_svg %}
+    <div class="{% if icon_class %}{{ icon_class }}{% else %}bg-gradient-pink{% endif %} w-14 h-14 rounded-full flex items-center justify-center mb-4">
+        {{ icon_svg|safe }}
+    </div>
+    {% endif %}
+    
+    {% if title %}
+    <h3 class="text-xl font-semibold mb-2">{{ title }}</h3>
+    {% endif %}
+    
+    {% if content %}
+    <p class="text-dark-gray mb-4">{{ content }}</p>
+    {% endif %}
+    
+    {% if footer %}
+    <div class="mt-4">
+        {{ footer|safe }}
+    </div>
+    {% endif %}
+</div>

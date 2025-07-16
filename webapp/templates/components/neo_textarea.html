@@ -1,0 +1,31 @@
+{% comment %}
+    Neomorphic Textarea Component
+    
+    Usage:
+    {% include 'components/neo_textarea.html' with name="textarea_name" label="Textarea Label" %}
+    
+    Parameters:
+    - name: Textarea name attribute
+    - id: Optional textarea id attribute (defaults to name)
+    - label: Optional label text
+    - placeholder: Optional placeholder text
+    - value: Optional initial value
+    - rows: Optional number of rows (default: 4)
+    - required: Optional boolean to make the field required
+    - textarea_class: Optional additional CSS classes for the textarea
+{% endcomment %}
+
+<div class="mb-4">
+    {% if label %}
+    <label for="{{ id|default:name }}" class="block text-dark-gray mb-2">{{ label }}</label>
+    {% endif %}
+    
+    <textarea 
+        name="{{ name }}" 
+        id="{{ id|default:name }}" 
+        class="neo-input w-full {% if textarea_class %}{{ textarea_class }}{% endif %}" 
+        rows="{{ rows|default:4 }}"
+        {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+        {% if required %}required{% endif %}
+    >{% if value %}{{ value }}{% endif %}</textarea>
+</div>

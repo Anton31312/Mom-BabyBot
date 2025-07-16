@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}Mom&BabyBot - Календарь прививок{% endblock %}
+
+{% block content %}
+<div class="glass-container mb-6">
+    <h1 class="text-2xl font-bold mb-4">Календарь прививок</h1>
+    <p class="text-dark-gray mb-4">Отслеживайте график вакцинации вашего ребенка и не пропускайте важные прививки.</p>
+</div>
+
+<div class="neo-container mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+        <div class="mb-4 md:mb-0">
+            <label class="block text-dark-gray mb-2" for="childSelector">Выберите ребенка</label>
+            <select id="childSelector" class="neo-input">
+                <option value="">Выберите ребенка</option>
+            </select>
+        </div>
+        
+        <div class="flex space-x-4">
+            <button id="allVaccinesBtn" class="neo-button active">Все</button>
+            <button id="mandatoryVaccinesBtn" class="neo-button">Обязательные</button>
+            <button id="optionalVaccinesBtn" class="neo-button">Рекомендуемые</button>
+        </div>
+    </div>
+    
+    <div id="vaccineCalendar" class="space-y-6">
+        <div class="vaccine-age-group">
+            <h2 class="text-xl font-bold mb-4">Новорожденные (первые 24 часа)</h2>
+            <div class="space-y-4">
+                <div class="glass-card p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-semibold">Гепатит B (первая доза)</h3>
+                            <p class="text-dark-gray">Обязательная</p>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="mr-2">Сделано:</span>
+                            <input type="checkbox" class="vaccine-checkbox" data-vaccine-id="hepb1">
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="text-primary hover:underline vaccine-info-btn" data-vaccine-id="hepb1">Подробнее</button>
+                    </div>
+                    <div class="vaccine-info hidden mt-4 p-4 bg-light-gray rounded-lg">
+                        <p class="mb-2">Вакцина против гепатита B защищает от вирусного заболевания, которое может вызвать хроническое поражение печени и рак печени.</p>
+                        <p>Возможные побочные эффекты: боль в месте инъекции, небольшое повышение температуры.</p>
+                    </div>
+                </div>
+                
+                <div class="glass-card p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-semibold">БЦЖ</h3>
+                            <p class="text-dark-gray">Обязательная</p>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="mr-2">Сделано:</span>
+                            <input type="checkbox" class="vaccine-checkbox" data-vaccine-id="bcg">
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="text-primary hover:underline vaccine-info-btn" data-vaccine-id="bcg">Подробнее</button>
+                    </div>
+                    <div class="vaccine-info hidden mt-4 p-4 bg-light-gray rounded-lg">
+                        <p class="mb-2">Вакцина БЦЖ защищает от туберкулеза, особенно от тяжелых форм заболевания у детей.</p>
+                        <p>Возможные побочные эффекты: небольшое уплотнение и покраснение в месте инъекции, которое проходит через несколько месяцев.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="vaccine-age-group">
+            <h2 class="text-xl font-bold mb-4">1 месяц</h2>
+            <div class="space-y-4">
+                <div class="glass-card p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-semibold">Гепатит B (вторая доза)</h3>
+                            <p class="text-dark-gray">Обязательная</p>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="mr-2">Сделано:</span>
+                            <input type="checkbox" class="vaccine-checkbox" data-vaccine-id="hepb2">
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="text-primary hover:underline vaccine-info-btn" data-vaccine-id="hepb2">Подробнее</button>
+                    </div>
+                    <div class="vaccine-info hidden mt-4 p-4 bg-light-gray rounded-lg">
+                        <p class="mb-2">Вторая доза вакцины против гепатита B, которая является частью полного курса вакцинации.</p>
+                        <p>Возможные побочные эффекты: боль в месте инъекции, небольшое повышение температуры.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="vaccine-age-group">
+            <h2 class="text-xl font-bold mb-4">2 месяца</h2>
+            <div class="space-y-4">
+                <div class="glass-card p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-semibold">АКДС (первая доза)</h3>
+                            <p class="text-dark-gray">Обязательная</p>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="mr-2">Сделано:</span>
+                            <input type="checkbox" class="vaccine-checkbox" data-vaccine-id="dtp1">
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="text-primary hover:underline vaccine-info-btn" data-vaccine-id="dtp1">Подробнее</button>
+                    </div>
+                    <div class="vaccine-info hidden mt-4 p-4 bg-light-gray rounded-lg">
+                        <p class="mb-2">Вакцина АКДС защищает от дифтерии, столбняка и коклюша.</p>
+                        <p>Возможные побочные эффекты: повышение температуры, беспокойство, покраснение и отек в месте инъекции.</p>
+                    </div>
+                </div>
+                
+                <div class="glass-card p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-semibold">Полиомиелит (первая доза)</h3>
+                            <p class="text-dark-gray">Обязательная</p>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="mr-2">Сделано:</span>
+                            <input type="checkbox" class="vaccine-checkbox" data-vaccine-id="polio1">
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="text-primary hover:underline vaccine-info-btn" data-vaccine-id="polio1">Подробнее</button>
+                    </div>
+                    <div class="vaccine-info hidden mt-4 p-4 bg-light-gray rounded-lg">
+                        <p class="mb-2">Вакцина против полиомиелита защищает от вирусного заболевания, которое может вызвать паралич.</p>
+                        <p>Возможные побочные эффекты: обычно минимальны, иногда небольшое повышение температуры.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Скрытое поле для хранения ID пользователя -->
+<input type="hidden" id="userId" value="{{ user_id }}">
+
+<div id="vaccineModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="glass-container max-w-md w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Отметить прививку</h2>
+            <button id="closeVaccineModalBtn" class="text-dark-gray hover:text-black">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <form id="vaccineForm" class="space-y-4">
+            <input type="hidden" id="vaccineId">
+            <input type="hidden" id="vaccineChildId">
+            
+            <div>
+                <p class="mb-2">Прививка: <span id="vaccineName">Название прививки</span></p>
+                <p class="mb-4">Ребенок: <span id="vaccineChildName">Имя ребенка</span></p>
+            </div>
+            
+            <div>
+                <label class="block text-dark-gray mb-2" for="vaccineDate">Дата вакцинации</label>
+                <input type="date" id="vaccineDate" class="neo-input w-full" required>
+            </div>
+            
+            <div>
+                <label class="block text-dark-gray mb-2" for="vaccineNotes">Заметки</label>
+                <textarea id="vaccineNotes" class="neo-input w-full" rows="3"></textarea>
+            </div>
+            
+            <div class="flex justify-end space-x-4">
+                <button type="button" id="cancelVaccine" class="neo-button">Отмена</button>
+                <button type="submit" class="neo-button bg-primary">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'tools/vaccine_calendar/vaccine_calendar.js' %}
+{% endblock %}

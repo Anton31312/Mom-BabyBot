@@ -1,0 +1,121 @@
+/* Стили для счетчика шевелений */
+
+/* Анимация пульсации для активного шевеления */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(201, 240, 225, 0.7);
+  }
+  
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(201, 240, 225, 0);
+  }
+  
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(201, 240, 225, 0);
+  }
+}
+
+/* Стили для кнопки шевеления */
+#kickButton.active {
+  background-color: #C9F0E1 !important;
+  animation: pulse 1s infinite;
+  color: #4B5563;
+  font-weight: bold;
+}
+
+/* Стили для таймера */
+#timer {
+  transition: all 0.3s ease;
+  min-width: 240px;
+  text-align: center;
+}
+
+/* Стили для истории шевелений */
+.kick-session {
+  transition: all 0.3s ease;
+}
+
+.kick-session:hover {
+  transform: translateY(-2px);
+}
+
+/* Стили для статистики */
+.stat-card {
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Стили для уведомлений */
+.notification {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.notification.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.notification.success {
+  background-color: #C9F0E1;
+  color: #4B5563;
+}
+
+.notification.error {
+  background-color: #FFD6E0;
+  color: #4B5563;
+}
+
+.notification.info {
+  background-color: #E2D6FF;
+  color: #4B5563;
+}
+
+/* Стили для визуализации данных */
+.kick-timeline {
+  height: 60px;
+  background-color: #F3F4F6;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.kick-event {
+  position: absolute;
+  height: 100%;
+  background-color: #C9F0E1;
+  border-radius: 4px;
+  top: 0;
+  transition: all 0.3s ease;
+}
+
+.kick-event:hover {
+  background-color: #A7E8D0;
+}
+
+/* Адаптивные стили */
+@media (max-width: 640px) {
+  #timer {
+    font-size: 2rem;
+    min-width: 180px;
+  }
+  
+  .button-group {
+    flex-direction: column;
+  }
+}

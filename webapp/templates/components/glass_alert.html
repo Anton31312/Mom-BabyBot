@@ -1,0 +1,31 @@
+{% comment %}
+    Glassmorphic Alert Component
+    
+    Usage:
+    {% include 'components/glass_alert.html' with title="Alert Title" content="Alert content here" icon_svg="<svg>...</svg>" variant="primary" %}
+    
+    Parameters:
+    - title: The alert title
+    - content: The alert content
+    - icon_svg: Optional SVG icon code
+    - variant: Color variant (primary, secondary, accent, accent-secondary)
+    - alert_class: Optional additional CSS classes
+{% endcomment %}
+
+<div class="glass-alert {% if variant %}glass-{{ variant }}{% endif %} {% if alert_class %}{{ alert_class }}{% endif %}">
+    {% if icon_svg %}
+    <div class="glass-alert-icon">
+        {{ icon_svg|safe }}
+    </div>
+    {% endif %}
+    
+    <div class="glass-alert-content">
+        {% if title %}
+        <div class="glass-alert-title">{{ title }}</div>
+        {% endif %}
+        
+        {% if content %}
+        <div class="glass-alert-message">{{ content }}</div>
+        {% endif %}
+    </div>
+</div>

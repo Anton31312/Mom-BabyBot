@@ -45,6 +45,133 @@ def index(request):
     return render(request, 'index.html')
 
 
+# Информационные разделы
+def pregnancy(request):
+    """Страница с информацией о беременности"""
+    return render(request, 'pregnancy/index.html')
+
+
+def child_development(request):
+    """Страница с информацией о развитии ребенка"""
+    return render(request, 'child_development/index.html')
+
+
+def nutrition(request):
+    """Страница с информацией о питании"""
+    return render(request, 'nutrition/index.html')
+
+
+# Инструменты
+def contraction_counter(request):
+    """Страница счетчика схваток"""
+    # Получаем user_id из запроса или используем значение по умолчанию
+    user_id = request.GET.get('user_id', 1)
+    
+    # Проверяем, что user_id является числом
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        user_id = 1
+    
+    return render(request, 'tools/contraction_counter/index.html', {
+        'user_id': user_id
+    })
+
+
+def kick_counter(request):
+    """Страница счетчика шевелений"""
+    # Получаем user_id из запроса или используем значение по умолчанию
+    user_id = request.GET.get('user_id', 1)
+    
+    # Проверяем, что user_id является числом
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        user_id = 1
+    
+    return render(request, 'tools/kick_counter/index.html', {
+        'user_id': user_id
+    })
+
+
+def sleep_timer(request):
+    """Страница таймера сна"""
+    # Получаем user_id из запроса или используем значение по умолчанию
+    user_id = request.GET.get('user_id', 1)
+    
+    # Проверяем, что user_id является числом
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        user_id = 1
+    
+    # Получаем child_id из запроса или используем значение по умолчанию
+    child_id = request.GET.get('child_id', 1)
+    
+    # Проверяем, что child_id является числом
+    try:
+        child_id = int(child_id)
+    except ValueError:
+        child_id = 1
+    
+    return render(request, 'tools/sleep_timer/index.html', {
+        'user_id': user_id,
+        'child_id': child_id
+    })
+
+
+def feeding_tracker(request):
+    """Страница отслеживания кормления"""
+    # Получаем user_id из запроса или используем значение по умолчанию
+    user_id = request.GET.get('user_id', 1)
+    
+    # Проверяем, что user_id является числом
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        user_id = 1
+    
+    # Получаем child_id из запроса или используем значение по умолчанию
+    child_id = request.GET.get('child_id', 1)
+    
+    # Проверяем, что child_id является числом
+    try:
+        child_id = int(child_id)
+    except ValueError:
+        child_id = 1
+    
+    return render(request, 'tools/feeding_tracker/index.html', {
+        'user_id': user_id,
+        'child_id': child_id
+    })
+
+
+def child_profiles(request):
+    """Страница управления профилями детей"""
+    return render(request, 'tools/child_profiles/index.html')
+
+
+def vaccine_calendar(request):
+    """Страница календаря прививок"""
+    # Получаем user_id из запроса или используем значение по умолчанию
+    user_id = request.GET.get('user_id', 1)
+    
+    # Проверяем, что user_id является числом
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        user_id = 1
+    
+    return render(request, 'tools/vaccine_calendar/index.html', {
+        'user_id': user_id
+    })
+
+
+def components_showcase(request):
+    """Страница демонстрации UI компонентов"""
+    return render(request, 'components/showcase.html')
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_user(request):

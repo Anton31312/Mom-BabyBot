@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}Mom&BabyBot - Профили детей{% endblock %}
+
+{% block content %}
+<div class="glass-container mb-6">
+    <h1 class="text-2xl font-bold mb-4">Профили детей</h1>
+    <p class="text-dark-gray mb-4">Создавайте и управляйте профилями ваших детей, отслеживайте их рост и развитие.</p>
+</div>
+
+<div class="neo-container mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Мои дети</h2>
+        <button id="addChildBtn" class="neo-button bg-primary">Добавить ребенка</button>
+    </div>
+    
+    <div id="childrenList" class="space-y-4">
+        <p class="text-center text-dark-gray">Список детей будет отображаться здесь</p>
+    </div>
+</div>
+
+<div id="addChildModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="glass-container max-w-md w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Добавить ребенка</h2>
+            <button id="closeModalBtn" class="text-dark-gray hover:text-black">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <form id="addChildForm" class="space-y-4">
+            <div>
+                <label class="block text-dark-gray mb-2" for="childName">Имя ребенка</label>
+                <input type="text" id="childName" class="neo-input w-full" required>
+            </div>
+            
+            <div>
+                <label class="block text-dark-gray mb-2" for="childBirthDate">Дата рождения</label>
+                <input type="date" id="childBirthDate" class="neo-input w-full" required>
+            </div>
+            
+            <div class="flex justify-end space-x-4">
+                <button type="button" id="cancelAddChild" class="neo-button">Отмена</button>
+                <button type="submit" class="neo-button bg-primary">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="childProfileTemplate" class="hidden">
+    <div class="child-profile neo-card p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold child-name">Имя ребенка</h3>
+            <span class="baby-age-badge child-age">Возраст</span>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-dark-gray">Дата рождения: <span class="child-birth-date">01.01.2023</span></p>
+        </div>
+        
+        <div class="flex space-x-4">
+            <button class="neo-button view-profile-btn">Просмотр профиля</button>
+            <button class="neo-button add-measurement-btn">Добавить измерение</button>
+        </div>
+    </div>
+</div>
+
+<div id="childDetailTemplate" class="hidden">
+    <div class="glass-container mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold child-detail-name">Имя ребенка</h2>
+            <span class="baby-age-badge child-detail-age">Возраст</span>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-dark-gray">Дата рождения: <span class="child-detail-birth-date">01.01.2023</span></p>
+        </div>
+    </div>
+    
+    <div class="neo-container mb-6">
+        <h2 class="text-xl font-bold mb-4">Измерения</h2>
+        
+        <div class="flex justify-end mb-4">
+            <button class="neo-button bg-primary add-measurement-btn">Добавить измерение</button>
+        </div>
+        
+        <div class="measurements-list space-y-4">
+            <p class="text-center text-dark-gray">Измерения будут отображаться здесь</p>
+        </div>
+    </div>
+    
+    <div class="glass-container mb-6">
+        <h2 class="text-xl font-bold mb-4">График роста</h2>
+        <div class="growth-chart h-64 bg-white rounded-lg p-4 flex items-center justify-center">
+            <p class="text-dark-gray">График роста будет отображаться здесь</p>
+        </div>
+    </div>
+    
+    <div class="neo-container">
+        <h2 class="text-xl font-bold mb-4">Вехи развития</h2>
+        <div class="milestones-list space-y-4">
+            <div class="glass-card p-4">
+                <h3 class="text-lg font-semibold mb-2">0-3 месяца</h3>
+                <ul class="list-disc pl-5">
+                    <li class="flex items-center">
+                        <input type="checkbox" class="mr-2">
+                        <span>Поднимает голову и грудь, лежа на животе</span>
+                    </li>
+                    <li class="flex items-center">
+                        <input type="checkbox" class="mr-2">
+                        <span>Следит глазами за движущимися предметами</span>
+                    </li>
+                    <li class="flex items-center">
+                        <input type="checkbox" class="mr-2">
+                        <span>Улыбается в ответ</span>
+                    </li>
+                    <li class="flex items-center">
+                        <input type="checkbox" class="mr-2">
+                        <span>Издает звуки, кроме плача</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="glass-card p-4">
+                <h3 class="text-lg font-semibold mb-2">4-6 месяцев</h3>
+                <ul class="list-disc pl-5">
+                    <li class="flex items-center">
+                        <input type="checkbox" class="mr-2">
+                        <span>Переворачивается с живота на спину и обратно</span>
+                    </li>
+                    <li class="flex items-center">
+                        <input type="checkbox" class="mr-2">
+                        <span>Сидит с поддержкой</span>
+                    </li>
+                    <li class="flex items-center">
+                        <input type="checkbox" class="mr-2">
+                        <span>Тянется к предметам и хватает их</span>
+                    </li>
+                    <li class="flex items-center">
+                        <input type="checkbox" class="mr-2">
+                        <span>Реагирует на свое имя</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="addMeasurementModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="glass-container max-w-md w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Добавить измерение</h2>
+            <button id="closeMeasurementModalBtn" class="text-dark-gray hover:text-black">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <form id="addMeasurementForm" class="space-y-4">
+            <input type="hidden" id="measurementChildId">
+            
+            <div>
+                <label class="block text-dark-gray mb-2" for="measurementDate">Дата измерения</label>
+                <input type="date" id="measurementDate" class="neo-input w-full" required>
+            </div>
+            
+            <div>
+                <label class="block text-dark-gray mb-2" for="measurementHeight">Рост (см)</label>
+                <input type="number" id="measurementHeight" class="neo-input w-full" step="0.1" min="0" required>
+            </div>
+            
+            <div>
+                <label class="block text-dark-gray mb-2" for="measurementWeight">Вес (кг)</label>
+                <input type="number" id="measurementWeight" class="neo-input w-full" step="0.01" min="0" required>
+            </div>
+            
+            <div>
+                <label class="block text-dark-gray mb-2" for="measurementHeadCircumference">Окружность головы (см)</label>
+                <input type="number" id="measurementHeadCircumference" class="neo-input w-full" step="0.1" min="0">
+            </div>
+            
+            <div class="flex justify-end space-x-4">
+                <button type="button" id="cancelAddMeasurement" class="neo-button">Отмена</button>
+                <button type="submit" class="neo-button bg-primary">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'tools/child_profiles/child_profiles.js' %}
+{% endblock %}
