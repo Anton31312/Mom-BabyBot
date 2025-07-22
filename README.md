@@ -23,8 +23,8 @@ Telegram бот для помощи мамам и будущим мамам, с�
 
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/yourusername/Mom&BabyBot.git
-cd Mom&BabyBot
+git clone https://github.com/yourusername/Mom-BabyBot.git
+cd Mom-BabyBot
 ```
 
 2. Создайте виртуальное окружение и активируйте его:

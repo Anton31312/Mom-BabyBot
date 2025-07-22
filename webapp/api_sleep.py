@@ -265,3 +265,45 @@ def sleep_statistics(request, user_id, child_id):
     except Exception as e:
         logger.error(f"Error in sleep_statistics: {e}")
         return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def active_sleep_session(request, user_id, child_id):
+    """
+    Получение активной сессии сна для ребенка.
+
+    GET: Получить активную сессию сна (если есть)
+    """
+    try:
+        # Преобразуем ID в целые числа
+        user_id = int(user_id)
+        child_id = int(child_id)
+
+        # Проверяем существование пользователя и ребенка
+        session = db_manager.get_session()
+        try:
+            user = session.query(User).filter_by(id=user_id).first()
+            if not user:
+                return JsonResponse({'error': 'Пользователь не найден'}, status=404)
+
+            child = session.query(Child).filter_by(id=child_id).first()
+            if not child:
+                return JsonResponse({'error': 'Ребенок не найден'}, status=404)
+
+            if child.user_id != user_id:
+                return JsonResponse({'error': 'Ребенок не принадлежит этому пользователю'}, status=403)
+
+            # Ищем активную сессию сна (без end_time)
+            active_session = session.query(SleepSession).filter_by(
+                child_id=child_id, end_time=None).first()
+            
+            if not active_session:
+                return JsonResponse({'message': 'Активная сессия сна не найдена'}, status=404)
+                
+            # Возвращаем данные активной сессии
+            return JsonResponse(sleep_session_to_dict(active_session))
+        finally:
+            db_manager.close_session(session)
+    except Exception as e:
+        logger.error(f"Error in active_sleep_session: {e}")
+        return JsonResponse({'error': str(e)}, status=500)

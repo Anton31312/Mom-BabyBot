@@ -6,6 +6,7 @@ from . import api_contraction
 from . import api_kick
 from . import api_sleep
 from . import api_feeding
+from . import api_notification
 
 app_name = 'webapp'
 
@@ -63,9 +64,16 @@ urlpatterns = [
     path('api/users/<int:user_id>/children/<int:child_id>/sleep/', api_sleep.sleep_sessions, name='sleep_sessions'),
     path('api/users/<int:user_id>/children/<int:child_id>/sleep/<int:session_id>/', api_sleep.sleep_session_detail, name='sleep_session_detail'),
     path('api/users/<int:user_id>/children/<int:child_id>/sleep/statistics/', api_sleep.sleep_statistics, name='sleep_statistics'),
+    path('api/users/<int:user_id>/children/<int:child_id>/sleep/active/', api_sleep.active_sleep_session, name='active_sleep_session'),
     
     # Feeding API endpoints
     path('api/users/<int:user_id>/children/<int:child_id>/feeding/', api_feeding.feeding_sessions, name='feeding_sessions'),
     path('api/users/<int:user_id>/children/<int:child_id>/feeding/<int:session_id>/', api_feeding.feeding_session_detail, name='feeding_session_detail'),
     path('api/users/<int:user_id>/children/<int:child_id>/feeding/statistics/', api_feeding.feeding_statistics, name='feeding_statistics'),
+    
+    # Notification API endpoints
+    path('api/users/<int:user_id>/notifications/preferences/', api_notification.notification_preferences, name='notification_preferences'),
+    path('api/users/<int:user_id>/notifications/history/', api_notification.notification_history, name='notification_history'),
+    path('api/users/<int:user_id>/notifications/test/', api_notification.test_notification, name='test_notification'),
+    path('api/users/<int:user_id>/notifications/send/', api_notification.send_notification, name='send_notification'),
 ]

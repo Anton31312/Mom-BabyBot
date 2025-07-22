@@ -165,11 +165,20 @@
     </footer>
     
     <!-- Base JavaScript -->
+    <script src="{% static 'js/timer-manager.js' %}"></script>
     <script src="{% static 'js/neomorphism.js' %}"></script>
     <script src="{% static 'js/glassmorphism.js' %}"></script>
     <script src="{% static 'js/maternal-app.js' %}"></script>
     <script>
         {% block extra_js %}{% endblock %}
     </script>
+    
+    <!-- Индикатор активных таймеров -->
+    <div id="active-timers-indicator" class="fixed bottom-4 right-4 hidden">
+        <div class="glass-card p-3 flex items-center space-x-2">
+            <div class="animate-pulse w-3 h-3 rounded-full bg-accent-secondary"></div>
+            <span id="active-timers-count" class="text-sm font-medium">1 активный таймер</span>
+        </div>
+    </div>
 </body>
 </html>

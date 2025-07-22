@@ -43,6 +43,9 @@ from botapp.models_timers import (
 
 # Import vaccine-related models
 from botapp.models_vaccine import Vaccine, ChildVaccine
+
+# Import notification-related models
+from botapp.models_notification import NotificationPreference, NotificationLog
 # SQLAlchemy utilities for Django context
 class SQLAlchemyManager:
     """Утилиты для работы с SQLAlchemy в Django контексте"""
@@ -60,6 +63,17 @@ class SQLAlchemyManager:
     
     def create_tables(self):
         """Создание всех таблиц"""
+        # Убедимся, что все модели импортированы перед созданием таблиц
+        from botapp.models_child import Child, Measurement
+        from botapp.models_timers import (
+            Contraction, ContractionEvent, 
+            Kick, KickEvent, 
+            SleepSession, 
+            FeedingSession
+        )
+        from botapp.models_vaccine import Vaccine, ChildVaccine
+        from botapp.models_notification import NotificationPreference, NotificationLog
+        
         Base.metadata.create_all(self.engine)
     
     def get_session(self):
