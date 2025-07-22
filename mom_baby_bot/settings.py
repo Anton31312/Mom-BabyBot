@@ -69,6 +69,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # SQLAlchemy middleware для управления сессиями
     'mom_baby_bot.middleware.SQLAlchemySessionMiddleware',
+    # Middleware для кэширования
+    'mom_baby_bot.cache_manager.CacheMiddleware',
 ]
 
 ROOT_URLCONF = 'mom_baby_bot.urls'

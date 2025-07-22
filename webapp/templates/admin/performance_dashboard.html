@@ -1,0 +1,499 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Performance Dashboard | Mom&BabyBot Admin{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .performance-dashboard {
+        padding: 20px;
+    }
+    
+    .dashboard-card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        padding: 20px;
+    }
+    
+    .dashboard-card h2 {
+        margin-top: 0;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    .stat-card {
+        background-color: #f9f9f9;
+        border-radius: 6px;
+        padding: 15px;
+    }
+    
+    .stat-card h3 {
+        margin-top: 0;
+        font-size: 16px;
+        color: #666;
+    }
+    
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .chart-container {
+        height: 300px;
+        margin-bottom: 20px;
+    }
+    
+    table.performance-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    table.performance-table th,
+    table.performance-table td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+    
+    table.performance-table th {
+        background-color: #f5f5f5;
+    }
+    
+    .slow-query {
+        color: #d32f2f;
+    }
+    
+    .warning {
+        color: #ff9800;
+    }
+    
+    .good {
+        color: #4caf50;
+    }
+    
+    .refresh-button {
+        background-color: #2196f3;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+    
+    .reset-button {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .button-container {
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="performance-dashboard">
+    <h1>Performance Dashboard</h1>
+    
+    <div class="button-container">
+        <button id="refresh-button" class="refresh-button">Refresh Data</button>
+        <button id="reset-button" class="reset-button">Reset Statistics</button>
+    </div>
+    
+    <div class="dashboard-card">
+        <h2>Page Load Performance</h2>
+        <div class="chart-container">
+            <canvas id="pageLoadChart"></canvas>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Average Page Load Time</h3>
+                <div id="avg-page-load" class="stat-value">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <h3>Average First Contentful Paint</h3>
+                <div id="avg-fcp" class="stat-value">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Metrics Collected</h3>
+                <div id="total-metrics" class="stat-value">Loading...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dashboard-card">
+        <h2>Database Performance</h2>
+        <div class="chart-container">
+            <canvas id="queryChart"></canvas>
+        </div>
+        
+        <h3>Slow Queries</h3>
+        <table class="performance-table" id="slow-queries-table">
+            <thead>
+                <tr>
+                    <th>Query</th>
+                    <th>Count</th>
+                    <th>Avg Time (s)</th>
+                    <th>Max Time (s)</th>
+                    <th>First Seen</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="5">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="dashboard-card">
+        <h2>Cache Performance</h2>
+        <div class="chart-container">
+            <canvas id="cacheChart"></canvas>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Cache Hit Ratio</h3>
+                <div id="cache-hit-ratio" class="stat-value">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <h3>Cache Hits</h3>
+                <div id="cache-hits" class="stat-value">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <h3>Cache Misses</h3>
+                <div id="cache-misses" class="stat-value">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <h3>Cache Sets</h3>
+                <div id="cache-sets" class="stat-value">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+    // Функция для форматирования времени
+    function formatTime(ms) {
+        if (ms < 1000) {
+            return ms.toFixed(2) + ' ms';
+        } else {
+            return (ms / 1000).toFixed(2) + ' s';
+        }
+    }
+    
+    // Функция для получения данных производительности
+    function fetchPerformanceData() {
+        fetch('/api/performance-stats')
+            .then(response => response.json())
+            .then(data => {
+                updatePageLoadStats(data);
+                updateDatabaseStats(data);
+                updateCacheStats(data);
+            })
+            .catch(error => {
+                console.error('Error fetching performance data:', error);
+            });
+    }
+    
+    // Обновление статистики загрузки страниц
+    function updatePageLoadStats(data) {
+        // Обновляем статистику
+        const avgPageLoadTimes = data.avg_page_load_times;
+        const avgFcpTimes = data.avg_fcp_times;
+        const totalMetrics = data.total_metrics_collected;
+        
+        // Вычисляем общее среднее время загрузки страниц
+        let totalPageLoadTime = 0;
+        let pageLoadCount = 0;
+        
+        for (const url in avgPageLoadTimes) {
+            totalPageLoadTime += avgPageLoadTimes[url];
+            pageLoadCount++;
+        }
+        
+        const overallAvgPageLoad = pageLoadCount > 0 ? totalPageLoadTime / pageLoadCount : 0;
+        
+        // Вычисляем общее среднее время FCP
+        let totalFcpTime = 0;
+        let fcpCount = 0;
+        
+        for (const url in avgFcpTimes) {
+            totalFcpTime += avgFcpTimes[url];
+            fcpCount++;
+        }
+        
+        const overallAvgFcp = fcpCount > 0 ? totalFcpTime / fcpCount : 0;
+        
+        // Обновляем значения на странице
+        document.getElementById('avg-page-load').textContent = formatTime(overallAvgPageLoad);
+        document.getElementById('avg-fcp').textContent = formatTime(overallAvgFcp);
+        document.getElementById('total-metrics').textContent = totalMetrics;
+        
+        // Обновляем график
+        const urls = Object.keys(avgPageLoadTimes);
+        const pageLoadValues = urls.map(url => avgPageLoadTimes[url]);
+        const fcpValues = urls.map(url => avgFcpTimes[url] || 0);
+        
+        // Создаем или обновляем график
+        if (window.pageLoadChart) {
+            window.pageLoadChart.data.labels = urls;
+            window.pageLoadChart.data.datasets[0].data = pageLoadValues;
+            window.pageLoadChart.data.datasets[1].data = fcpValues;
+            window.pageLoadChart.update();
+        } else {
+            const ctx = document.getElementById('pageLoadChart').getContext('2d');
+            window.pageLoadChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: urls,
+                    datasets: [
+                        {
+                            label: 'Page Load Time (ms)',
+                            data: pageLoadValues,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'First Contentful Paint (ms)',
+                            data: fcpValues,
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Time (ms)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'URL'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Обновление статистики базы данных
+    function updateDatabaseStats(data) {
+        const slowQueries = data.slow_queries;
+        
+        // Обновляем таблицу медленных запросов
+        const tableBody = document.getElementById('slow-queries-table').querySelector('tbody');
+        tableBody.innerHTML = '';
+        
+        if (Object.keys(slowQueries).length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = '<td colspan="5">No slow queries detected</td>';
+            tableBody.appendChild(row);
+        } else {
+            // Преобразуем объект в массив для сортировки
+            const queriesArray = Object.values(slowQueries);
+            
+            // Сортируем по общему времени выполнения (по убыванию)
+            queriesArray.sort((a, b) => b.total_time - a.total_time);
+            
+            // Добавляем строки в таблицу
+            queriesArray.forEach(query => {
+                const row = document.createElement('tr');
+                
+                // Сокращаем запрос для отображения
+                const truncatedQuery = query.query.length > 100 ? 
+                    query.query.substring(0, 100) + '...' : query.query;
+                
+                // Вычисляем среднее время выполнения
+                const avgTime = query.total_time / query.count;
+                
+                // Определяем класс для времени выполнения
+                let timeClass = '';
+                if (avgTime > 1.0) {
+                    timeClass = 'slow-query';
+                } else if (avgTime > 0.5) {
+                    timeClass = 'warning';
+                } else {
+                    timeClass = 'good';
+                }
+                
+                row.innerHTML = `
+                    <td title="${query.query}">${truncatedQuery}</td>
+                    <td>${query.count}</td>
+                    <td class="${timeClass}">${avgTime.toFixed(4)}</td>
+                    <td class="${query.max_time > 1.0 ? 'slow-query' : ''}">${query.max_time.toFixed(4)}</td>
+                    <td>${new Date(query.first_seen).toLocaleString()}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Обновляем график запросов
+            const queryLabels = queriesArray.map((_, index) => `Query ${index + 1}`);
+            const avgTimes = queriesArray.map(query => query.total_time / query.count);
+            const maxTimes = queriesArray.map(query => query.max_time);
+            
+            // Создаем или обновляем график
+            if (window.queryChart) {
+                window.queryChart.data.labels = queryLabels;
+                window.queryChart.data.datasets[0].data = avgTimes;
+                window.queryChart.data.datasets[1].data = maxTimes;
+                window.queryChart.update();
+            } else {
+                const ctx = document.getElementById('queryChart').getContext('2d');
+                window.queryChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: queryLabels,
+                        datasets: [
+                            {
+                                label: 'Avg Execution Time (s)',
+                                data: avgTimes,
+                                backgroundColor: 'rgba(255, 159, 64, 0.5)',
+                                borderColor: 'rgba(255, 159, 64, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Max Execution Time (s)',
+                                data: maxTimes,
+                                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Time (s)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+    
+    // Обновление статистики кэширования
+    function updateCacheStats(data) {
+        const cacheStats = data.cache_stats;
+        
+        // Вычисляем соотношение попаданий в кэш
+        const hits = cacheStats.hits || 0;
+        const misses = cacheStats.misses || 0;
+        const sets = cacheStats.sets || 0;
+        const total = hits + misses;
+        const hitRatio = total > 0 ? (hits / total * 100).toFixed(2) + '%' : '0%';
+        
+        // Обновляем значения на странице
+        document.getElementById('cache-hit-ratio').textContent = hitRatio;
+        document.getElementById('cache-hits').textContent = hits;
+        document.getElementById('cache-misses').textContent = misses;
+        document.getElementById('cache-sets').textContent = sets;
+        
+        // Обновляем график кэширования
+        const cacheData = [hits, misses];
+        
+        // Создаем или обновляем график
+        if (window.cacheChart) {
+            window.cacheChart.data.datasets[0].data = cacheData;
+            window.cacheChart.update();
+        } else {
+            const ctx = document.getElementById('cacheChart').getContext('2d');
+            window.cacheChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Hits', 'Misses'],
+                    datasets: [
+                        {
+                            data: cacheData,
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 0.5)',
+                                'rgba(255, 99, 132, 0.5)'
+                            ],
+                            borderColor: [
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(255, 99, 132, 1)'
+                            ],
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+    }
+    
+    // Обработчик кнопки обновления
+    document.getElementById('refresh-button').addEventListener('click', function() {
+        fetchPerformanceData();
+    });
+    
+    // Обработчик кнопки сброса
+    document.getElementById('reset-button').addEventListener('click', function() {
+        if (confirm('Are you sure you want to reset all performance statistics?')) {
+            fetch('/api/performance-stats/reset', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Statistics reset successfully');
+                    fetchPerformanceData();
+                } else {
+                    alert('Error resetting statistics');
+                }
+            })
+            .catch(error => {
+                console.error('Error resetting statistics:', error);
+                alert('Error resetting statistics');
+            });
+        }
+    });
+    
+    // Загружаем данные при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchPerformanceData();
+        
+        // Обновляем данные каждые 30 секунд
+        setInterval(fetchPerformanceData, 30000);
+    });
+</script>
+{% endblock %}

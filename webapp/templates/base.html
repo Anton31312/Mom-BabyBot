@@ -6,10 +6,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Mom&BabyBot{% endblock %}</title>
     
+    <!-- Preconnect для основных доменов -->
+    <link rel="preconnect" href="https://telegram.org">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Preload для критических ресурсов -->
+    <link rel="preload" href="{% static 'css/maternal-theme.css' %}" as="style">
+    <link rel="preload" href="{% static 'css/style.css' %}" as="style">
+    <link rel="preload" href="{% static 'js/maternal-app.js' %}" as="script">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" as="style">
+    
+    <!-- Критический CSS -->
+    <style>
+        /* Инлайн критический CSS для быстрой отрисовки */
+        :root {
+            --primary-color: #FFD6E0;
+            --secondary-color: #C9F0E1;
+            --accent-color: #FFF3C4;
+            --accent-secondary: #E2D6FF;
+            --light-gray: #F3F4F6;
+            --medium-gray: #D1D5DB;
+            --dark-gray: #4B5563;
+            --black: #111827;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            color: var(--dark-gray);
+            background-color: var(--light-gray);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        .glass-navbar {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.75rem 0;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+    
     <!-- External Scripts and Styles -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     
     <!-- Custom Styles -->
     <link rel="stylesheet" href="{% static 'css/maternal-theme.css' %}">
@@ -38,6 +89,9 @@
             }
         }
     </script>
+    
+    <!-- Performance Optimizer -->
+    <script src="{% static 'js/performance-optimizer.js' %}" async></script>
 </head>
 <body class="min-h-screen bg-light-gray">
     <!-- Navigation -->
@@ -165,10 +219,12 @@
     </footer>
     
     <!-- Base JavaScript -->
-    <script src="{% static 'js/timer-manager.js' %}"></script>
-    <script src="{% static 'js/neomorphism.js' %}"></script>
-    <script src="{% static 'js/glassmorphism.js' %}"></script>
     <script src="{% static 'js/maternal-app.js' %}"></script>
+    <script src="{% static 'js/neomorphism.js' %}" defer></script>
+    <script src="{% static 'js/glassmorphism.js' %}" defer></script>
+    <script src="{% static 'js/timer-manager.js' %}" defer></script>
+    <script src="{% static 'js/data-sync.js' %}" defer></script>
+    <script src="{% static 'js/static-optimizer.js' %}" defer></script>
     <script>
         {% block extra_js %}{% endblock %}
     </script>
@@ -180,5 +236,21 @@
             <span id="active-timers-count" class="text-sm font-medium">1 активный таймер</span>
         </div>
     </div>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        // Регистрация Service Worker для фоновой работы и кэширования
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('{% static "js/service-worker.js" %}')
+                    .then(registration => {
+                        console.log('Service Worker зарегистрирован:', registration);
+                    })
+                    .catch(error => {
+                        console.error('Ошибка регистрации Service Worker:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>

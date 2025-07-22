@@ -7,6 +7,7 @@ from . import api_kick
 from . import api_sleep
 from . import api_feeding
 from . import api_notification
+from . import api_performance
 
 app_name = 'webapp'
 
@@ -22,6 +23,9 @@ urlpatterns = [
     
     # UI Components Showcase
     path('components/showcase/', views.components_showcase, name='components_showcase'),
+    
+    # Performance Dashboard
+    path('admin/performance/', views.performance_dashboard, name='performance_dashboard'),
     
     # Инструменты
     path('tools/contraction-counter/', views.contraction_counter, name='contraction_counter'),
@@ -76,4 +80,10 @@ urlpatterns = [
     path('api/users/<int:user_id>/notifications/history/', api_notification.notification_history, name='notification_history'),
     path('api/users/<int:user_id>/notifications/test/', api_notification.test_notification, name='test_notification'),
     path('api/users/<int:user_id>/notifications/send/', api_notification.send_notification, name='send_notification'),
+    
+    # Performance API endpoints
+    path('api/performance-metrics', api_performance.collect_metrics, name='collect_metrics'),
+    path('api/performance-metrics/get', api_performance.get_metrics, name='get_metrics'),
+    path('api/performance-stats', api_performance.get_performance_stats, name='get_performance_stats'),
+    path('api/performance-stats/reset', api_performance.reset_stats, name='reset_stats'),
 ]

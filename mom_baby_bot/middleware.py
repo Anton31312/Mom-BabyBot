@@ -6,8 +6,10 @@ SQLAlchemy middleware для интеграции с Django.
 """
 
 import logging
+import time
 from django.conf import settings
 from sqlalchemy.exc import SQLAlchemyError
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +24,7 @@ class SQLAlchemySessionMiddleware:
     3. Commits the session if the response is successful
     4. Rolls back the session if an exception occurs
     5. Closes the session at the end of the request
+    6. Measures query performance
     """
     
     def __init__(self, get_response):
@@ -29,11 +32,18 @@ class SQLAlchemySessionMiddleware:
         self.session_factory = settings.SQLALCHEMY_SESSION_FACTORY
         
     def __call__(self, request):
+        # Measure request start time
+        request_start_time = time.time()
+        
         # Create a new SQLAlchemy session for this request
         session = self.session_factory()
         
         # Store the session in the request object for access in views
         request.sqlalchemy_session = session
+        
+        # Store query count for this request
+        request.query_count = 0
+        request.query_time = 0
         
         try:
             # Process the request
@@ -62,6 +72,23 @@ class SQLAlchemySessionMiddleware:
                 logger.debug("SQLAlchemy session closed")
             except SQLAlchemyError as close_error:
                 logger.error(f"Error closing SQLAlchemy session: {close_error}")
+        
+        # Calculate request processing time
+        request_time = time.time() - request_start_time
+        
+        # Log request performance metrics
+        if hasattr(request, 'query_count') and request.query_count > 0:
+            logger.info(
+                f"Request to {request.path} completed in {request_time:.4f}s "
+                f"with {request.query_count} queries taking {request.query_time:.4f}s"
+            )
+            
+            # Log slow requests
+            if request_time > 1.0:  # More than 1 second
+                logger.warning(
+                    f"Slow request detected: {request.path} took {request_time:.4f}s "
+                    f"with {request.query_count} queries"
+                )
         
         return response
 

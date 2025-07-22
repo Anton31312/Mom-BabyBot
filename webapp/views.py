@@ -172,6 +172,16 @@ def components_showcase(request):
     return render(request, 'components/showcase.html')
 
 
+def performance_dashboard(request):
+    """Страница мониторинга производительности для администраторов"""
+    # Проверяем, что пользователь является администратором
+    if not request.user.is_authenticated or not request.user.is_staff:
+        from django.shortcuts import redirect
+        return redirect('admin:login')
+    
+    return render(request, 'admin/performance_dashboard.html')
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_user(request):
