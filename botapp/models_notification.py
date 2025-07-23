@@ -8,7 +8,7 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
-from botapp.models import Base, db_manager
+from botapp.models_base import Base, db_manager
 
 
 class NotificationPreference(Base):

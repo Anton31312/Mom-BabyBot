@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -8,36 +7,14 @@ from django.utils.decorators import method_decorator
 from django.views import View
 import json
 
-from botapp.models import User, db_manager
+from botapp.models import User
+from webapp.utils.date_utils import parse_datetime
+from webapp.utils.request_utils import parse_json_request, error_response, success_response, get_int_param
+from webapp.utils.common_utils import safe_execute
+from webapp.utils.validation_utils import validate_required_fields, validate_numeric_value, validate_date
+from webapp.utils.db_utils import get_db_manager
 
 logger = logging.getLogger(__name__)
-
-
-def parse_datetime(date_string):
-    """Парсинг строки даты в объект datetime"""
-    if not date_string:
-        return None
-    
-    try:
-        # Пробуем разные форматы дат
-        formats = [
-            '%Y-%m-%dT%H:%M:%S',
-            '%Y-%m-%d %H:%M:%S',
-            '%Y-%m-%d',
-        ]
-        
-        for fmt in formats:
-            try:
-                return datetime.strptime(date_string, fmt)
-            except ValueError:
-                continue
-        
-        # Если ни один формат не подошел
-        raise ValueError(f"Unable to parse date: {date_string}")
-        
-    except Exception as e:
-        logger.error(f"Error parsing date '{date_string}': {e}")
-        return None
 
 
 def index(request):
@@ -65,13 +42,7 @@ def nutrition(request):
 def contraction_counter(request):
     """Страница счетчика схваток"""
     # Получаем user_id из запроса или используем значение по умолчанию
-    user_id = request.GET.get('user_id', 1)
-    
-    # Проверяем, что user_id является числом
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        user_id = 1
+    user_id = get_int_param(request, 'user_id', 1)
     
     return render(request, 'tools/contraction_counter/index.html', {
         'user_id': user_id
@@ -81,13 +52,7 @@ def contraction_counter(request):
 def kick_counter(request):
     """Страница счетчика шевелений"""
     # Получаем user_id из запроса или используем значение по умолчанию
-    user_id = request.GET.get('user_id', 1)
-    
-    # Проверяем, что user_id является числом
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        user_id = 1
+    user_id = get_int_param(request, 'user_id', 1)
     
     return render(request, 'tools/kick_counter/index.html', {
         'user_id': user_id
@@ -96,23 +61,9 @@ def kick_counter(request):
 
 def sleep_timer(request):
     """Страница таймера сна"""
-    # Получаем user_id из запроса или используем значение по умолчанию
-    user_id = request.GET.get('user_id', 1)
-    
-    # Проверяем, что user_id является числом
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        user_id = 1
-    
-    # Получаем child_id из запроса или используем значение по умолчанию
-    child_id = request.GET.get('child_id', 1)
-    
-    # Проверяем, что child_id является числом
-    try:
-        child_id = int(child_id)
-    except ValueError:
-        child_id = 1
+    # Получаем user_id и child_id из запроса или используем значение по умолчанию
+    user_id = get_int_param(request, 'user_id', 1)
+    child_id = get_int_param(request, 'child_id', 1)
     
     return render(request, 'tools/sleep_timer/index.html', {
         'user_id': user_id,
@@ -122,23 +73,9 @@ def sleep_timer(request):
 
 def feeding_tracker(request):
     """Страница отслеживания кормления"""
-    # Получаем user_id из запроса или используем значение по умолчанию
-    user_id = request.GET.get('user_id', 1)
-    
-    # Проверяем, что user_id является числом
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        user_id = 1
-    
-    # Получаем child_id из запроса или используем значение по умолчанию
-    child_id = request.GET.get('child_id', 1)
-    
-    # Проверяем, что child_id является числом
-    try:
-        child_id = int(child_id)
-    except ValueError:
-        child_id = 1
+    # Получаем user_id и child_id из запроса или используем значение по умолчанию
+    user_id = get_int_param(request, 'user_id', 1)
+    child_id = get_int_param(request, 'child_id', 1)
     
     return render(request, 'tools/feeding_tracker/index.html', {
         'user_id': user_id,
@@ -154,13 +91,7 @@ def child_profiles(request):
 def vaccine_calendar(request):
     """Страница календаря прививок"""
     # Получаем user_id из запроса или используем значение по умолчанию
-    user_id = request.GET.get('user_id', 1)
-    
-    # Проверяем, что user_id является числом
-    try:
-        user_id = int(user_id)
-    except ValueError:
-        user_id = 1
+    user_id = get_int_param(request, 'user_id', 1)
     
     return render(request, 'tools/vaccine_calendar/index.html', {
         'user_id': user_id
@@ -184,77 +115,108 @@ def performance_dashboard(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
+@safe_execute
 def create_user(request):
     """API endpoint для создания пользователя"""
+    # Парсим JSON из запроса
+    data, error = parse_json_request(request)
+    if error:
+        return error
+    
+    # Проверяем наличие обязательных полей
+    is_valid, error = validate_required_fields(data, ['telegram_id'])
+    if not is_valid:
+        return error
+    
+    # Создание пользователя через SQLAlchemy
+    db_manager = get_db_manager()
+    session = db_manager.get_session()
     try:
-        data = json.loads(request.body)
+        # Проверяем, существует ли уже пользователь с таким telegram_id
+        existing_user = session.query(User).filter_by(telegram_id=data['telegram_id']).first()
+        if existing_user:
+            return error_response("Пользователь с таким telegram_id уже существует", 409)
         
-        # Создание пользователя через SQLAlchemy
-        session = db_manager.get_session()
-        try:
-            # Парсим дату рождения ребенка, если она передана
-            baby_birth_date = None
-            if 'baby_birth_date' in data:
-                baby_birth_date = parse_datetime(data['baby_birth_date'])
-            
-            user = User(
-                telegram_id=data['telegram_id'],
-                username=data.get('username'),
-                first_name=data.get('first_name'),
-                last_name=data.get('last_name'),
-                is_pregnant=data.get('is_pregnant', False),
-                pregnancy_week=data.get('pregnancy_week'),
-                baby_birth_date=baby_birth_date
-            )
-            session.add(user)
-            session.commit()
-            logger.info(f"Создан новый пользователь через API: {data.get('username', data['telegram_id'])}")
-            return JsonResponse({"message": "User created successfully"})
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            db_manager.close_session(session)
-            
+        # Парсим дату рождения ребенка, если она передана
+        baby_birth_date, error = validate_date(data.get('baby_birth_date'), 'даты рождения ребенка')
+        if error and data.get('baby_birth_date'):
+            return error
+        
+        # Проверяем pregnancy_week, если передано
+        pregnancy_week = None
+        if 'pregnancy_week' in data and data['pregnancy_week'] is not None:
+            pregnancy_week, error = validate_numeric_value(data['pregnancy_week'], 'pregnancy_week', min_value=1)
+            if error:
+                return error
+        
+        user = User(
+            telegram_id=data['telegram_id'],
+            username=data.get('username'),
+            first_name=data.get('first_name'),
+            last_name=data.get('last_name'),
+            is_pregnant=data.get('is_pregnant', False),
+            pregnancy_week=pregnancy_week,
+            baby_birth_date=baby_birth_date
+        )
+        session.add(user)
+        session.commit()
+        logger.info(f"Создан новый пользователь через API: {data.get('username', data['telegram_id'])}")
+        return success_response({"user_id": user.id}, message="Пользователь успешно создан")
     except Exception as e:
-        logger.error(f"Ошибка при создании пользователя через API: {str(e)}")
-        return JsonResponse({"error": str(e)}, status=400)
+        session.rollback()
+        logger.error(f"Ошибка при создании пользователя в базе данных: {str(e)}")
+        return error_response(f"Ошибка при создании пользователя: {str(e)}", 500)
+    finally:
+        db_manager.close_session(session)
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
+@safe_execute
 def web_app_data(request):
     """Обработка данных от веб-приложения"""
+    # Парсим JSON из запроса
+    data, error = parse_json_request(request)
+    if error:
+        return error
+    
+    # Проверяем наличие обязательных полей
+    is_valid, error = validate_required_fields(data, ['user_id'])
+    if not is_valid:
+        return error
+    
+    db_manager = get_db_manager()
+    session = db_manager.get_session()
     try:
-        data = json.loads(request.body)
-        user_id = data.get('user_id')
+        user = session.query(User).filter_by(telegram_id=data['user_id']).first()
         
-        session = db_manager.get_session()
-        try:
-            user = session.query(User).filter_by(telegram_id=user_id).first()
+        if not user:
+            return error_response('Пользователь не найден', 404)
             
-            if not user:
-                return JsonResponse({'error': 'User not found'}, status=404)
+        if user.is_pregnant:
+            pregnancy_week = data.get('pregnancy_week')
+            if pregnancy_week is not None:
+                numeric_value, error = validate_numeric_value(pregnancy_week, 'pregnancy_week', min_value=1)
+                if error:
+                    return error
+                user.pregnancy_week = numeric_value
+        else:
+            # Обновлено для работы с baby_birth_date вместо baby_age
+            if 'baby_birth_date' in data:
+                birth_date, error = validate_date(data.get('baby_birth_date'), 'даты рождения ребенка')
+                if error and data['baby_birth_date']:
+                    return error
+                user.baby_birth_date = birth_date
                 
-            if user.is_pregnant:
-                user.pregnancy_week = data.get('pregnancy_week')
-            else:
-                # Обновлено для работы с baby_birth_date вместо baby_age
-                if 'baby_birth_date' in data:
-                    user.baby_birth_date = parse_datetime(data.get('baby_birth_date'))
-                    
-            session.commit()
-            return JsonResponse({'status': 'success'})
-            
-        except Exception as e:
-            session.rollback()
-            raise e
-        finally:
-            db_manager.close_session(session)
-            
+        session.commit()
+        return success_response(message='Данные успешно обновлены')
+        
     except Exception as e:
-        logger.error(f"Error processing web app data: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
+        session.rollback()
+        logger.error(f"Ошибка при обновлении данных пользователя: {str(e)}")
+        return error_response(f"Ошибка при обновлении данных: {str(e)}", 500)
+    finally:
+        db_manager.close_session(session)
 
 # Документация
 def documentation(request):
@@ -290,6 +252,18 @@ def user_guide_sync(request):
 def faq(request):
     """Часто задаваемые вопросы"""
     return render(request, 'documentation/faq.html')
+
+def api_documentation(request):
+    """Документация по API"""
+    return render(request, 'documentation/api_documentation.html')
+
+def architecture(request):
+    """Документация по архитектуре приложения"""
+    return render(request, 'documentation/architecture.html')
+
+def deployment(request):
+    """Документация по развертыванию приложения"""
+    return render(request, 'documentation/deployment.html')
     
 def tooltips_example(request):
     """Страница с примерами подсказок в интерфейсе"""

@@ -1,11 +1,7 @@
 from datetime import datetime
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-import os
-
-# SQLAlchemy setup
-Base = declarative_base()
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy.orm import relationship
+from botapp.models_base import Base, db_manager
 
 class User(Base):
     """Модель пользователя"""
@@ -46,47 +42,6 @@ from botapp.models_vaccine import Vaccine, ChildVaccine
 
 # Import notification-related models
 from botapp.models_notification import NotificationPreference, NotificationLog
-# SQLAlchemy utilities for Django context
-class SQLAlchemyManager:
-    """Утилиты для работы с SQLAlchemy в Django контексте"""
-    
-    def __init__(self):
-        self.engine = None
-        self.Session = None
-        self._setup_engine()
-    
-    def _setup_engine(self):
-        """Настройка SQLAlchemy engine"""
-        database_url = os.getenv('DATABASE_URL', 'sqlite:///mom_baby_bot.db')
-        self.engine = create_engine(database_url, echo=False)
-        self.Session = sessionmaker(bind=self.engine)
-    
-    def create_tables(self):
-        """Создание всех таблиц"""
-        # Убедимся, что все модели импортированы перед созданием таблиц
-        from botapp.models_child import Child, Measurement
-        from botapp.models_timers import (
-            Contraction, ContractionEvent, 
-            Kick, KickEvent, 
-            SleepSession, 
-            FeedingSession
-        )
-        from botapp.models_vaccine import Vaccine, ChildVaccine
-        from botapp.models_notification import NotificationPreference, NotificationLog
-        
-        Base.metadata.create_all(self.engine)
-    
-    def get_session(self):
-        """Получение новой сессии SQLAlchemy"""
-        return self.Session()
-    
-    def close_session(self, session):
-        """Закрытие сессии"""
-        if session:
-            session.close()
-
-# Глобальный экземпляр менеджера
-db_manager = SQLAlchemyManager()
 
 # Утилитарные функции для работы с пользователями
 def get_sqlalchemy_session():

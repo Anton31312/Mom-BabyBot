@@ -11,7 +11,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from botapp.models import User, db_manager
+from botapp.models import User
+from webapp.utils.db_utils import get_db_manager
 from botapp.models_notification import (
     NotificationPreference, get_notification_preferences,
     create_notification_preferences, update_notification_preferences,
@@ -79,6 +80,8 @@ def notification_preferences(request, user_id):
         user_id = int(user_id)
         
         # Проверяем существование пользователя
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()
@@ -130,6 +133,8 @@ def notification_history(request, user_id):
         user_id = int(user_id)
         
         # Проверяем существование пользователя
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()
@@ -168,6 +173,8 @@ def test_notification(request, user_id):
         user_id = int(user_id)
         
         # Проверяем существование пользователя
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()
@@ -207,6 +214,8 @@ def send_notification(request, user_id):
         user_id = int(user_id)
         
         # Проверяем существование пользователя
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()
@@ -231,6 +240,8 @@ def send_notification(request, user_id):
             # Получаем имя ребенка
             child_name = notification_data.get('child_name', 'Ребенок')
             if notification_data.get('child_id'):
+                db_manager = get_db_manager()
+
                 session = db_manager.get_session()
                 try:
                     child = session.query(Child).filter_by(id=notification_data.get('child_id')).first()
@@ -249,6 +260,8 @@ def send_notification(request, user_id):
             # Получаем имя ребенка
             child_name = notification_data.get('child_name', 'Ребенок')
             if notification_data.get('child_id'):
+                db_manager = get_db_manager()
+
                 session = db_manager.get_session()
                 try:
                     child = session.query(Child).filter_by(id=notification_data.get('child_id')).first()

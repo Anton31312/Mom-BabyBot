@@ -122,31 +122,9 @@
         </div>
     </section>
 
-    <!-- Форма обратной связи -->
-    <section class="mb-8">
-        <div class="neo-container">
-            <h2 class="text-2xl font-bold mb-6">Обратная связь</h2>
-            <form id="feedbackForm" class="space-y-4">
-                <div>
-                    <label class="block text-dark-gray mb-2" for="message">Ваше сообщение</label>
-                    <textarea id="message" class="neo-input w-full" rows="4"></textarea>
-                </div>
-                <button type="submit" class="neo-button bg-primary w-full">
-                    Отправить
-                </button>
-            </form>
-        </div>
-    </section>
+
 {% endblock %}
 
 {% block extra_js %}
-    // Инициализация формы
-    document.getElementById('feedbackForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const message = document.getElementById('message').value;
-        tg.sendData(JSON.stringify({
-            type: 'feedback',
-            message: message
-        }));
-    });
+    // Инициализация страницы
 {% endblock %}

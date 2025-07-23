@@ -12,7 +12,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from django.utils.decorators import method_decorator
 
-from botapp.models import User, db_manager
+from botapp.models import User
+from webapp.utils.db_utils import get_db_manager
 from botapp.models_timers import (
     Contraction, ContractionEvent,
     get_contraction_sessions, create_contraction_session,
@@ -63,6 +64,8 @@ class ContractionSessionsView(View):
             user_id = int(user_id)
             
             # Проверяем существование пользователя
+            db_manager = get_db_manager()
+
             session = db_manager.get_session()
             try:
                 user = session.query(User).filter_by(id=user_id).first()
@@ -90,6 +93,8 @@ class ContractionSessionsView(View):
             user_id = int(user_id)
             
             # Проверяем существование пользователя
+            db_manager = get_db_manager()
+
             session = db_manager.get_session()
             try:
                 user = session.query(User).filter_by(id=user_id).first()

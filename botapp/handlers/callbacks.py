@@ -71,3 +71,16 @@ async def handle_unsubscribe(callback: types.CallbackQuery):
     except Exception as e:
         logger.error(f"Ошибка при отмене подписки: {e}")
         await callback.answer("Произошла ошибка. Пожалуйста, попробуйте позже.")
+
+async def handle_webapp_unavailable(callback: types.CallbackQuery):
+    """Обработка нажатия на кнопку недоступного веб-приложения"""
+    await callback.answer("Веб-интерфейс недоступен в локальной среде разработки.")
+    
+    await callback.message.answer(
+        "⚠️ Веб-интерфейс недоступен в локальной среде разработки.\n\n"
+        "Для использования веб-интерфейса необходимо:\n"
+        "1. Настроить публичный домен с SSL-сертификатом\n"
+        "2. Обновить WEBAPP_URL в файле .env\n"
+        "3. Запустить приложение на сервере\n\n"
+        "Telegram требует, чтобы URL для веб-приложений был публично доступен и использовал HTTPS."
+    )

@@ -169,5 +169,12 @@ admin_urls = [
     path('api/stats/', admin_api_stats, name='admin_api_stats'),
 ]
 
-# Добавление URL в urlpatterns Django админки
-admin.site.get_urls = lambda: admin.site.get_urls() + admin_urls
+# Сохраняем оригинальную функцию get_urls
+original_get_urls = admin.site.get_urls
+
+# Переопределяем функцию get_urls для добавления наших URL
+def custom_get_urls():
+    return original_get_urls() + admin_urls
+
+# Заменяем функцию get_urls на нашу
+admin.site.get_urls = custom_get_urls

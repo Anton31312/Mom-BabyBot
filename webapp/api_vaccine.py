@@ -12,7 +12,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from django.utils.decorators import method_decorator
 
-from botapp.models import User, db_manager
+from botapp.models import User
+from webapp.utils.db_utils import get_db_manager
 from botapp.models_child import Child, get_child
 from botapp.models_vaccine import (
     Vaccine, ChildVaccine,

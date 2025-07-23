@@ -12,7 +12,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from sqlalchemy import func, and_, or_
 
-from botapp.models import User, db_manager
+from botapp.models import User
+from webapp.utils.db_utils import get_db_manager
 from botapp.models_child import Child
 from botapp.models_timers import FeedingSession
 
@@ -49,6 +50,8 @@ def feeding_sessions(request, user_id, child_id):
         child_id = int(child_id)
         
         # Проверяем существование пользователя
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()
@@ -119,6 +122,8 @@ def feeding_session_detail(request, user_id, child_id, session_id):
         session_id = int(session_id)
         
         # Проверяем существование пользователя и ребенка
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()
@@ -197,6 +202,8 @@ def feeding_statistics(request, user_id, child_id):
         child_id = int(child_id)
         
         # Проверяем существование пользователя и ребенка
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()

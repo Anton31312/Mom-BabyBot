@@ -8,7 +8,8 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from unittest.mock import patch, MagicMock
 
-from botapp.models import User, db_manager
+from botapp.models import User
+from webapp.utils.db_utils import get_db_manager
 
 
 class WebAppTestCase(TestCase):
@@ -30,6 +31,8 @@ class WebAppTestCase(TestCase):
 
     def tearDown(self):
         """Очистка после тестов"""
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             session.query(User).delete()
@@ -39,6 +42,8 @@ class WebAppTestCase(TestCase):
 
     def _create_test_users(self):
         """Создание тестовых пользователей"""
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             # Беременная пользовательница
@@ -115,6 +120,8 @@ class CreateUserAPITests(WebAppTestCase):
         self.assertEqual(response_data['message'], 'User created successfully')
 
         # Проверяем, что пользователь создан в БД
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(telegram_id=111222333).first()
@@ -144,6 +151,8 @@ class CreateUserAPITests(WebAppTestCase):
         self.assertEqual(response.status_code, 200)
 
         # Проверяем данные в БД
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(telegram_id=444555666).first()
@@ -230,6 +239,8 @@ class WebAppDataAPITests(WebAppTestCase):
         self.assertEqual(response_data['status'], 'success')
 
         # Проверяем обновление в БД
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(
@@ -258,6 +269,8 @@ class WebAppDataAPITests(WebAppTestCase):
         self.assertEqual(response_data['status'], 'success')
 
         # Проверяем обновление в БД
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(
@@ -357,6 +370,8 @@ class WebAppIntegrationTests(WebAppTestCase):
         self.assertEqual(update_response.status_code, 200)
 
         # 3. Проверяем финальное состояние в БД
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(telegram_id=777888999).first()

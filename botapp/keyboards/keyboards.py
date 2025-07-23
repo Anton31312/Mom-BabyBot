@@ -7,8 +7,15 @@ def get_main_keyboard(user_id: int) -> ReplyKeyboardMarkup:
     keyboard = [
         [KeyboardButton(text="📊 Статистика")] if user_id in getattr(settings, 'ADMIN_IDS', []) else [],
         [KeyboardButton(text="❓ Помощь")],
-        [KeyboardButton(text="🌐 Открыть приложение", web_app={"url": getattr(settings, 'WEBAPP_URL', '')})]
     ]
+    
+    # Only add the Web App button if not running locally
+    webapp_url = getattr(settings, 'WEBAPP_URL', '')
+    if webapp_url and not ('localhost' in webapp_url or '127.0.0.1' in webapp_url):
+        keyboard.append([KeyboardButton(text="🌐 Открыть приложение", web_app={"url": webapp_url})])
+    else:
+        keyboard.append([KeyboardButton(text="🌐 Веб-интерфейс недоступен локально")])
+    
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 def get_pregnancy_keyboard() -> ReplyKeyboardMarkup:
@@ -68,11 +75,20 @@ def get_baby_age_keyboard():
 
 def get_web_app_keyboard(webapp_url):
     """Создает клавиатуру с кнопкой веб-приложения"""
-    return {
-        "inline_keyboard": [[
-            {"text": "📱 Открыть приложение", "web_app": {"url": webapp_url}}
-        ]]
-    }
+    # Check if the URL is valid (not localhost or 127.0.0.1)
+    if webapp_url and not ('localhost' in webapp_url or '127.0.0.1' in webapp_url):
+        return {
+            "inline_keyboard": [[
+                {"text": "📱 Открыть приложение", "web_app": {"url": webapp_url}}
+            ]]
+        }
+    else:
+        # Return a simple message button instead
+        return {
+            "inline_keyboard": [[
+                {"text": "⚠️ Веб-интерфейс недоступен локально", "callback_data": "webapp_unavailable"}
+            ]]
+        }
 
 def remove_keyboard() -> ReplyKeyboardRemove:
     """Удаляет клавиатуру"""

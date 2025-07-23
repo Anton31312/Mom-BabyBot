@@ -8,6 +8,7 @@ in a Django environment.
 import logging
 from contextlib import contextmanager
 from django.conf import settings
+from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 
 logger = logging.getLogger(__name__)
@@ -92,7 +93,9 @@ def check_database_connection():
     """
     try:
         from sqlalchemy import text
-        with settings.SQLALCHEMY_ENGINE.connect() as connection:
+        # Force SQLite for local development
+        engine = create_engine('sqlite:///mom_baby_bot.db', connect_args={"check_same_thread": False})
+        with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
         logger.info("Database connection check passed")
         return True

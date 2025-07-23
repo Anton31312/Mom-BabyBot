@@ -3,7 +3,7 @@ import asyncio
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
+from aiogram.filters import Command as AiogramCommand
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.context import FSMContext
 
@@ -46,19 +46,20 @@ class Command(BaseCommand):
             dp = Dispatcher(storage=storage)
 
             # Регистрация хендлеров команд
-            dp.message.register(start_survey, Command("start"))
-            dp.message.register(help_command, Command("help"))
+            dp.message.register(start_survey, AiogramCommand("start"))
+            dp.message.register(help_command, AiogramCommand("help"))
             dp.message.register(help_command, lambda message: message.text == "❓ Помощь")
-            dp.message.register(stats, Command("stats"))
+            dp.message.register(stats, AiogramCommand("stats"))
             dp.message.register(stats, lambda message: message.text == "📊 Статистика")
-            dp.message.register(webapp_command, Command("webapp"))
+            dp.message.register(webapp_command, AiogramCommand("webapp"))
             dp.message.register(webapp_command, lambda message: message.text == "🌐 Открыть приложение")
-            dp.message.register(cancel, Command("cancel"))
+            dp.message.register(cancel, AiogramCommand("cancel"))
             dp.message.register(web_app_data, lambda message: message.web_app_data is not None)
 
             # Регистрация callback-обработчиков для премиум-подписки
             dp.callback_query.register(handle_subscribe, lambda c: c.data == "subscribe")
             dp.callback_query.register(handle_unsubscribe, lambda c: c.data == "unsubscribe")
+            dp.callback_query.register(handle_webapp_unavailable, lambda c: c.data == "webapp_unavailable")
 
             # Регистрация хендлеров для опроса
             dp.message.register(handle_pregnancy_answer, SurveyStates.pregnancy_question)

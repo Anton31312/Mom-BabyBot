@@ -8,7 +8,7 @@ from .conversation import (
     cancel
 )
 from .web_app import web_app_data
-from .callbacks import handle_subscribe, handle_unsubscribe
+from .callbacks import handle_subscribe, handle_unsubscribe, handle_webapp_unavailable
 
 __all__ = [
     'help_command',
@@ -24,5 +24,6 @@ __all__ = [
     'cancel',
     'web_app_data',
     'handle_subscribe',
-    'handle_unsubscribe'
+    'handle_unsubscribe',
+    'handle_webapp_unavailable'
 ]

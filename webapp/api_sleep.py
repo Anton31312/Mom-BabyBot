@@ -11,7 +11,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from botapp.models import User, db_manager
+from botapp.models import User
+from webapp.utils.db_utils import get_db_manager
 from botapp.models_child import Child, get_child
 from botapp.models_timers import (
     SleepSession, get_sleep_sessions, create_sleep_session, end_sleep_session
@@ -49,6 +50,8 @@ def sleep_sessions(request, user_id, child_id):
         child_id = int(child_id)
 
         # Проверяем существование пользователя
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()
@@ -112,6 +115,8 @@ def sleep_session_detail(request, user_id, child_id, session_id):
         session_id = int(session_id)
 
         # Проверяем существование пользователя и ребенка
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()
@@ -153,6 +158,8 @@ def sleep_session_detail(request, user_id, child_id, session_id):
                 return JsonResponse(sleep_session_to_dict(updated_session))
 
             # Если запрос на обновление других параметров
+            db_manager = get_db_manager()
+
             session = db_manager.get_session()
             try:
                 sleep_session = session.query(
@@ -179,6 +186,8 @@ def sleep_session_detail(request, user_id, child_id, session_id):
 
         elif request.method == 'DELETE':
             # Удаляем сессию сна
+            db_manager = get_db_manager()
+
             session = db_manager.get_session()
             try:
                 sleep_session = session.query(
@@ -212,6 +221,8 @@ def sleep_statistics(request, user_id, child_id):
         child_id = int(child_id)
 
         # Проверяем существование пользователя и ребенка
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()
@@ -280,6 +291,8 @@ def active_sleep_session(request, user_id, child_id):
         child_id = int(child_id)
 
         # Проверяем существование пользователя и ребенка
+        db_manager = get_db_manager()
+
         session = db_manager.get_session()
         try:
             user = session.query(User).filter_by(id=user_id).first()
