@@ -1,0 +1,115 @@
+/**
+ * Tooltips.css - Стили для системы подсказок Mom&BabyBot
+ */
+
+.tooltip {
+    position: absolute;
+    z-index: 1000;
+    padding: 8px 12px;
+    font-size: 14px;
+    max-width: 300px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--dark-gray);
+}
+
+.tooltip-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.tooltip[data-position="top"]::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    margin-left: -8px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid rgba(255, 255, 255, 0.8);
+}
+
+.tooltip[data-position="bottom"]::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    margin-left: -8px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid rgba(255, 255, 255, 0.8);
+}
+
+.tooltip[data-position="left"]::after {
+    content: '';
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    margin-top: -8px;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-left: 8px solid rgba(255, 255, 255, 0.8);
+}
+
+.tooltip[data-position="right"]::after {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    margin-top: -8px;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid rgba(255, 255, 255, 0.8);
+}
+
+/* Стили для элементов с подсказками */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+/* Индикатор наличия подсказки */
+.has-tooltip {
+    border-bottom: 1px dotted var(--primary-color);
+}
+
+/* Иконка подсказки */
+.tooltip-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 4px;
+    cursor: help;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 640px) {
+    .tooltip {
+        max-width: 250px;
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+}

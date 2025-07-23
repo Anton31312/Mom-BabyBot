@@ -1,0 +1,509 @@
+{% extends 'base.html' %}
+
+{% block title %}Инструкции по развертыванию | Mom&BabyBot{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="neomorphic-card p-6 mb-8">
+        <h1 class="text-2xl font-bold mb-4">Инструкции по развертыванию</h1>
+        <p class="mb-6">Этот документ содержит подробные инструкции по развертыванию приложения Mom&BabyBot в различных средах. Приложение поддерживает несколько способов развертывания, включая локальную разработку, контейнеризацию с Docker и установку на VPS/сервер.</p>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Требования к системе</h2>
+            <div class="glass-card p-4 mb-4">
+                <h3 class="text-lg font-medium mb-2">Минимальные требования:</h3>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><strong>Python 3.9+</strong></li>
+                    <li><strong>PostgreSQL 12+</strong> (для продакшена) или <strong>SQLite</strong> (для разработки)</li>
+                    <li><strong>Redis 6+</strong> (для кэширования и Celery)</li>
+                    <li><strong>Nginx</strong> (для продакшена)</li>
+                    <li><strong>Docker</strong> и <strong>Docker Compose</strong> (опционально, для контейнеризации)</li>
+                    <li><strong>Telegram Bot API Token</strong> (для интеграции с Telegram)</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Локальная разработка</h2>
+            <div class="glass-card p-4 mb-4">
+                <h3 class="text-lg font-medium mb-2">1. Клонирование репозитория</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>git clone https://github.com/your-username/mom-baby-bot.git
+cd mom-baby-bot</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">2. Создание виртуального окружения</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># Windows
+python -m venv .venv
+.venv\Scripts\activate
+
+# Linux/macOS
+python3 -m venv .venv
+source .venv/bin/activate</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">3. Установка зависимостей</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>pip install -r requirements.txt</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">4. Настройка переменных окружения</h3>
+                <p class="mb-2">Создайте файл <code>.env</code> в корневой директории проекта со следующим содержимым:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># Основные настройки
+DEBUG=True
+SECRET_KEY=your-secret-key
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# База данных
+DATABASE_URL=sqlite:///db.sqlite3
+
+# Telegram Bot
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+
+# Redis (опционально для локальной разработки)
+REDIS_URL=redis://localhost:6379/0</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">5. Применение миграций</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>python manage.py migrate</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">6. Создание суперпользователя (опционально)</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>python manage.py createsuperuser</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">7. Запуск сервера разработки</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>python manage.py runserver</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">8. Запуск Telegram бота (в отдельном терминале)</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>python manage.py run_bot</code></pre>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Развертывание с использованием Docker</h2>
+            <div class="glass-card p-4 mb-4">
+                <p class="mb-4">Docker обеспечивает простой и надежный способ развертывания приложения в любой среде. Приложение использует Docker Compose для оркестрации нескольких контейнеров.</p>
+                
+                <h3 class="text-lg font-medium mb-2">1. Клонирование репозитория</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>git clone https://github.com/your-username/mom-baby-bot.git
+cd mom-baby-bot</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">2. Настройка переменных окружения</h3>
+                <p class="mb-2">Создайте файл <code>.env</code> в корневой директории проекта со следующими переменными:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># Основные настройки
+DEBUG=False
+SECRET_KEY=your-secure-secret-key
+ALLOWED_HOSTS=localhost,127.0.0.1,your-domain.com
+
+# База данных PostgreSQL
+DB_NAME=mombabybot
+DB_USER=mombabybot
+DB_PASSWORD=your-secure-password
+DB_HOST=db
+DB_PORT=5432
+DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+
+# Redis
+REDIS_URL=redis://redis:6379/0
+
+# Telegram Bot
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+
+# Настройки SSL
+SSL_ENABLED=true</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">3. Структура Docker Compose</h3>
+                <p class="mb-2">Приложение использует несколько контейнеров, определенных в <code>docker-compose.yml</code>:</p>
+                <ul class="list-disc pl-6 space-y-2 mb-4">
+                    <li><strong>db</strong> - PostgreSQL база данных</li>
+                    <li><strong>redis</strong> - Redis для кэширования и очередей сообщений</li>
+                    <li><strong>web</strong> - Django приложение с Gunicorn</li>
+                    <li><strong>bot</strong> - Telegram бот</li>
+                    <li><strong>nginx</strong> - Веб-сервер и обратный прокси</li>
+                </ul>
+                
+                <h3 class="text-lg font-medium mb-2">4. Сборка и запуск контейнеров</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>docker-compose up -d --build</code></pre>
+                <p class="mb-2">Эта команда соберет образы и запустит контейнеры в фоновом режиме. Docker Compose автоматически создаст необходимые тома для хранения данных.</p>
+                
+                <h3 class="text-lg font-medium mb-2">5. Применение миграций</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>docker-compose exec web python manage.py migrate</code></pre>
+                <p class="mb-2">Эта команда создаст необходимые таблицы в базе данных.</p>
+                
+                <h3 class="text-lg font-medium mb-2">6. Создание суперпользователя (опционально)</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>docker-compose exec web python manage.py createsuperuser</code></pre>
+                <p class="mb-2">Создайте администратора для доступа к панели администрирования Django.</p>
+                
+                <h3 class="text-lg font-medium mb-2">7. Сбор и оптимизация статических файлов</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>docker-compose exec web python manage.py collectstatic --no-input
+docker-compose exec web python optimize_static.py</code></pre>
+                <p class="mb-2">Скрипт <code>optimize_static.py</code> выполняет следующие оптимизации:</p>
+                <ul class="list-disc pl-6 space-y-2 mb-4">
+                    <li>Минификация CSS и JavaScript файлов</li>
+                    <li>Оптимизация изображений (JPEG, PNG, GIF)</li>
+                    <li>Создание сжатых версий файлов (Gzip и Brotli)</li>
+                </ul>
+                
+                <h3 class="text-lg font-medium mb-2">8. Генерация SSL-сертификатов</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>docker-compose exec web python generate_ssl_certs.py</code></pre>
+                <p class="mb-2">Скрипт <code>generate_ssl_certs.py</code> создает самоподписанные SSL-сертификаты для разработки. Для продакшена рекомендуется использовать Let's Encrypt.</p>
+                
+                <h3 class="text-lg font-medium mb-2">9. Проверка работоспособности</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>docker-compose ps</code></pre>
+                <p class="mb-2">Убедитесь, что все контейнеры запущены и работают корректно. Приложение должно быть доступно по адресу <code>https://localhost</code> или по вашему домену.</p>
+                
+                <h3 class="text-lg font-medium mb-2">10. Просмотр логов</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code># Все логи
+docker-compose logs
+
+# Логи конкретного сервиса
+docker-compose logs web
+docker-compose logs bot
+docker-compose logs nginx</code></pre>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Развертывание на VPS/сервере</h2>
+            <div class="glass-card p-4 mb-4">
+                <h3 class="text-lg font-medium mb-2">1. Подготовка сервера</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># Обновление пакетов
+sudo apt update
+sudo apt upgrade -y
+
+# Установка необходимых пакетов
+sudo apt install -y python3 python3-pip python3-venv postgresql nginx redis-server</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">2. Настройка PostgreSQL</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># Создание пользователя и базы данных
+sudo -u postgres psql -c "CREATE USER mombabybot WITH PASSWORD 'your-password';"
+sudo -u postgres psql -c "CREATE DATABASE mombabybot OWNER mombabybot;"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE mombabybot TO mombabybot;"</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">3. Клонирование репозитория</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>git clone https://github.com/your-username/mom-baby-bot.git
+cd mom-baby-bot</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">4. Создание виртуального окружения</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>python3 -m venv .venv
+source .venv/bin/activate</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">5. Установка зависимостей</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>pip install -r requirements.txt
+pip install gunicorn</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">6. Настройка переменных окружения</h3>
+                <p class="mb-2">Создайте файл <code>.env</code> в корневой директории проекта:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># Основные настройки
+DEBUG=False
+SECRET_KEY=your-secure-secret-key
+ALLOWED_HOSTS=your-domain.com,www.your-domain.com
+
+# База данных
+DATABASE_URL=postgresql://mombabybot:your-password@localhost:5432/mombabybot
+
+# Telegram Bot
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+
+# Redis
+REDIS_URL=redis://localhost:6379/0</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">7. Применение миграций</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>python manage.py migrate</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">8. Сбор статических файлов</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>python manage.py collectstatic --no-input</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">9. Настройка Gunicorn</h3>
+                <p class="mb-2">Создайте файл <code>/etc/systemd/system/gunicorn.service</code>:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>[Unit]
+Description=gunicorn daemon for Mom&BabyBot
+After=network.target
+
+[Service]
+User=your-username
+Group=www-data
+WorkingDirectory=/path/to/mom-baby-bot
+ExecStart=/path/to/mom-baby-bot/.venv/bin/gunicorn --access-logfile - --workers 3 --bind unix:/path/to/mom-baby-bot/mom_baby_bot.sock mom_baby_bot.wsgi:application
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">10. Настройка Telegram бота как службы</h3>
+                <p class="mb-2">Создайте файл <code>/etc/systemd/system/telegrambot.service</code>:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>[Unit]
+Description=Telegram bot for Mom&BabyBot
+After=network.target
+
+[Service]
+User=your-username
+Group=www-data
+WorkingDirectory=/path/to/mom-baby-bot
+ExecStart=/path/to/mom-baby-bot/.venv/bin/python manage.py run_bot
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">11. Настройка Celery как службы (опционально)</h3>
+                <p class="mb-2">Создайте файл <code>/etc/systemd/system/celery.service</code>:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>[Unit]
+Description=Celery worker for Mom&BabyBot
+After=network.target
+
+[Service]
+User=your-username
+Group=www-data
+WorkingDirectory=/path/to/mom-baby-bot
+ExecStart=/path/to/mom-baby-bot/.venv/bin/celery -A mom_baby_bot worker -l info
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">12. Настройка Nginx</h3>
+                <p class="mb-2">Создайте файл <code>/etc/nginx/sites-available/mom-baby-bot</code>:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>server {
+    listen 80;
+    server_name your-domain.com www.your-domain.com;
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    
+    location /static/ {
+        root /path/to/mom-baby-bot;
+    }
+    
+    location /media/ {
+        root /path/to/mom-baby-bot;
+    }
+    
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/path/to/mom-baby-bot/mom_baby_bot.sock;
+    }
+}</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">13. Активация конфигурации Nginx</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>sudo ln -s /etc/nginx/sites-available/mom-baby-bot /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">14. Запуск служб</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>sudo systemctl start gunicorn
+sudo systemctl enable gunicorn
+sudo systemctl start telegrambot
+sudo systemctl enable telegrambot
+sudo systemctl start celery
+sudo systemctl enable celery</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">15. Настройка SSL с Let's Encrypt (рекомендуется)</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com -d www.your-domain.com</code></pre>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Обновление приложения</h2>
+            <div class="glass-card p-4 mb-4">
+                <h3 class="text-lg font-medium mb-2">1. Получение последних изменений</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>cd /path/to/mom-baby-bot
+git pull origin main</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">2. Обновление зависимостей</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>source .venv/bin/activate
+pip install -r requirements.txt</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">3. Применение миграций</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>python manage.py migrate</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">4. Сбор статических файлов</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>python manage.py collectstatic --no-input</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">5. Перезапуск служб</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>sudo systemctl restart gunicorn
+sudo systemctl restart telegrambot
+sudo systemctl restart celery</code></pre>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Резервное копирование и восстановление</h2>
+            <div class="glass-card p-4 mb-4">
+                <p class="mb-4">Регулярное резервное копирование данных является критически важным для обеспечения сохранности пользовательской информации. Приложение Mom&BabyBot хранит важные данные о беременности, детях и их развитии, поэтому необходимо настроить надежную систему резервного копирования.</p>
+                
+                <h3 class="text-lg font-medium mb-2">1. Резервное копирование базы данных</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># PostgreSQL
+pg_dump -U mombabybot -h localhost mombabybot > backup_$(date +%Y%m%d).sql
+
+# С сжатием
+pg_dump -U mombabybot -h localhost mombabybot | gzip > backup_$(date +%Y%m%d).sql.gz
+
+# Только структура (без данных)
+pg_dump -U mombabybot -h localhost mombabybot --schema-only > schema_$(date +%Y%m%d).sql
+
+# SQLite
+cp db.sqlite3 db.sqlite3.backup_$(date +%Y%m%d)</code></pre>
+                <p class="mb-2">При использовании Docker:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># PostgreSQL в Docker
+docker-compose exec db pg_dump -U mombabybot mombabybot > backup_$(date +%Y%m%d).sql</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">2. Резервное копирование медиафайлов и статических файлов</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># Медиафайлы
+tar -czf media_backup_$(date +%Y%m%d).tar.gz media/
+
+# Статические файлы
+tar -czf static_backup_$(date +%Y%m%d).tar.gz staticfiles/</code></pre>
+                <p class="mb-2">При использовании Docker:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># Копирование из Docker-томов
+docker run --rm -v mom-baby-bot_media_volume:/media -v $(pwd):/backup alpine tar -czf /backup/media_backup_$(date +%Y%m%d).tar.gz /media</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">3. Автоматическое резервное копирование</h3>
+                <p class="mb-2">Создайте скрипт <code>backup.sh</code> для автоматизации процесса резервного копирования:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>#!/bin/bash
+# Скрипт для автоматического резервного копирования Mom&BabyBot
+
+# Настройки
+BACKUP_DIR="/path/to/backups"
+APP_DIR="/path/to/mom-baby-bot"
+DB_USER="mombabybot"
+DB_NAME="mombabybot"
+DB_HOST="localhost"
+RETENTION_DAYS=30
+DATE=$(date +%Y%m%d)
+LOG_FILE="$BACKUP_DIR/backup_$DATE.log"
+
+# Создание директории для резервных копий
+mkdir -p $BACKUP_DIR
+
+# Начало логирования
+echo "=== Резервное копирование начато $(date) ===" > $LOG_FILE
+
+# Резервное копирование PostgreSQL
+echo "Создание резервной копии базы данных..." >> $LOG_FILE
+pg_dump -U $DB_USER -h $DB_HOST $DB_NAME | gzip > $BACKUP_DIR/db_$DATE.sql.gz
+if [ $? -eq 0 ]; then
+    echo "Резервное копирование базы данных успешно завершено." >> $LOG_FILE
+else
+    echo "ОШИБКА: Не удалось создать резервную копию базы данных!" >> $LOG_FILE
+fi
+
+# Резервное копирование медиафайлов
+echo "Создание резервной копии медиафайлов..." >> $LOG_FILE
+tar -czf $BACKUP_DIR/media_$DATE.tar.gz -C $APP_DIR media/
+if [ $? -eq 0 ]; then
+    echo "Резервное копирование медиафайлов успешно завершено." >> $LOG_FILE
+else
+    echo "ОШИБКА: Не удалось создать резервную копию медиафайлов!" >> $LOG_FILE
+fi
+
+# Резервное копирование конфигурационных файлов
+echo "Создание резервной копии конфигурационных файлов..." >> $LOG_FILE
+tar -czf $BACKUP_DIR/config_$DATE.tar.gz -C $APP_DIR .env docker-compose.yml nginx/
+if [ $? -eq 0 ]; then
+    echo "Резервное копирование конфигурационных файлов успешно завершено." >> $LOG_FILE
+else
+    echo "ОШИБКА: Не удалось создать резервную копию конфигурационных файлов!" >> $LOG_FILE
+fi
+
+# Удаление старых резервных копий
+echo "Удаление резервных копий старше $RETENTION_DAYS дней..." >> $LOG_FILE
+find $BACKUP_DIR -name "*.sql.gz" -type f -mtime +$RETENTION_DAYS -delete
+find $BACKUP_DIR -name "*.tar.gz" -type f -mtime +$RETENTION_DAYS -delete
+find $BACKUP_DIR -name "backup_*.log" -type f -mtime +$RETENTION_DAYS -delete
+
+# Проверка доступного места на диске
+DISK_SPACE=$(df -h $BACKUP_DIR | awk 'NR==2 {print $5}' | sed 's/%//')
+if [ $DISK_SPACE -gt 90 ]; then
+    echo "ПРЕДУПРЕЖДЕНИЕ: Мало свободного места на диске ($DISK_SPACE%)!" >> $LOG_FILE
+    # Отправка уведомления администратору
+    # mail -s "Mom&BabyBot: Мало места на диске" admin@example.com < $LOG_FILE
+fi
+
+# Завершение логирования
+echo "=== Резервное копирование завершено $(date) ===" >> $LOG_FILE
+
+# Опционально: копирование на удаленный сервер
+# rsync -avz $BACKUP_DIR/ user@remote-server:/path/to/remote/backups/</code></pre>
+                
+                <p class="mb-2">Добавьте скрипт в cron для ежедневного выполнения:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>chmod +x backup.sh
+crontab -e
+
+# Добавьте следующую строку для запуска скрипта каждый день в 3:00
+0 3 * * * /path/to/backup.sh</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">4. Восстановление из резервной копии</h3>
+                <p class="mb-2">Восстановление базы данных PostgreSQL:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># Из обычного дампа
+psql -U mombabybot -h localhost mombabybot < backup_20250101.sql
+
+# Из сжатого дампа
+gunzip -c backup_20250101.sql.gz | psql -U mombabybot -h localhost mombabybot</code></pre>
+                
+                <p class="mb-2">Восстановление медиафайлов:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code>tar -xzf media_20250101.tar.gz -C /path/to/mom-baby-bot/</code></pre>
+                
+                <p class="mb-2">При использовании Docker:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># Восстановление базы данных
+cat backup_20250101.sql | docker-compose exec -T db psql -U mombabybot mombabybot
+
+# Восстановление медиафайлов
+docker run --rm -v mom-baby-bot_media_volume:/media -v $(pwd):/backup alpine sh -c "rm -rf /media/* && tar -xzf /backup/media_20250101.tar.gz -C /media"</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">5. Стратегия резервного копирования</h3>
+                <p class="mb-2">Рекомендуется использовать многоуровневую стратегию резервного копирования:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><strong>Ежедневные резервные копии</strong> - Хранятся в течение 7 дней</li>
+                    <li><strong>Еженедельные резервные копии</strong> - Хранятся в течение 1 месяца</li>
+                    <li><strong>Ежемесячные резервные копии</strong> - Хранятся в течение 1 года</li>
+                    <li><strong>Географически распределенное хранение</strong> - Копии на разных физических серверах</li>
+                    <li><strong>Регулярное тестирование восстановления</strong> - Проверка целостности резервных копий</li>
+                </ul>
+                
+                <h3 class="text-lg font-medium mb-2">6. Мониторинг резервного копирования</h3>
+                <p class="mb-2">Настройте мониторинг процесса резервного копирования для своевременного обнаружения проблем:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li>Проверка успешного завершения процесса резервного копирования</li>
+                    <li>Мониторинг размера резервных копий</li>
+                    <li>Проверка доступного места на диске</li>
+                    <li>Уведомления о проблемах с резервным копированием</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div>
+            <h2 class="text-xl font-semibold mb-3">Мониторинг и обслуживание</h2>
+            <div class="glass-card p-4">
+                <h3 class="text-lg font-medium mb-2">1. Проверка логов</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># Логи Gunicorn
+sudo journalctl -u gunicorn
+
+# Логи Telegram бота
+sudo journalctl -u telegrambot
+
+# Логи Celery
+sudo journalctl -u celery
+
+# Логи Nginx
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">2. Мониторинг производительности</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># Мониторинг использования ресурсов
+htop
+
+# Мониторинг дискового пространства
+df -h
+
+# Мониторинг базы данных PostgreSQL
+sudo -u postgres psql -c "SELECT pg_size_pretty(pg_database_size('mombabybot'));"</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">3. Очистка кэша</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto mb-4"><code># Очистка кэша Redis
+redis-cli flushdb</code></pre>
+                
+                <h3 class="text-lg font-medium mb-2">4. Проверка состояния служб</h3>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>sudo systemctl status gunicorn
+sudo systemctl status telegrambot
+sudo systemctl status celery
+sudo systemctl status nginx
+sudo systemctl status redis</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

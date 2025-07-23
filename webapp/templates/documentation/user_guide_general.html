@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Общая информация | Руководство пользователя{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="neomorphic-card p-6 mb-8">
+        <nav class="mb-6">
+            <ol class="flex flex-wrap text-sm">
+                <li><a href="{% url 'webapp:index' %}" class="text-pink-500 hover:text-pink-700">Главная</a></li>
+                <li class="mx-2">/</li>
+                <li><a href="{% url 'webapp:documentation' %}" class="text-pink-500 hover:text-pink-700">Руководство пользователя</a></li>
+                <li class="mx-2">/</li>
+                <li>Общая информация</li>
+            </ol>
+        </nav>
+        
+        <h1 class="text-2xl font-bold mb-6">Общая информация</h1>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">О приложении</h2>
+            <p class="mb-4">Mom&BabyBot — это комплексное приложение для будущих и новых родителей, которое помогает отслеживать беременность, развитие ребенка и предоставляет полезные инструменты для ухода за малышом.</p>
+            <p class="mb-4">Наше приложение доступно как в виде веб-интерфейса, так и в виде Telegram бота, что позволяет вам использовать его на любом устройстве и в любое время.</p>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Навигация по приложению</h2>
+            <p class="mb-4">Приложение разделено на несколько основных разделов:</p>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Информационные разделы</h3>
+                <ul class="list-disc pl-6 mb-2">
+                    <li><strong>Беременность</strong> — информация о течении беременности по триместрам</li>
+                    <li><strong>Развитие ребенка</strong> — информация о развитии ребенка по возрастам</li>
+                    <li><strong>Питание</strong> — рекомендации по питанию для беременных, кормящих мам и детей</li>
+                </ul>
+            </div>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Инструменты</h3>
+                <ul class="list-disc pl-6 mb-2">
+                    <li><strong>Счетчик схваток</strong> — для отслеживания схваток во время родов</li>
+                    <li><strong>Счетчик шевелений</strong> — для отслеживания активности ребенка во время беременности</li>
+                    <li><strong>Таймер сна</strong> — для отслеживания режима сна ребенка</li>
+                    <li><strong>Отслеживание кормления</strong> — для записи грудного вскармливания и кормления из бутылочки</li>
+                    <li><strong>Профили детей</strong> — для управления данными о детях и их развитии</li>
+                    <li><strong>Календарь прививок</strong> — для отслеживания графика вакцинации</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Начало работы</h2>
+            <p class="mb-4">Чтобы начать использовать приложение:</p>
+            
+            <ol class="list-decimal pl-6 mb-4">
+                <li class="mb-2">Создайте учетную запись или войдите через Telegram</li>
+                <li class="mb-2">Заполните свой профиль, указав информацию о беременности или ребенке</li>
+                <li class="mb-2">Исследуйте информационные разделы или начните использовать инструменты</li>
+            </ol>
+            
+            <p class="mb-4">Все данные автоматически синхронизируются между веб-приложением и Telegram ботом, если вы используете одну учетную запись.</p>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Интерфейс приложения</h2>
+            <p class="mb-4">Наше приложение использует современный неоморфный и глазоморфный дизайн с теплыми, пастельными цветами, создающими комфортную атмосферу.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                <div class="glassmorphic-card p-4">
+                    <h3 class="font-medium mb-2">Неоморфные элементы</h3>
+                    <p>Элементы с мягкими тенями и выпуклым эффектом, которые можно нажимать и с которыми можно взаимодействовать.</p>
+                </div>
+                
+                <div class="glassmorphic-card p-4">
+                    <h3 class="font-medium mb-2">Глазоморфные элементы</h3>
+                    <p>Полупрозрачные элементы с эффектом матового стекла, которые используются для выделения информации.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-between mt-8">
+            <a href="{% url 'webapp:documentation' %}" class="neomorphic-button px-4 py-2 text-center hover:shadow-inner transition-all">← Назад к оглавлению</a>
+            <a href="{% url 'webapp:user_guide_pregnancy' %}" class="neomorphic-button px-4 py-2 text-center hover:shadow-inner transition-all">Далее: Беременность →</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Руководство пользователя | Mom&BabyBot{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="neomorphic-card p-6 mb-8">
+        <h1 class="text-2xl font-bold mb-4">Руководство пользователя</h1>
+        <p class="mb-4">Добро пожаловать в руководство пользователя Mom&BabyBot! Здесь вы найдете подробную информацию о том, как использовать все функции нашего приложения.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+            <a href="{% url 'webapp:user_guide_general' %}" class="neomorphic-button p-6 text-center hover:shadow-inner transition-all">
+                <h3 class="text-lg font-medium mb-2">Общая информация</h3>
+                <p class="text-gray-600">Основные сведения о приложении и навигации</p>
+            </a>
+            
+            <a href="{% url 'webapp:user_guide_pregnancy' %}" class="neomorphic-button p-6 text-center hover:shadow-inner transition-all">
+                <h3 class="text-lg font-medium mb-2">Беременность</h3>
+                <p class="text-gray-600">Как использовать функции для беременных</p>
+            </a>
+            
+            <a href="{% url 'webapp:user_guide_baby' %}" class="neomorphic-button p-6 text-center hover:shadow-inner transition-all">
+                <h3 class="text-lg font-medium mb-2">Уход за ребенком</h3>
+                <p class="text-gray-600">Как использовать функции для ухода за ребенком</p>
+            </a>
+            
+            <a href="{% url 'webapp:user_guide_tools' %}" class="neomorphic-button p-6 text-center hover:shadow-inner transition-all">
+                <h3 class="text-lg font-medium mb-2">Инструменты</h3>
+                <p class="text-gray-600">Подробное руководство по всем инструментам</p>
+            </a>
+            
+            <a href="{% url 'webapp:faq' %}" class="neomorphic-button p-6 text-center hover:shadow-inner transition-all">
+                <h3 class="text-lg font-medium mb-2">Часто задаваемые вопросы</h3>
+                <p class="text-gray-600">Ответы на популярные вопросы</p>
+            </a>
+            
+            <a href="{% url 'webapp:user_guide_sync' %}" class="neomorphic-button p-6 text-center hover:shadow-inner transition-all">
+                <h3 class="text-lg font-medium mb-2">Синхронизация</h3>
+                <p class="text-gray-600">Как синхронизировать данные с Telegram ботом</p>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

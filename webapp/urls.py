@@ -21,8 +21,22 @@ urlpatterns = [
     path('child-development/', views.child_development, name='child_development'),
     path('nutrition/', views.nutrition, name='nutrition'),
     
+    # Документация
+    path('documentation/', views.documentation, name='documentation'),
+    path('documentation/general/', views.user_guide_general, name='user_guide_general'),
+    path('documentation/pregnancy/', views.user_guide_pregnancy, name='user_guide_pregnancy'),
+    path('documentation/baby/', views.user_guide_baby, name='user_guide_baby'),
+    path('documentation/tools/', views.user_guide_tools, name='user_guide_tools'),
+    path('documentation/sync/', views.user_guide_sync, name='user_guide_sync'),
+    path('documentation/faq/', views.faq, name='faq'),
+    # Техническая документация
+    path('documentation/api/', views.api_documentation, name='api_documentation'),
+    path('documentation/architecture/', views.architecture, name='architecture'),
+    path('documentation/deployment/', views.deployment, name='deployment'),
+    
     # UI Components Showcase
     path('components/showcase/', views.components_showcase, name='components_showcase'),
+    path('components/tooltips/', views.tooltips_example, name='tooltips_example'),
     
     # Performance Dashboard
     path('admin/performance/', views.performance_dashboard, name='performance_dashboard'),

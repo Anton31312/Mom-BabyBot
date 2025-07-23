@@ -1,0 +1,75 @@
+{% comment %}
+    Этот шаблон содержит подсказки для основных элементов интерфейса.
+    Включите его в нужные шаблоны с помощью {% include 'components/help_tooltips.html' %}
+{% endcomment %}
+
+<script>
+    // Добавляем подсказки к элементам интерфейса после загрузки DOM
+    document.addEventListener('DOMContentLoaded', function() {
+        // Счетчик схваток
+        addTooltipToElement('.contraction-start-btn', 'Нажмите, чтобы начать отслеживание схваток', 'top');
+        addTooltipToElement('.contraction-record-btn', 'Нажмите в начале каждой схватки', 'top');
+        addTooltipToElement('.contraction-stop-btn', 'Нажмите, чтобы завершить сессию отслеживания', 'top');
+        
+        // Счетчик шевелений
+        addTooltipToElement('.kick-start-btn', 'Нажмите, чтобы начать отслеживание шевелений', 'top');
+        addTooltipToElement('.kick-record-btn', 'Нажмите каждый раз, когда чувствуете шевеление', 'top');
+        addTooltipToElement('.kick-stop-btn', 'Нажмите, чтобы завершить сессию отслеживания', 'top');
+        
+        // Таймер сна
+        addTooltipToElement('.sleep-type-selector', 'Выберите тип сна: дневной или ночной', 'top');
+        addTooltipToElement('.sleep-start-btn', 'Нажмите, когда ребенок засыпает', 'top');
+        addTooltipToElement('.sleep-stop-btn', 'Нажмите, когда ребенок просыпается', 'top');
+        
+        // Отслеживание кормления
+        addTooltipToElement('.feeding-type-selector', 'Выберите тип кормления: грудное или из бутылочки', 'top');
+        addTooltipToElement('.feeding-breast-selector', 'Выберите грудь для кормления', 'right');
+        addTooltipToElement('.feeding-amount-input', 'Введите количество молока/смеси в мл', 'top');
+        addTooltipToElement('.feeding-start-btn', 'Нажмите, чтобы начать отсчет времени кормления', 'top');
+        addTooltipToElement('.feeding-stop-btn', 'Нажмите, чтобы завершить кормление', 'top');
+        
+        // Профили детей
+        addTooltipToElement('.child-add-btn', 'Нажмите, чтобы добавить профиль ребенка', 'top');
+        addTooltipToElement('.child-selector', 'Выберите профиль ребенка', 'top');
+        addTooltipToElement('.measurement-add-btn', 'Нажмите, чтобы добавить новое измерение', 'top');
+        
+        // Календарь прививок
+        addTooltipToElement('.vaccine-filter', 'Фильтр по типам прививок', 'top');
+        addTooltipToElement('.vaccine-complete-btn', 'Отметить прививку как сделанную', 'right');
+        addTooltipToElement('.vaccine-info-btn', 'Показать информацию о прививке', 'left');
+    });
+    
+    // Функция для добавления подсказки к элементу по селектору
+    function addTooltipToElement(selector, tooltipText, position) {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(element => {
+            if (element) {
+                element.setAttribute('data-tooltip', tooltipText);
+                element.setAttribute('data-tooltip-position', position || 'top');
+            }
+        });
+    }
+</script>
+
+{% comment %}
+    Добавляем иконки подсказок к заголовкам разделов
+{% endcomment %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Находим все заголовки разделов
+        const sectionHeaders = document.querySelectorAll('.section-header');
+        
+        // Для каждого заголовка добавляем иконку подсказки
+        sectionHeaders.forEach(header => {
+            const helpText = header.getAttribute('data-help-text');
+            if (helpText) {
+                const helpIcon = document.createElement('span');
+                helpIcon.className = 'tooltip-icon ml-2';
+                helpIcon.innerHTML = '?';
+                helpIcon.setAttribute('data-tooltip', helpText);
+                helpIcon.setAttribute('data-tooltip-position', 'right');
+                header.appendChild(helpIcon);
+            }
+        });
+    });
+</script>

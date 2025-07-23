@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Синхронизация | Руководство пользователя{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="neomorphic-card p-6 mb-8">
+        <nav class="mb-6">
+            <ol class="flex flex-wrap text-sm">
+                <li><a href="{% url 'webapp:index' %}" class="text-pink-500 hover:text-pink-700">Главная</a></li>
+                <li class="mx-2">/</li>
+                <li><a href="{% url 'webapp:documentation' %}" class="text-pink-500 hover:text-pink-700">Руководство пользователя</a></li>
+                <li class="mx-2">/</li>
+                <li>Синхронизация</li>
+            </ol>
+        </nav>
+        
+        <h1 class="text-2xl font-bold mb-6">Синхронизация данных</h1>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Синхронизация с Telegram ботом</h2>
+            <p class="mb-4">Mom&BabyBot доступен как в виде веб-приложения, так и в виде Telegram бота. Все данные автоматически синхронизируются между ними, что позволяет вам использовать наиболее удобный интерфейс в зависимости от ситуации.</p>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Как связать веб-приложение с Telegram ботом:</h3>
+                <ol class="list-decimal pl-6 mb-2">
+                    <li class="mb-2">Найдите бота @MomBabyBot в Telegram и начните диалог</li>
+                    <li class="mb-2">Нажмите кнопку "Начать" или отправьте команду /start</li>
+                    <li class="mb-2">Следуйте инструкциям бота для создания учетной записи</li>
+                    <li class="mb-2">В веб-приложении нажмите "Войти через Telegram"</li>
+                    <li class="mb-2">Введите код, который вы получите от бота</li>
+                </ol>
+                <p class="mb-2">После связывания все данные будут автоматически синхронизироваться между веб-приложением и ботом.</p>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Работа в офлайн-режиме</h2>
+            <p class="mb-4">Веб-приложение Mom&BabyBot может работать даже без подключения к интернету. Все данные сохраняются локально и синхронизируются с сервером при восстановлении соединения.</p>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Как работает офлайн-режим:</h3>
+                <ul class="list-disc pl-6 mb-2">
+                    <li class="mb-2">Все данные кэшируются в локальном хранилище браузера</li>
+                    <li class="mb-2">Таймеры и счетчики продолжают работать даже без подключения к интернету</li>
+                    <li class="mb-2">При восстановлении соединения данные автоматически синхронизируются с сервером</li>
+                    <li class="mb-2">В случае конфликта данных приложение предложит выбрать, какие данные сохранить</li>
+                </ul>
+                <p class="mb-2"><strong>Совет:</strong> Для наилучшей работы в офлайн-режиме рекомендуется использовать современные браузеры, такие как Chrome, Firefox или Safari.</p>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Управление данными</h2>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Экспорт данных:</h3>
+                <ol class="list-decimal pl-6 mb-2">
+                    <li class="mb-2">Перейдите в раздел "Настройки" → "Управление данными"</li>
+                    <li class="mb-2">Нажмите кнопку "Экспортировать данные"</li>
+                    <li class="mb-2">Выберите формат экспорта (JSON или CSV)</li>
+                    <li class="mb-2">Выберите категории данных для экспорта</li>
+                    <li class="mb-2">Нажмите "Экспортировать"</li>
+                </ol>
+                <p class="mb-2">Файл с данными будет загружен на ваше устройство.</p>
+            </div>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Удаление данных:</h3>
+                <ol class="list-decimal pl-6 mb-2">
+                    <li class="mb-2">Перейдите в раздел "Настройки" → "Управление данными"</li>
+                    <li class="mb-2">Нажмите кнопку "Удалить данные"</li>
+                    <li class="mb-2">Выберите категории данных для удаления</li>
+                    <li class="mb-2">Введите "УДАЛИТЬ" для подтверждения</li>
+                    <li class="mb-2">Нажмите "Удалить"</li>
+                </ol>
+                <p class="mb-2"><strong>Внимание:</strong> Удаление данных необратимо. Рекомендуется сначала экспортировать данные.</p>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Уведомления</h2>
+            <p class="mb-4">Mom&BabyBot может отправлять уведомления о важных событиях как в веб-приложении, так и через Telegram бота.</p>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Настройка уведомлений:</h3>
+                <ol class="list-decimal pl-6 mb-2">
+                    <li class="mb-2">Перейдите в раздел "Настройки" → "Уведомления"</li>
+                    <li class="mb-2">Выберите типы уведомлений, которые вы хотите получать</li>
+                    <li class="mb-2">Выберите способы получения уведомлений (веб, Telegram, или оба)</li>
+                    <li class="mb-2">Нажмите "Сохранить"</li>
+                </ol>
+                <p class="mb-2">Для получения уведомлений в веб-приложении необходимо разрешить уведомления в браузере.</p>
+            </div>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Типы уведомлений:</h3>
+                <ul class="list-disc pl-6 mb-2">
+                    <li class="mb-2"><strong>Напоминания о прививках</strong> — уведомления о предстоящих прививках</li>
+                    <li class="mb-2"><strong>Активные таймеры</strong> — уведомления о работающих таймерах сна или кормления</li>
+                    <li class="mb-2"><strong>Статистика</strong> — еженедельные отчеты о сне, кормлении и развитии ребенка</li>
+                    <li class="mb-2"><strong>Советы</strong> — полезные советы по уходу за ребенком в соответствии с его возрастом</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="flex justify-between mt-8">
+            <a href="{% url 'webapp:user_guide_tools' %}" class="neomorphic-button px-4 py-2 text-center hover:shadow-inner transition-all">← Назад: Инструменты</a>
+            <a href="{% url 'webapp:faq' %}" class="neomorphic-button px-4 py-2 text-center hover:shadow-inner transition-all">Далее: Часто задаваемые вопросы →</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

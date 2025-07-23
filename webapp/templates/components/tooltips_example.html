@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Примеры подсказок | Mom&BabyBot{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="neomorphic-card p-6 mb-8">
+        <h1 class="text-2xl font-bold mb-6">Примеры подсказок в интерфейсе</h1>
+        
+        <p class="mb-6">Этот документ демонстрирует, как добавлять подсказки к различным элементам интерфейса. Подсказки помогают пользователям лучше понять функциональность приложения.</p>
+        
+        <h2 class="text-xl font-semibold mb-4">Как добавить подсказку</h2>
+        <p class="mb-4">Чтобы добавить подсказку к элементу, используйте атрибуты <code>data-tooltip</code> и <code>data-tooltip-position</code>:</p>
+        
+        <div class="glassmorphic-card p-4 mb-6">
+            <pre class="bg-light-gray p-3 rounded-lg overflow-x-auto"><code>&lt;button data-tooltip="Это подсказка" data-tooltip-position="top"&gt;Наведите на меня&lt;/button&gt;</code></pre>
+        </div>
+        
+        <h2 class="text-xl font-semibold mb-4">Примеры подсказок</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="neomorphic-card p-4">
+                <h3 class="font-medium mb-3">Подсказки для кнопок</h3>
+                <div class="flex flex-wrap gap-4">
+                    <button class="neomorphic-button px-4 py-2" data-tooltip="Нажмите, чтобы начать новую сессию" data-tooltip-position="top">Начать</button>
+                    <button class="neomorphic-button px-4 py-2" data-tooltip="Нажмите, чтобы остановить текущую сессию" data-tooltip-position="bottom">Остановить</button>
+                    <button class="neomorphic-button px-4 py-2" data-tooltip="Нажмите, чтобы сохранить результаты" data-tooltip-position="right">Сохранить</button>
+                </div>
+            </div>
+            
+            <div class="neomorphic-card p-4">
+                <h3 class="font-medium mb-3">Подсказки для полей ввода</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label for="name" class="block mb-1">Имя ребенка</label>
+                        <input type="text" id="name" class="neomorphic-input w-full px-3 py-2" data-tooltip="Введите имя вашего ребенка" data-tooltip-position="top">
+                    </div>
+                    <div>
+                        <label for="birthdate" class="block mb-1">Дата рождения</label>
+                        <input type="date" id="birthdate" class="neomorphic-input w-full px-3 py-2" data-tooltip="Выберите дату рождения ребенка" data-tooltip-position="bottom">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="neomorphic-card p-4">
+                <h3 class="font-medium mb-3">Подсказки для иконок</h3>
+                <div class="flex flex-wrap gap-6">
+                    <div class="flex flex-col items-center">
+                        <svg class="w-8 h-8 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" data-tooltip="Счетчик схваток" data-tooltip-position="top">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        <span class="text-sm mt-1">Схватки</span>
+                    </div>
+                    
+                    <div class="flex flex-col items-center">
+                        <svg class="w-8 h-8 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" data-tooltip="Счетчик шевелений" data-tooltip-position="top">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
+                        </svg>
+                        <span class="text-sm mt-1">Шевеления</span>
+                    </div>
+                    
+                    <div class="flex flex-col items-center">
+                        <svg class="w-8 h-8 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" data-tooltip="Таймер сна" data-tooltip-position="top">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="text-sm mt-1">Сон</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="neomorphic-card p-4">
+                <h3 class="font-medium mb-3">Подсказки для текста</h3>
+                <p class="mb-3">
+                    Вы можете добавить подсказки к <span class="has-tooltip" data-tooltip="Это важный термин" data-tooltip-position="top">важным терминам</span> или к целым 
+                    <span class="has-tooltip" data-tooltip="Подсказка для абзаца текста" data-tooltip-position="bottom">абзацам текста</span>, чтобы предоставить дополнительную информацию.
+                </p>
+                
+                <p class="mb-3">
+                    Также можно добавить иконку подсказки рядом с текстом 
+                    <span>Важная информация</span>
+                    <span class="tooltip-icon" data-tooltip="Это очень важная информация, которую следует запомнить" data-tooltip-position="right">?</span>
+                </p>
+            </div>
+        </div>
+        
+        <h2 class="text-xl font-semibold mb-4">Позиционирование подсказок</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="neomorphic-card p-4">
+                <h3 class="font-medium mb-3">Доступные позиции</h3>
+                <ul class="list-disc pl-6 mb-3">
+                    <li><code>top</code> - подсказка появляется сверху (по умолчанию)</li>
+                    <li><code>bottom</code> - подсказка появляется снизу</li>
+                    <li><code>left</code> - подсказка появляется слева</li>
+                    <li><code>right</code> - подсказка появляется справа</li>
+                </ul>
+                <p>Пример: <code>data-tooltip-position="bottom"</code></p>
+            </div>
+            
+            <div class="neomorphic-card p-4">
+                <h3 class="font-medium mb-3">Демонстрация позиций</h3>
+                <div class="flex flex-col items-center gap-4">
+                    <button class="neomorphic-button px-4 py-2 w-40" data-tooltip="Подсказка сверху" data-tooltip-position="top">Сверху</button>
+                    <div class="flex justify-between w-full">
+                        <button class="neomorphic-button px-4 py-2 w-40" data-tooltip="Подсказка слева" data-tooltip-position="left">Слева</button>
+                        <button class="neomorphic-button px-4 py-2 w-40" data-tooltip="Подсказка справа" data-tooltip-position="right">Справа</button>
+                    </div>
+                    <button class="neomorphic-button px-4 py-2 w-40" data-tooltip="Подсказка снизу" data-tooltip-position="bottom">Снизу</button>
+                </div>
+            </div>
+        </div>
+        
+        <h2 class="text-xl font-semibold mb-4">Рекомендации по использованию</h2>
+        
+        <div class="glassmorphic-card p-4 mb-6">
+            <ul class="list-disc pl-6 mb-3">
+                <li>Используйте подсказки для объяснения функций, которые могут быть неочевидны для пользователя</li>
+                <li>Делайте подсказки краткими и информативными</li>
+                <li>Избегайте слишком длинных текстов в подсказках</li>
+                <li>Размещайте подсказки так, чтобы они не перекрывали важный контент</li>
+                <li>Используйте подсказки для элементов управления, полей ввода и специальных терминов</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

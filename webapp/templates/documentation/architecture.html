@@ -1,0 +1,467 @@
+{% extends 'base.html' %}
+
+{% block title %}Архитектура приложения | Mom&BabyBot{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="neomorphic-card p-6 mb-8">
+        <h1 class="text-2xl font-bold mb-4">Архитектура приложения</h1>
+        <p class="mb-6">Этот документ описывает архитектуру приложения Mom&BabyBot, включая компоненты, взаимодействие между ними и используемые технологии. Приложение построено на основе современных веб-технологий с акцентом на удобство использования, производительность и безопасность.</p>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Общая архитектура</h2>
+            <div class="glass-card p-4 mb-4">
+                <p class="mb-4">Mom&BabyBot представляет собой веб-приложение, построенное на основе Django с использованием SQLAlchemy для работы с базой данных. Приложение интегрировано с Telegram ботом и предоставляет REST API для взаимодействия между компонентами.</p>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Основные компоненты:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Веб-интерфейс</strong> - Пользовательский интерфейс, построенный с использованием HTML, CSS и JavaScript</li>
+                        <li><strong>Django-бэкенд</strong> - Серверная часть, обрабатывающая запросы и управляющая бизнес-логикой</li>
+                        <li><strong>REST API</strong> - Интерфейс для взаимодействия между фронтендом и бэкендом</li>
+                        <li><strong>База данных</strong> - Хранилище данных пользователей и их активностей</li>
+                        <li><strong>Telegram бот</strong> - Интерфейс для взаимодействия с пользователями через Telegram</li>
+                        <li><strong>Service Workers</strong> - Компоненты для фоновой работы и офлайн-функциональности</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Диаграмма архитектуры:</h3>
+                    <div class="bg-white p-4 rounded-lg">
+                        <pre class="text-xs overflow-x-auto">
++----------------------------------+
+|                                  |
+|         Пользователи             |
+|                                  |
++-------------+----------+---------+
+              |          |
+              v          v
++-------------+--+    +--+-------------+
+|                |    |                |
+| Веб-интерфейс  |    | Telegram бот   |
+|                |    |                |
++-------------+--+    +--------+-------+
+              |                |
+              v                v
++-------------+----------------+-------+
+|                                      |
+|           REST API                   |
+|                                      |
++-------------+------------------------+
+              |
+              v
++-------------+------------------------+
+|                                      |
+|         Django-бэкенд                |
+|                                      |
++-------------+------------------------+
+              |
+              v
++-------------+------------------------+
+|                                      |
+|         База данных                  |
+|                                      |
++--------------------------------------+
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Технологический стек</h2>
+            <div class="glass-card p-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-medium mb-2">Фронтенд:</h3>
+                        <ul class="list-disc pl-6 space-y-2">
+                            <li><strong>HTML5</strong> - Структура страниц с семантической разметкой для улучшения доступности</li>
+                            <li><strong>CSS3 с Tailwind CSS</strong> - Стилизация интерфейса с использованием утилитарного CSS-фреймворка</li>
+                            <li><strong>JavaScript (ES6+)</strong> - Клиентская логика с использованием современных возможностей языка</li>
+                            <li><strong>Service Workers</strong> - Фоновая работа и кэширование для офлайн-функциональности</li>
+                            <li><strong>LocalStorage и IndexedDB</strong> - Локальное хранение данных для работы без подключения к интернету</li>
+                            <li><strong>Fetch API</strong> - Асинхронное взаимодействие с сервером</li>
+                            <li><strong>Web Workers</strong> - Выполнение тяжелых вычислений в отдельном потоке</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium mb-2">Бэкенд:</h3>
+                        <ul class="list-disc pl-6 space-y-2">
+                            <li><strong>Python 3.9+</strong> - Основной язык программирования</li>
+                            <li><strong>Django 4.2</strong> - Веб-фреймворк с богатой экосистемой</li>
+                            <li><strong>SQLAlchemy</strong> - Мощный ORM для работы с базой данных</li>
+                            <li><strong>Django REST framework</strong> - Создание RESTful API с поддержкой аутентификации и сериализации</li>
+                            <li><strong>python-telegram-bot</strong> - Библиотека для работы с Telegram Bot API</li>
+                            <li><strong>Celery</strong> - Распределенная система для асинхронных задач и планирования</li>
+                            <li><strong>Whitenoise</strong> - Эффективная раздача статических файлов</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <h3 class="text-lg font-medium mb-2">База данных и инфраструктура:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>SQLite</strong> - Легковесная база данных для разработки и тестирования</li>
+                        <li><strong>PostgreSQL</strong> - Производительная реляционная база данных для продакшена</li>
+                        <li><strong>Redis</strong> - In-memory хранилище для кэширования, сессий и брокер сообщений для Celery</li>
+                        <li><strong>Nginx</strong> - Высокопроизводительный веб-сервер, обратный прокси и балансировщик нагрузки</li>
+                        <li><strong>Gunicorn</strong> - WSGI-сервер для запуска Django-приложений</li>
+                        <li><strong>Docker</strong> - Контейнеризация приложения для упрощения развертывания</li>
+                        <li><strong>Docker Compose</strong> - Оркестрация контейнеров для многокомпонентных приложений</li>
+                        <li><strong>Let's Encrypt</strong> - Автоматическое получение и обновление SSL-сертификатов</li>
+                    </ul>
+                </div>
+                
+                <div class="mt-6">
+                    <h3 class="text-lg font-medium mb-2">Инструменты тестирования и оптимизации:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Django TestCase</strong> - Модульное тестирование бэкенда</li>
+                        <li><strong>Selenium</strong> - Автоматизированное тестирование пользовательского интерфейса</li>
+                        <li><strong>axe-core</strong> - Проверка доступности интерфейса</li>
+                        <li><strong>Lighthouse</strong> - Анализ производительности и доступности</li>
+                        <li><strong>csscompressor и jsmin</strong> - Минификация CSS и JavaScript</li>
+                        <li><strong>Pillow</strong> - Оптимизация изображений</li>
+                        <li><strong>Brotli и Gzip</strong> - Сжатие статических файлов</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Структура проекта</h2>
+            <div class="glass-card p-4 mb-4">
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto text-xs">
+mom_baby_bot/                  # Корневая директория проекта
+├── botapp/                    # Приложение для Telegram бота
+│   ├── admin.py               # Настройки админ-панели
+│   ├── handlers/              # Обработчики команд бота
+│   ├── keyboards/             # Клавиатуры для бота
+│   ├── models.py              # Модели данных
+│   ├── models_child.py        # Модели для профилей детей
+│   ├── models_notification.py # Модели для уведомлений
+│   ├── models_timers.py       # Модели для таймеров
+│   ├── models_vaccine.py      # Модели для прививок
+│   ├── states/                # Состояния для диалогов
+│   ├── utils/                 # Вспомогательные функции
+│   └── views.py               # Представления
+├── mom_baby_bot/              # Основной модуль проекта
+│   ├── asgi.py                # ASGI конфигурация
+│   ├── cache_manager.py       # Управление кэшированием
+│   ├── middleware.py          # Промежуточное ПО
+│   ├── query_optimizer.py     # Оптимизация запросов
+│   ├── settings.py            # Настройки проекта
+│   ├── sqlalchemy_utils.py    # Утилиты для SQLAlchemy
+│   ├── urls.py                # Маршрутизация URL
+│   └── wsgi.py                # WSGI конфигурация
+├── static/                    # Статические файлы
+│   ├── css/                   # Стили
+│   ├── fonts/                 # Шрифты
+│   ├── images/                # Изображения
+│   └── js/                    # JavaScript файлы
+├── webapp/                    # Веб-приложение
+│   ├── admin.py               # Настройки админ-панели
+│   ├── api.py                 # Основные API-эндпоинты
+│   ├── api_contraction.py     # API для счетчика схваток
+│   ├── api_feeding.py         # API для отслеживания кормления
+│   ├── api_kick.py            # API для счетчика шевелений
+│   ├── api_notification.py    # API для уведомлений
+│   ├── api_performance.py     # API для мониторинга производительности
+│   ├── api_sleep.py           # API для таймера сна
+│   ├── api_vaccine.py         # API для календаря прививок
+│   ├── models.py              # Модели данных
+│   ├── templates/             # HTML шаблоны
+│   ├── tests/                 # Тесты
+│   ├── urls.py                # Маршрутизация URL
+│   └── views.py               # Представления
+├── manage.py                  # Скрипт управления Django
+├── requirements.txt           # Зависимости проекта
+└── README.md                  # Документация
+                </pre>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Модели данных</h2>
+            <div class="glass-card p-4 mb-4">
+                <p class="mb-4">Приложение использует SQLAlchemy для определения моделей данных и работы с базой данных. Ниже представлены основные модели и их взаимосвязи:</p>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Основные модели:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>User</strong> - Информация о пользователе</li>
+                        <li><strong>Child</strong> - Профиль ребенка</li>
+                        <li><strong>Measurement</strong> - Измерения роста и веса ребенка</li>
+                        <li><strong>Contraction</strong> и <strong>ContractionEvent</strong> - Данные о схватках</li>
+                        <li><strong>Kick</strong> и <strong>KickEvent</strong> - Данные о шевелениях</li>
+                        <li><strong>SleepSession</strong> - Данные о сне ребенка</li>
+                        <li><strong>FeedingSession</strong> - Данные о кормлении</li>
+                        <li><strong>Vaccine</strong> и <strong>ChildVaccine</strong> - Данные о прививках</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Диаграмма отношений:</h3>
+                    <div class="bg-white p-4 rounded-lg">
+                        <pre class="text-xs overflow-x-auto">
+User
+ ├── Child (one-to-many)
+ │    ├── Measurement (one-to-many)
+ │    ├── SleepSession (one-to-many)
+ │    ├── FeedingSession (one-to-many)
+ │    └── ChildVaccine (one-to-many)
+ ├── Contraction (one-to-many)
+ │    └── ContractionEvent (one-to-many)
+ └── Kick (one-to-many)
+      └── KickEvent (one-to-many)
+
+Vaccine
+ └── ChildVaccine (one-to-many)
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Компоненты пользовательского интерфейса</h2>
+            <div class="glass-card p-4 mb-4">
+                <p class="mb-4">Пользовательский интерфейс построен с использованием неоморфного и глазоморфного дизайна, с акцентом на удобство использования и эстетическую привлекательность.</p>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Основные компоненты UI:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Навигационная панель</strong> - Главное меню с доступом ко всем разделам</li>
+                        <li><strong>Информационные разделы</strong> - Страницы с информацией о беременности, развитии ребенка и питании</li>
+                        <li><strong>Счетчики и таймеры</strong> - Интерактивные инструменты для отслеживания схваток, шевелений, сна и кормления</li>
+                        <li><strong>Управление профилями детей</strong> - Интерфейс для создания и управления профилями детей</li>
+                        <li><strong>Календарь прививок</strong> - Интерактивный календарь с отметками о прививках</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Особенности дизайна:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Неоморфизм</strong> - Мягкие тени, выпуклые элементы, создающие эффект объемности</li>
+                        <li><strong>Глазоморфизм</strong> - Эффект матового стекла для создания глубины и легкости интерфейса</li>
+                        <li><strong>Пастельная цветовая палитра</strong> - Теплые, мягкие цвета, ассоциирующиеся с материнством и заботой</li>
+                        <li><strong>Адаптивный дизайн</strong> - Оптимизация для различных устройств и размеров экрана</li>
+                        <li><strong>Доступность</strong> - Соответствие стандартам WCAG для обеспечения доступности для всех пользователей</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Интеграция с Telegram ботом</h2>
+            <div class="glass-card p-4 mb-4">
+                <p class="mb-4">Приложение интегрировано с Telegram ботом, что позволяет пользователям взаимодействовать с системой через мессенджер Telegram.</p>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Особенности интеграции:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Единая база данных</strong> - Веб-приложение и бот используют общую базу данных</li>
+                        <li><strong>Синхронизация данных</strong> - Изменения, сделанные в веб-приложении, отражаются в боте и наоборот</li>
+                        <li><strong>Уведомления</strong> - Возможность получать уведомления через Telegram</li>
+                        <li><strong>Единый вход</strong> - Аутентификация через Telegram для доступа к веб-приложению</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Схема взаимодействия:</h3>
+                    <div class="bg-white p-4 rounded-lg">
+                        <pre class="text-xs overflow-x-auto">
++------------------+                  +------------------+
+|                  |                  |                  |
+|  Веб-приложение  |                  |   Telegram бот   |
+|                  |                  |                  |
++--------+---------+                  +--------+---------+
+         |                                     |
+         |                                     |
+         v                                     v
++--------+---------+                  +--------+---------+
+|                  |                  |                  |
+|     REST API     |<---------------->|   Bot API        |
+|                  |                  |                  |
++--------+---------+                  +--------+---------+
+         |                                     |
+         |                                     |
+         v                                     v
++--------+-----------------------------------+-+
+|                                            |
+|              Общая база данных             |
+|                                            |
++--------------------------------------------+
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Фоновая работа и синхронизация</h2>
+            <div class="glass-card p-4 mb-4">
+                <p class="mb-4">Для обеспечения бесперебойной работы приложения даже при отсутствии подключения к интернету используются следующие технологии:</p>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Service Workers:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Кэширование статических ресурсов</strong> - HTML, CSS, JavaScript, изображения</li>
+                        <li><strong>Фоновая работа таймеров</strong> - Продолжение работы таймеров даже при свернутом приложении</li>
+                        <li><strong>Push-уведомления</strong> - Отправка уведомлений пользователю</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Локальное хранение данных:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>localStorage</strong> - Хранение настроек и состояния приложения</li>
+                        <li><strong>IndexedDB</strong> - Хранение данных пользователя для офлайн-работы</li>
+                        <li><strong>Очередь синхронизации</strong> - Сохранение изменений для последующей синхронизации с сервером</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Стратегия синхронизации:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Периодическая синхронизация</strong> - Автоматическая синхронизация при наличии подключения</li>
+                        <li><strong>Разрешение конфликтов</strong> - Стратегия "последний выигрывает" с временными метками</li>
+                        <li><strong>Частичная синхронизация</strong> - Синхронизация только измененных данных для экономии трафика</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Безопасность</h2>
+            <div class="glass-card p-4 mb-4">
+                <p class="mb-4">Приложение реализует следующие меры безопасности для защиты данных пользователей:</p>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Аутентификация и авторизация:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Аутентификация через Telegram</strong> - Использование безопасного механизма аутентификации Telegram</li>
+                        <li><strong>JWT-токены</strong> - Для авторизации API-запросов</li>
+                        <li><strong>Проверка прав доступа</strong> - Контроль доступа к данным на уровне пользователя</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Защита данных:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>HTTPS</strong> - Шифрование данных при передаче</li>
+                        <li><strong>Валидация входных данных</strong> - Защита от инъекций и XSS-атак</li>
+                        <li><strong>CSRF-защита</strong> - Предотвращение межсайтовой подделки запросов</li>
+                        <li><strong>Ограничение частоты запросов</strong> - Защита от DDoS-атак</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Конфиденциальность:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Минимизация данных</strong> - Сбор только необходимых данных</li>
+                        <li><strong>Политика конфиденциальности</strong> - Прозрачность в отношении обработки данных</li>
+                        <li><strong>Возможность экспорта и удаления данных</strong> - Контроль пользователя над своими данными</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div>
+            <h2 class="text-xl font-semibold mb-3">Масштабируемость и производительность</h2>
+            <div class="glass-card p-4">
+                <p class="mb-4">Архитектура приложения разработана с учетом возможности масштабирования и оптимизации производительности для обеспечения быстрой работы даже при большом количестве пользователей:</p>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Масштабируемость:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Микросервисная архитектура</strong> - Разделение приложения на независимые компоненты (веб-приложение, Telegram бот, API)</li>
+                        <li><strong>Контейнеризация</strong> - Использование Docker для упрощения развертывания и масштабирования</li>
+                        <li><strong>Горизонтальное масштабирование</strong> - Возможность добавления серверов для распределения нагрузки</li>
+                        <li><strong>Балансировка нагрузки</strong> - Использование Nginx для распределения запросов между несколькими экземплярами приложения</li>
+                        <li><strong>Асинхронная обработка</strong> - Использование Celery для выполнения длительных операций без блокировки основного потока</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Оптимизация производительности:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Многоуровневое кэширование</strong>:
+                            <ul class="list-disc pl-6 space-y-1 mt-1">
+                                <li>Redis для кэширования данных на уровне приложения</li>
+                                <li>Nginx для кэширования статических файлов и API-ответов</li>
+                                <li>Браузерное кэширование с правильными заголовками Cache-Control</li>
+                                <li>Service Workers для кэширования на стороне клиента</li>
+                            </ul>
+                        </li>
+                        <li><strong>Оптимизация базы данных</strong>:
+                            <ul class="list-disc pl-6 space-y-1 mt-1">
+                                <li>Индексирование часто запрашиваемых полей</li>
+                                <li>Оптимизация SQL-запросов с использованием explain</li>
+                                <li>Денормализация данных для часто используемых запросов</li>
+                                <li>Пулинг соединений для эффективного использования ресурсов</li>
+                            </ul>
+                        </li>
+                        <li><strong>Оптимизация фронтенда</strong>:
+                            <ul class="list-disc pl-6 space-y-1 mt-1">
+                                <li>Минификация и объединение CSS и JavaScript файлов</li>
+                                <li>Оптимизация изображений (сжатие, WebP формат)</li>
+                                <li>Ленивая загрузка изображений и компонентов</li>
+                                <li>Использование современных форматов сжатия (Brotli, Gzip)</li>
+                            </ul>
+                        </li>
+                        <li><strong>Оптимизация сети</strong>:
+                            <ul class="list-disc pl-6 space-y-1 mt-1">
+                                <li>HTTP/2 для параллельной загрузки ресурсов</li>
+                                <li>Предварительная загрузка критических ресурсов</li>
+                                <li>Использование CDN для доставки статического контента</li>
+                                <li>Оптимизация размера передаваемых данных через API</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium mb-2">Мониторинг и анализ:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Комплексное логирование</strong>:
+                            <ul class="list-disc pl-6 space-y-1 mt-1">
+                                <li>Структурированные логи в формате JSON</li>
+                                <li>Различные уровни логирования (DEBUG, INFO, WARNING, ERROR, CRITICAL)</li>
+                                <li>Ротация логов для предотвращения переполнения диска</li>
+                                <li>Централизованный сбор логов со всех компонентов системы</li>
+                            </ul>
+                        </li>
+                        <li><strong>Метрики производительности</strong>:
+                            <ul class="list-disc pl-6 space-y-1 mt-1">
+                                <li>Время отклика API и веб-страниц</li>
+                                <li>Использование ресурсов (CPU, память, диск, сеть)</li>
+                                <li>Количество запросов и ошибок</li>
+                                <li>Время выполнения запросов к базе данных</li>
+                            </ul>
+                        </li>
+                        <li><strong>Аналитика пользователей</strong>:
+                            <ul class="list-disc pl-6 space-y-1 mt-1">
+                                <li>Отслеживание пользовательских сценариев</li>
+                                <li>Анализ производительности на стороне клиента</li>
+                                <li>Сбор данных о пользовательском опыте</li>
+                                <li>A/B тестирование для оптимизации интерфейса</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium mb-2">Автоматизация и CI/CD:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Непрерывная интеграция</strong> - Автоматическое выполнение тестов при каждом коммите</li>
+                        <li><strong>Непрерывное развертывание</strong> - Автоматическое обновление приложения после успешных тестов</li>
+                        <li><strong>Автоматизированное тестирование</strong> - Модульные, интеграционные и UI-тесты</li>
+                        <li><strong>Автоматическая оптимизация</strong> - Скрипты для оптимизации статических файлов и базы данных</li>
+                        <li><strong>Мониторинг доступности</strong> - Регулярные проверки работоспособности всех компонентов системы</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

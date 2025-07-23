@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Уход за ребенком | Руководство пользователя{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="neomorphic-card p-6 mb-8">
+        <nav class="mb-6">
+            <ol class="flex flex-wrap text-sm">
+                <li><a href="{% url 'webapp:index' %}" class="text-pink-500 hover:text-pink-700">Главная</a></li>
+                <li class="mx-2">/</li>
+                <li><a href="{% url 'webapp:documentation' %}" class="text-pink-500 hover:text-pink-700">Руководство пользователя</a></li>
+                <li class="mx-2">/</li>
+                <li>Уход за ребенком</li>
+            </ol>
+        </nav>
+        
+        <h1 class="text-2xl font-bold mb-6">Руководство по уходу за ребенком</h1>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Информационный раздел "Развитие ребенка"</h2>
+            <p class="mb-4">В этом разделе вы найдете подробную информацию о развитии ребенка по возрастным группам:</p>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">0-3 месяца</h3>
+                <p class="mb-2">Информация о новорожденных и младенцах до 3 месяцев:</p>
+                <ul class="list-disc pl-6 mb-2">
+                    <li>Физическое развитие</li>
+                    <li>Моторные навыки</li>
+                    <li>Сенсорное развитие</li>
+                    <li>Режим сна и бодрствования</li>
+                    <li>Рекомендации по уходу</li>
+                </ul>
+            </div>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">4-6 месяцев</h3>
+                <p class="mb-2">Информация о развитии младенцев от 4 до 6 месяцев:</p>
+                <ul class="list-disc pl-6 mb-2">
+                    <li>Физическое развитие</li>
+                    <li>Развитие навыков</li>
+                    <li>Введение прикорма</li>
+                    <li>Режим сна</li>
+                    <li>Игры и занятия</li>
+                </ul>
+            </div>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">7-12 месяцев</h3>
+                <p class="mb-2">Информация о развитии детей от 7 до 12 месяцев:</p>
+                <ul class="list-disc pl-6 mb-2">
+                    <li>Физическое развитие</li>
+                    <li>Развитие речи</li>
+                    <li>Питание и прикорм</li>
+                    <li>Режим сна</li>
+                    <li>Игры и занятия</li>
+                </ul>
+            </div>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">1-3 года</h3>
+                <p class="mb-2">Информация о развитии детей от 1 до 3 лет:</p>
+                <ul class="list-disc pl-6 mb-2">
+                    <li>Физическое развитие</li>
+                    <li>Развитие речи</li>
+                    <li>Социальные навыки</li>
+                    <li>Питание</li>
+                    <li>Игры и занятия</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Управление профилями детей</h2>
+            <p class="mb-4">Функция управления профилями детей позволяет создавать отдельные профили для каждого ребенка и отслеживать их развитие.</p>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Как создать профиль ребенка:</h3>
+                <ol class="list-decimal pl-6 mb-2">
+                    <li class="mb-2">Перейдите в раздел "Инструменты" → "Профили детей"</li>
+                    <li class="mb-2">Нажмите кнопку "Добавить ребенка"</li>
+                    <li class="mb-2">Заполните форму, указав имя и дату рождения ребенка</li>
+                    <li class="mb-2">Нажмите "Сохранить"</li>
+                </ol>
+            </div>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Как добавить измерения:</h3>
+                <ol class="list-decimal pl-6 mb-2">
+                    <li class="mb-2">Выберите профиль ребенка</li>
+                    <li class="mb-2">Перейдите на вкладку "Измерения"</li>
+                    <li class="mb-2">Нажмите "Добавить измерение"</li>
+                    <li class="mb-2">Введите дату, рост, вес и окружность головы</li>
+                    <li class="mb-2">Нажмите "Сохранить"</li>
+                </ol>
+                <p class="mb-2">Приложение автоматически построит графики роста и сравнит показатели с нормами для соответствующего возраста.</p>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Таймер сна</h2>
+            <p class="mb-4">Таймер сна помогает отслеживать режим сна ребенка, что важно для его здорового развития.</p>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Как использовать таймер сна:</h3>
+                <ol class="list-decimal pl-6 mb-2">
+                    <li class="mb-2">Перейдите в раздел "Инструменты" → "Таймер сна"</li>
+                    <li class="mb-2">Выберите профиль ребенка (если у вас несколько детей)</li>
+                    <li class="mb-2">Выберите тип сна (дневной или ночной)</li>
+                    <li class="mb-2">Нажмите кнопку "Начать" когда ребенок засыпает</li>
+                    <li class="mb-2">Нажмите кнопку "Завершить" когда ребенок просыпается</li>
+                </ol>
+                <p class="mb-2">Приложение сохранит данные о сне и покажет статистику и графики режима сна вашего ребенка.</p>
+                <p class="mb-2"><strong>Совет:</strong> Таймер сна продолжает работать даже если приложение свернуто или закрыто.</p>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Отслеживание кормления</h2>
+            <p class="mb-4">Функция отслеживания кормления помогает контролировать режим питания ребенка.</p>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Как отслеживать грудное вскармливание:</h3>
+                <ol class="list-decimal pl-6 mb-2">
+                    <li class="mb-2">Перейдите в раздел "Инструменты" → "Отслеживание кормления"</li>
+                    <li class="mb-2">Выберите профиль ребенка (если у вас несколько детей)</li>
+                    <li class="mb-2">Выберите тип кормления "Грудное вскармливание"</li>
+                    <li class="mb-2">Выберите грудь (левая, правая или обе)</li>
+                    <li class="mb-2">Нажмите "Начать" в начале кормления</li>
+                    <li class="mb-2">Нажмите "Завершить" по окончании кормления</li>
+                </ol>
+            </div>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Как отслеживать кормление из бутылочки:</h3>
+                <ol class="list-decimal pl-6 mb-2">
+                    <li class="mb-2">Перейдите в раздел "Инструменты" → "Отслеживание кормления"</li>
+                    <li class="mb-2">Выберите профиль ребенка (если у вас несколько детей)</li>
+                    <li class="mb-2">Выберите тип кормления "Из бутылочки"</li>
+                    <li class="mb-2">Введите количество молока/смеси в мл</li>
+                    <li class="mb-2">Нажмите "Сохранить"</li>
+                </ol>
+                <p class="mb-2">Приложение сохранит данные о кормлении и покажет статистику питания вашего ребенка.</p>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Календарь прививок</h2>
+            <p class="mb-4">Календарь прививок помогает отслеживать график вакцинации вашего ребенка.</p>
+            
+            <div class="glassmorphic-card p-4 mb-4">
+                <h3 class="font-medium mb-2">Как использовать календарь прививок:</h3>
+                <ol class="list-decimal pl-6 mb-2">
+                    <li class="mb-2">Перейдите в раздел "Инструменты" → "Календарь прививок"</li>
+                    <li class="mb-2">Выберите профиль ребенка (если у вас несколько детей)</li>
+                    <li class="mb-2">Просмотрите список рекомендуемых прививок по возрасту</li>
+                    <li class="mb-2">Отметьте прививки как выполненные, указав дату</li>
+                </ol>
+                <p class="mb-2">Приложение автоматически напомнит вам о предстоящих прививках.</p>
+                <p class="mb-2"><strong>Важно:</strong> Календарь прививок составлен в соответствии с рекомендациями ВОЗ и Министерства здравоохранения России, но всегда консультируйтесь с педиатром перед вакцинацией.</p>
+            </div>
+        </div>
+        
+        <div class="flex justify-between mt-8">
+            <a href="{% url 'webapp:user_guide_pregnancy' %}" class="neomorphic-button px-4 py-2 text-center hover:shadow-inner transition-all">← Назад: Беременность</a>
+            <a href="{% url 'webapp:user_guide_tools' %}" class="neomorphic-button px-4 py-2 text-center hover:shadow-inner transition-all">Далее: Инструменты →</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

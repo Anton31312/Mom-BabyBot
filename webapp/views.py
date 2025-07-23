@@ -255,3 +255,42 @@ def web_app_data(request):
     except Exception as e:
         logger.error(f"Error processing web app data: {e}")
         return JsonResponse({'error': str(e)}, status=500)
+
+# Документация
+def documentation(request):
+    """Главная страница документации"""
+    return render(request, 'documentation/index.html')
+
+
+def user_guide_general(request):
+    """Общая информация о приложении"""
+    return render(request, 'documentation/user_guide_general.html')
+
+
+def user_guide_pregnancy(request):
+    """Руководство по функциям для беременных"""
+    return render(request, 'documentation/user_guide_pregnancy.html')
+
+
+def user_guide_baby(request):
+    """Руководство по уходу за ребенком"""
+    return render(request, 'documentation/user_guide_baby.html')
+
+
+def user_guide_tools(request):
+    """Подробное руководство по инструментам"""
+    return render(request, 'documentation/user_guide_tools.html')
+
+
+def user_guide_sync(request):
+    """Руководство по синхронизации данных"""
+    return render(request, 'documentation/user_guide_sync.html')
+
+
+def faq(request):
+    """Часто задаваемые вопросы"""
+    return render(request, 'documentation/faq.html')
+    
+def tooltips_example(request):
+    """Страница с примерами подсказок в интерфейсе"""
+    return render(request, 'components/tooltips_example.html')

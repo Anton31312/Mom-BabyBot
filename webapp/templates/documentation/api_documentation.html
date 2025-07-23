@@ -1,0 +1,776 @@
+{% extends 'base.html' %}
+
+{% block title %}API Документация | Mom&BabyBot{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="neomorphic-card p-6 mb-8">
+        <h1 class="text-2xl font-bold mb-4">API Документация</h1>
+        <p class="mb-6">Этот документ описывает API-интерфейсы приложения Mom&BabyBot для интеграции с внешними системами и разработки клиентских приложений. API построено на принципах REST и использует JSON для обмена данными.</p>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Общая информация</h2>
+            <div class="glass-card p-4 mb-4">
+                <p class="mb-2">Базовый URL: <code class="bg-light-gray px-2 py-1 rounded">/api</code></p>
+                <p class="mb-2">Формат данных: <code class="bg-light-gray px-2 py-1 rounded">JSON</code></p>
+                <p class="mb-2">Аутентификация: Токен в заголовке <code class="bg-light-gray px-2 py-1 rounded">Authorization: Bearer {token}</code></p>
+                <p class="mb-2">Все запросы и ответы используют кодировку UTF-8.</p>
+                
+                <h3 class="text-lg font-medium mt-4 mb-2">Версионирование API</h3>
+                <p class="mb-2">API использует версионирование в URL. Текущая версия API - v1.</p>
+                <p class="mb-2">Пример: <code class="bg-light-gray px-2 py-1 rounded">/api/v1/users/{user_id}/children/</code></p>
+                
+                <h3 class="text-lg font-medium mt-4 mb-2">Аутентификация и авторизация</h3>
+                <p class="mb-2">API использует JWT (JSON Web Tokens) для аутентификации. Токены можно получить следующими способами:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><strong>Telegram авторизация</strong> - Основной метод аутентификации через Telegram Login Widget</li>
+                    <li><strong>Обмен токенами</strong> - Получение JWT токена в обмен на временный токен Telegram</li>
+                </ul>
+                <p class="mb-2">Пример запроса для получения токена:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>POST /api/auth/token/
+{
+  "telegram_token": "временный_токен_от_telegram"
+}</code></pre>
+                <p class="mb-2">Пример ответа:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expires_in": 3600
+}</code></pre>
+                <p class="mb-2">Для обновления токена используйте:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>POST /api/auth/token/refresh/
+{
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}</code></pre>
+                
+                <h3 class="text-lg font-medium mt-4 mb-2">Ограничение частоты запросов</h3>
+                <p class="mb-2">API имеет ограничение на количество запросов:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li>Для неаутентифицированных пользователей: 60 запросов в минуту</li>
+                    <li>Для аутентифицированных пользователей: 1000 запросов в минуту</li>
+                </ul>
+                <p class="mb-2">При превышении лимита API вернет код ответа <code>429 Too Many Requests</code> с заголовками:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><code>X-RateLimit-Limit</code> - максимальное количество запросов</li>
+                    <li><code>X-RateLimit-Remaining</code> - оставшееся количество запросов</li>
+                    <li><code>X-RateLimit-Reset</code> - время в секундах до сброса счетчика</li>
+                </ul>
+                
+                <h3 class="text-lg font-medium mt-4 mb-2">Пагинация</h3>
+                <p class="mb-2">Для списков объектов API использует пагинацию. Параметры запроса:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><code>page</code> - номер страницы (по умолчанию 1)</li>
+                    <li><code>page_size</code> - количество элементов на странице (по умолчанию 20, максимум 100)</li>
+                </ul>
+                <p class="mb-2">Пример: <code class="bg-light-gray px-2 py-1 rounded">/api/v1/users/{user_id}/children/?page=2&page_size=10</code></p>
+                <p class="mb-2">Ответ с пагинацией имеет следующую структуру:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "count": 42,
+  "next": "http://example.com/api/v1/users/123/children/?page=3",
+  "previous": "http://example.com/api/v1/users/123/children/?page=1",
+  "results": [
+    // массив объектов
+  ]
+}</code></pre>
+                
+                <h3 class="text-lg font-medium mt-4 mb-2">Фильтрация и сортировка</h3>
+                <p class="mb-2">API поддерживает фильтрацию и сортировку для некоторых эндпоинтов:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><code>ordering</code> - поле для сортировки (префикс <code>-</code> для обратной сортировки)</li>
+                    <li>Фильтры по полям объектов (например, <code>type=day</code> для фильтрации по типу)</li>
+                    <li>Фильтры по диапазону дат: <code>start_date</code> и <code>end_date</code> в формате ISO 8601 (YYYY-MM-DD)</li>
+                    <li>Поиск по тексту: <code>search=текст</code> для поиска по текстовым полям</li>
+                </ul>
+                <p class="mb-2">Пример: <code class="bg-light-gray px-2 py-1 rounded">/api/v1/users/{user_id}/children/{child_id}/sleep/?type=day&ordering=-start_time&start_date=2025-01-01&end_date=2025-01-31</code></p>
+                
+                <h3 class="text-lg font-medium mt-4 mb-2">Обработка ошибок</h3>
+                <p class="mb-2">API возвращает стандартные HTTP коды состояния и JSON-объект с дополнительной информацией об ошибке:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "error": {
+    "code": "invalid_request",
+    "message": "Подробное описание ошибки",
+    "details": {
+      // дополнительная информация об ошибке
+    }
+  }
+}</code></pre>
+                <p class="mb-2">Для ошибок валидации формы:</p>
+                <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "error": {
+    "code": "validation_error",
+    "message": "Ошибка валидации данных",
+    "details": {
+      "field_name": [
+        "Это поле обязательно."
+      ]
+    }
+  }
+}</code></pre>
+                
+                <h3 class="text-lg font-medium mt-4 mb-2">Кэширование</h3>
+                <p class="mb-2">API использует кэширование для повышения производительности. Заголовки кэширования:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><code>ETag</code> - уникальный идентификатор версии ресурса</li>
+                    <li><code>Cache-Control</code> - директивы для управления кэшированием</li>
+                    <li><code>Last-Modified</code> - дата последнего изменения ресурса</li>
+                </ul>
+                <p class="mb-2">Для условных запросов используйте заголовки:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><code>If-None-Match</code> - для проверки ETag</li>
+                    <li><code>If-Modified-Since</code> - для проверки даты изменения</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Коды ответов</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                    <thead class="bg-light-gray">
+                        <tr>
+                            <th class="py-2 px-4 text-left">Код</th>
+                            <th class="py-2 px-4 text-left">Описание</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="py-2 px-4 border-t">200 OK</td>
+                            <td class="py-2 px-4 border-t">Запрос выполнен успешно</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border-t">201 Created</td>
+                            <td class="py-2 px-4 border-t">Ресурс успешно создан</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border-t">400 Bad Request</td>
+                            <td class="py-2 px-4 border-t">Неверный формат запроса или данных</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border-t">401 Unauthorized</td>
+                            <td class="py-2 px-4 border-t">Требуется аутентификация</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border-t">403 Forbidden</td>
+                            <td class="py-2 px-4 border-t">Доступ запрещен</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border-t">404 Not Found</td>
+                            <td class="py-2 px-4 border-t">Ресурс не найден</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border-t">409 Conflict</td>
+                            <td class="py-2 px-4 border-t">Конфликт данных (например, дублирование)</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2 px-4 border-t">500 Internal Server Error</td>
+                            <td class="py-2 px-4 border-t">Внутренняя ошибка сервера</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Пользовательские данные -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Пользовательские данные</h2>
+            
+            <div class="glass-card p-4 mb-6">
+                <h3 class="text-lg font-medium mb-2">Создание пользователя</h3>
+                <p class="mb-2"><span class="bg-primary bg-opacity-20 px-2 py-1 rounded">POST</span> <code>/api/user</code></p>
+                
+                <div class="mb-3">
+                    <h4 class="font-medium mb-1">Тело запроса:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "telegram_id": 123456789,
+  "username": "example_user",
+  "first_name": "Иван",
+  "last_name": "Иванов",
+  "is_pregnant": true,
+  "pregnancy_week": 20,
+  "baby_birth_date": "2025-01-15"
+}</code></pre>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "message": "User created successfully"
+}</code></pre>
+                </div>
+            </div>
+            
+            <div class="glass-card p-4 mb-6">
+                <h3 class="text-lg font-medium mb-2">Обработка данных от веб-приложения</h3>
+                <p class="mb-2"><span class="bg-primary bg-opacity-20 px-2 py-1 rounded">POST</span> <code>/webapp/data/</code></p>
+                
+                <div class="mb-3">
+                    <h4 class="font-medium mb-1">Тело запроса:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "user_id": 123456789,
+  "pregnancy_week": 21
+}</code></pre>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "status": "success"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Профили детей -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Профили детей</h2>
+            
+            <div class="glass-card p-4 mb-6">
+                <h3 class="text-lg font-medium mb-2">Получение списка детей пользователя</h3>
+                <p class="mb-2"><span class="bg-secondary bg-opacity-20 px-2 py-1 rounded">GET</span> <code>/api/users/{user_id}/children/</code></p>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>[
+  {
+    "id": 1,
+    "name": "Анна",
+    "birth_date": "2024-05-10T00:00:00",
+    "created_at": "2024-06-15T14:30:00",
+    "updated_at": "2024-06-15T14:30:00"
+  },
+  {
+    "id": 2,
+    "name": "Михаил",
+    "birth_date": "2022-11-20T00:00:00",
+    "created_at": "2023-01-05T10:15:00",
+    "updated_at": "2023-01-05T10:15:00"
+  }
+]</code></pre>
+                </div>
+            </div>
+            
+            <div class="glass-card p-4 mb-6">
+                <h3 class="text-lg font-medium mb-2">Создание профиля ребенка</h3>
+                <p class="mb-2"><span class="bg-primary bg-opacity-20 px-2 py-1 rounded">POST</span> <code>/api/users/{user_id}/children/</code></p>
+                
+                <div class="mb-3">
+                    <h4 class="font-medium mb-1">Тело запроса:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "name": "Алексей",
+  "birth_date": "2025-03-15"
+}</code></pre>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "id": 3,
+  "name": "Алексей",
+  "birth_date": "2025-03-15T00:00:00",
+  "created_at": "2025-03-20T09:45:00",
+  "updated_at": "2025-03-20T09:45:00"
+}</code></pre>
+                </div>
+            </div>
+            
+            <div class="glass-card p-4 mb-6">
+                <h3 class="text-lg font-medium mb-2">Получение данных конкретного ребенка</h3>
+                <p class="mb-2"><span class="bg-secondary bg-opacity-20 px-2 py-1 rounded">GET</span> <code>/api/users/{user_id}/children/{child_id}/</code></p>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "id": 1,
+  "name": "Анна",
+  "birth_date": "2024-05-10T00:00:00",
+  "created_at": "2024-06-15T14:30:00",
+  "updated_at": "2024-06-15T14:30:00",
+  "measurements": [
+    {
+      "id": 1,
+      "date": "2024-06-15T00:00:00",
+      "height": 52.5,
+      "weight": 3.8,
+      "head_circumference": 36.2
+    },
+    {
+      "id": 2,
+      "date": "2024-07-15T00:00:00",
+      "height": 55.1,
+      "weight": 4.5,
+      "head_circumference": 37.0
+    }
+  ]
+}</code></pre>
+                </div>
+            </div>
+            
+            <div class="glass-card p-4 mb-6">
+                <h3 class="text-lg font-medium mb-2">Обновление данных ребенка</h3>
+                <p class="mb-2"><span class="bg-accent bg-opacity-20 px-2 py-1 rounded">PUT</span> <code>/api/users/{user_id}/children/{child_id}/</code></p>
+                
+                <div class="mb-3">
+                    <h4 class="font-medium mb-1">Тело запроса:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "name": "Анна Ивановна",
+  "birth_date": "2024-05-10"
+}</code></pre>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "id": 1,
+  "name": "Анна Ивановна",
+  "birth_date": "2024-05-10T00:00:00",
+  "created_at": "2024-06-15T14:30:00",
+  "updated_at": "2025-01-20T11:25:00"
+}</code></pre>
+                </div>
+            </div>
+            
+            <div class="glass-card p-4">
+                <h3 class="text-lg font-medium mb-2">Удаление профиля ребенка</h3>
+                <p class="mb-2"><span class="bg-accent-secondary bg-opacity-20 px-2 py-1 rounded">DELETE</span> <code>/api/users/{user_id}/children/{child_id}/</code></p>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "message": "Child profile deleted successfully"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Измерения -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Измерения</h2>
+            
+            <div class="glass-card p-4 mb-6">
+                <h3 class="text-lg font-medium mb-2">Получение измерений ребенка</h3>
+                <p class="mb-2"><span class="bg-secondary bg-opacity-20 px-2 py-1 rounded">GET</span> <code>/api/users/{user_id}/children/{child_id}/measurements/</code></p>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>[
+  {
+    "id": 1,
+    "date": "2024-06-15T00:00:00",
+    "height": 52.5,
+    "weight": 3.8,
+    "head_circumference": 36.2
+  },
+  {
+    "id": 2,
+    "date": "2024-07-15T00:00:00",
+    "height": 55.1,
+    "weight": 4.5,
+    "head_circumference": 37.0
+  }
+]</code></pre>
+                </div>
+            </div>
+            
+            <div class="glass-card p-4">
+                <h3 class="text-lg font-medium mb-2">Добавление нового измерения</h3>
+                <p class="mb-2"><span class="bg-primary bg-opacity-20 px-2 py-1 rounded">POST</span> <code>/api/users/{user_id}/children/{child_id}/measurements/</code></p>
+                
+                <div class="mb-3">
+                    <h4 class="font-medium mb-1">Тело запроса:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "date": "2024-08-15",
+  "height": 57.8,
+  "weight": 5.2,
+  "head_circumference": 38.1
+}</code></pre>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "id": 3,
+  "date": "2024-08-15T00:00:00",
+  "height": 57.8,
+  "weight": 5.2,
+  "head_circumference": 38.1
+}</code></pre>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Счетчики и таймеры -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Счетчики и таймеры</h2>
+            
+            <div class="glass-card p-4 mb-6">
+                <h3 class="text-lg font-medium mb-2">Счетчик схваток</h3>
+                
+                <div class="mb-4">
+                    <h4 class="font-medium mb-1">Получение истории схваток</h4>
+                    <p class="mb-2"><span class="bg-secondary bg-opacity-20 px-2 py-1 rounded">GET</span> <code>/api/users/{user_id}/contractions/</code></p>
+                    
+                    <div>
+                        <h5 class="font-medium mb-1">Ответ:</h5>
+                        <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>[
+  {
+    "id": 1,
+    "start_time": "2025-01-15T08:30:00",
+    "end_time": "2025-01-15T12:45:00",
+    "events_count": 12
+  },
+  {
+    "id": 2,
+    "start_time": "2025-01-16T14:20:00",
+    "end_time": "2025-01-16T18:10:00",
+    "events_count": 15
+  }
+]</code></pre>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Запись новой сессии схваток</h4>
+                    <p class="mb-2"><span class="bg-primary bg-opacity-20 px-2 py-1 rounded">POST</span> <code>/api/users/{user_id}/contractions/</code></p>
+                    
+                    <div class="mb-3">
+                        <h5 class="font-medium mb-1">Тело запроса:</h5>
+                        <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "start_time": "2025-01-17T09:15:00",
+  "events": [
+    {"timestamp": "2025-01-17T09:20:00"},
+    {"timestamp": "2025-01-17T09:35:00"},
+    {"timestamp": "2025-01-17T09:48:00"}
+  ]
+}</code></pre>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-medium mb-1">Ответ:</h5>
+                        <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "id": 3,
+  "start_time": "2025-01-17T09:15:00",
+  "end_time": null,
+  "events": [
+    {"id": 1, "timestamp": "2025-01-17T09:20:00"},
+    {"id": 2, "timestamp": "2025-01-17T09:35:00"},
+    {"id": 3, "timestamp": "2025-01-17T09:48:00"}
+  ]
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-card p-4 mb-6">
+                <h3 class="text-lg font-medium mb-2">Счетчик шевелений</h3>
+                
+                <div class="mb-4">
+                    <h4 class="font-medium mb-1">Получение истории шевелений</h4>
+                    <p class="mb-2"><span class="bg-secondary bg-opacity-20 px-2 py-1 rounded">GET</span> <code>/api/users/{user_id}/kicks/</code></p>
+                    
+                    <div>
+                        <h5 class="font-medium mb-1">Ответ:</h5>
+                        <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>[
+  {
+    "id": 1,
+    "start_time": "2024-12-10T10:00:00",
+    "end_time": "2024-12-10T10:30:00",
+    "events_count": 10
+  },
+  {
+    "id": 2,
+    "start_time": "2024-12-11T15:45:00",
+    "end_time": "2024-12-11T16:15:00",
+    "events_count": 12
+  }
+]</code></pre>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Запись новой сессии шевелений</h4>
+                    <p class="mb-2"><span class="bg-primary bg-opacity-20 px-2 py-1 rounded">POST</span> <code>/api/users/{user_id}/kicks/</code></p>
+                    
+                    <div class="mb-3">
+                        <h5 class="font-medium mb-1">Тело запроса:</h5>
+                        <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "start_time": "2024-12-12T14:00:00",
+  "events": [
+    {"timestamp": "2024-12-12T14:05:00"},
+    {"timestamp": "2024-12-12T14:08:00"},
+    {"timestamp": "2024-12-12T14:12:00"}
+  ]
+}</code></pre>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-medium mb-1">Ответ:</h5>
+                        <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "id": 3,
+  "start_time": "2024-12-12T14:00:00",
+  "end_time": null,
+  "events": [
+    {"id": 1, "timestamp": "2024-12-12T14:05:00"},
+    {"id": 2, "timestamp": "2024-12-12T14:08:00"},
+    {"id": 3, "timestamp": "2024-12-12T14:12:00"}
+  ]
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-card p-4 mb-6">
+                <h3 class="text-lg font-medium mb-2">Таймер сна</h3>
+                
+                <div class="mb-4">
+                    <h4 class="font-medium mb-1">Получение истории сна</h4>
+                    <p class="mb-2"><span class="bg-secondary bg-opacity-20 px-2 py-1 rounded">GET</span> <code>/api/users/{user_id}/children/{child_id}/sleep/</code></p>
+                    
+                    <div>
+                        <h5 class="font-medium mb-1">Ответ:</h5>
+                        <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>[
+  {
+    "id": 1,
+    "start_time": "2025-01-15T13:00:00",
+    "end_time": "2025-01-15T15:30:00",
+    "type": "day",
+    "duration_minutes": 150
+  },
+  {
+    "id": 2,
+    "start_time": "2025-01-15T20:00:00",
+    "end_time": "2025-01-16T06:00:00",
+    "type": "night",
+    "duration_minutes": 600
+  }
+]</code></pre>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Запись новой сессии сна</h4>
+                    <p class="mb-2"><span class="bg-primary bg-opacity-20 px-2 py-1 rounded">POST</span> <code>/api/users/{user_id}/children/{child_id}/sleep/</code></p>
+                    
+                    <div class="mb-3">
+                        <h5 class="font-medium mb-1">Тело запроса:</h5>
+                        <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "start_time": "2025-01-16T13:30:00",
+  "end_time": "2025-01-16T15:45:00",
+  "type": "day"
+}</code></pre>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-medium mb-1">Ответ:</h5>
+                        <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "id": 3,
+  "start_time": "2025-01-16T13:30:00",
+  "end_time": "2025-01-16T15:45:00",
+  "type": "day",
+  "duration_minutes": 135
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-card p-4">
+                <h3 class="text-lg font-medium mb-2">Отслеживание кормления</h3>
+                
+                <div class="mb-4">
+                    <h4 class="font-medium mb-1">Получение истории кормления</h4>
+                    <p class="mb-2"><span class="bg-secondary bg-opacity-20 px-2 py-1 rounded">GET</span> <code>/api/users/{user_id}/children/{child_id}/feeding/</code></p>
+                    
+                    <div>
+                        <h5 class="font-medium mb-1">Ответ:</h5>
+                        <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>[
+  {
+    "id": 1,
+    "timestamp": "2025-01-15T08:00:00",
+    "type": "breast",
+    "duration": 15,
+    "breast": "left",
+    "amount": null,
+    "notes": ""
+  },
+  {
+    "id": 2,
+    "timestamp": "2025-01-15T12:00:00",
+    "type": "bottle",
+    "duration": null,
+    "breast": null,
+    "amount": 120,
+    "notes": "Смесь NAN"
+  }
+]</code></pre>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Запись новой сессии кормления</h4>
+                    <p class="mb-2"><span class="bg-primary bg-opacity-20 px-2 py-1 rounded">POST</span> <code>/api/users/{user_id}/children/{child_id}/feeding/</code></p>
+                    
+                    <div class="mb-3">
+                        <h5 class="font-medium mb-1">Тело запроса (грудное вскармливание):</h5>
+                        <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "timestamp": "2025-01-15T16:00:00",
+  "type": "breast",
+  "duration": 20,
+  "breast": "right",
+  "notes": "Спокойное кормление"
+}</code></pre>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h5 class="font-medium mb-1">Тело запроса (кормление из бутылочки):</h5>
+                        <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "timestamp": "2025-01-15T20:00:00",
+  "type": "bottle",
+  "amount": 150,
+  "notes": "Смесь Nutrilon"
+}</code></pre>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-medium mb-1">Ответ:</h5>
+                        <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "id": 3,
+  "timestamp": "2025-01-15T16:00:00",
+  "type": "breast",
+  "duration": 20,
+  "breast": "right",
+  "amount": null,
+  "notes": "Спокойное кормление"
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Прививки -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Прививки</h2>
+            
+            <div class="glass-card p-4 mb-6">
+                <h3 class="text-lg font-medium mb-2">Получение списка всех рекомендуемых прививок</h3>
+                <p class="mb-2"><span class="bg-secondary bg-opacity-20 px-2 py-1 rounded">GET</span> <code>/api/vaccines/</code></p>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>[
+  {
+    "id": 1,
+    "name": "БЦЖ",
+    "description": "Вакцина против туберкулеза",
+    "recommended_age": "3-7 дней",
+    "is_mandatory": true
+  },
+  {
+    "id": 2,
+    "name": "Гепатит B (1)",
+    "description": "Первая вакцинация против гепатита B",
+    "recommended_age": "24 часа",
+    "is_mandatory": true
+  }
+]</code></pre>
+                </div>
+            </div>
+            
+            <div class="glass-card p-4 mb-6">
+                <h3 class="text-lg font-medium mb-2">Получение прививок ребенка</h3>
+                <p class="mb-2"><span class="bg-secondary bg-opacity-20 px-2 py-1 rounded">GET</span> <code>/api/users/{user_id}/children/{child_id}/vaccines/</code></p>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>[
+  {
+    "id": 1,
+    "vaccine_id": 1,
+    "vaccine_name": "БЦЖ",
+    "date": "2025-01-05T00:00:00",
+    "is_completed": true,
+    "notes": "Сделана в роддоме"
+  },
+  {
+    "id": 2,
+    "vaccine_id": 2,
+    "vaccine_name": "Гепатит B (1)",
+    "date": "2025-01-01T00:00:00",
+    "is_completed": true,
+    "notes": "Сделана в роддоме"
+  }
+]</code></pre>
+                </div>
+            </div>
+            
+            <div class="glass-card p-4">
+                <h3 class="text-lg font-medium mb-2">Запись сделанной прививки</h3>
+                <p class="mb-2"><span class="bg-primary bg-opacity-20 px-2 py-1 rounded">POST</span> <code>/api/users/{user_id}/children/{child_id}/vaccines/</code></p>
+                
+                <div class="mb-3">
+                    <h4 class="font-medium mb-1">Тело запроса:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "vaccine_id": 3,
+  "date": "2025-02-01",
+  "is_completed": true,
+  "notes": "Сделана в поликлинике №5"
+}</code></pre>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "id": 3,
+  "vaccine_id": 3,
+  "vaccine_name": "Гепатит B (2)",
+  "date": "2025-02-01T00:00:00",
+  "is_completed": true,
+  "notes": "Сделана в поликлинике №5"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Уведомления -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-3">Уведомления</h2>
+            
+            <div class="glass-card p-4 mb-6">
+                <h3 class="text-lg font-medium mb-2">Получение настроек уведомлений</h3>
+                <p class="mb-2"><span class="bg-secondary bg-opacity-20 px-2 py-1 rounded">GET</span> <code>/api/users/{user_id}/notifications/preferences/</code></p>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "vaccine_reminders": true,
+  "feeding_reminders": true,
+  "sleep_statistics": true,
+  "development_milestones": true,
+  "telegram_notifications": true,
+  "email_notifications": false
+}</code></pre>
+                </div>
+            </div>
+            
+            <div class="glass-card p-4">
+                <h3 class="text-lg font-medium mb-2">Отправка тестового уведомления</h3>
+                <p class="mb-2"><span class="bg-primary bg-opacity-20 px-2 py-1 rounded">POST</span> <code>/api/users/{user_id}/notifications/test/</code></p>
+                
+                <div class="mb-3">
+                    <h4 class="font-medium mb-1">Тело запроса:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "channel": "telegram",
+  "message": "Это тестовое уведомление"
+}</code></pre>
+                </div>
+                
+                <div>
+                    <h4 class="font-medium mb-1">Ответ:</h4>
+                    <pre class="bg-light-gray p-3 rounded overflow-x-auto"><code>{
+  "success": true,
+  "message": "Notification sent successfully"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -66,6 +66,7 @@
     <link rel="stylesheet" href="{% static 'css/maternal-theme.css' %}">
     <link rel="stylesheet" href="{% static 'css/neomorphism.css' %}">
     <link rel="stylesheet" href="{% static 'css/glassmorphism.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tooltips.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     
     <style>
@@ -132,6 +133,7 @@
                         </div>
                     </div>
                 </div>
+                <a href="{% url 'webapp:documentation' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">Руководство</a>
                 <a href="{% url 'webapp:components_showcase' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">UI Компоненты</a>
             </div>
             
@@ -161,6 +163,7 @@
                         <a href="{% url 'webapp:vaccine_calendar' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Календарь прививок</a>
                     </div>
                 </div>
+                <a href="{% url 'webapp:documentation' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Руководство</a>
                 <a href="{% url 'webapp:components_showcase' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">UI Компоненты</a>
             </div>
         </div>
@@ -225,6 +228,7 @@
     <script src="{% static 'js/timer-manager.js' %}" defer></script>
     <script src="{% static 'js/data-sync.js' %}" defer></script>
     <script src="{% static 'js/static-optimizer.js' %}" defer></script>
+    <script src="{% static 'js/tooltips.js' %}" defer></script>
     <script>
         {% block extra_js %}{% endblock %}
     </script>
