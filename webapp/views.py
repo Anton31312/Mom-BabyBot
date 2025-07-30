@@ -98,6 +98,16 @@ def vaccine_calendar(request):
     })
 
 
+def health_tracker(request):
+    """Страница отслеживания показателей здоровья"""
+    # Получаем user_id из запроса или используем значение по умолчанию
+    user_id = get_int_param(request, 'user_id', 1)
+    
+    return render(request, 'tools/health_tracker/index.html', {
+        'user_id': user_id
+    })
+
+
 def components_showcase(request):
     """Страница демонстрации UI компонентов"""
     return render(request, 'components/showcase.html')
@@ -264,6 +274,39 @@ def architecture(request):
 def deployment(request):
     """Документация по развертыванию приложения"""
     return render(request, 'documentation/deployment.html')
+
+
+def technical_documentation(request):
+    """Техническая документация - доступна только для администраторов"""
+    # Проверяем, что пользователь аутентифицирован и является администратором
+    if not request.user.is_authenticated:
+        from django.contrib.auth.views import redirect_to_login
+        return redirect_to_login(request.get_full_path())
+    
+    if not request.user.is_staff:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden(
+            "Доступ запрещен. Техническая документация доступна только администраторам."
+        )
+    
+    # Читаем содержимое технической документации из файла
+    import os
+    from django.conf import settings
+    
+    try:
+        tech_doc_path = os.path.join(settings.BASE_DIR, 'docs', 'technical_documentation.md')
+        with open(tech_doc_path, 'r', encoding='utf-8') as f:
+            tech_doc_content = f.read()
+    except FileNotFoundError:
+        tech_doc_content = "Техническая документация не найдена."
+    except Exception as e:
+        logger.error(f"Ошибка при чтении технической документации: {str(e)}")
+        tech_doc_content = "Ошибка при загрузке технической документации."
+    
+    return render(request, 'documentation/technical_documentation.html', {
+        'tech_doc_content': tech_doc_content,
+        'user': request.user
+    })
     
 def tooltips_example(request):
     """Страница с примерами подсказок в интерфейсе"""

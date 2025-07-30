@@ -347,3 +347,62 @@
     padding: 10px 20px;
   }
 }
+/
+* Стеклянный дисклеймер */
+.glass-disclaimer {
+  border-radius: 12px;
+  background: var(--glass-accent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  box-shadow: 0 4px 20px rgba(255, 193, 7, 0.1);
+}
+
+.glass-disclaimer .disclaimer-icon {
+  margin-right: 12px;
+  flex-shrink: 0;
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+}
+
+.glass-disclaimer .disclaimer-content {
+  flex-grow: 1;
+}
+
+.glass-disclaimer .disclaimer-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #92400e;
+  font-size: 1rem;
+}
+
+.glass-disclaimer .disclaimer-message {
+  color: #78350f;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+/* Адаптивность для дисклеймера */
+@media (max-width: 640px) {
+  .glass-disclaimer {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .glass-disclaimer .disclaimer-icon {
+    margin-right: 8px;
+  }
+  
+  .glass-disclaimer .disclaimer-title {
+    font-size: 0.9rem;
+  }
+  
+  .glass-disclaimer .disclaimer-message {
+    font-size: 0.85rem;
+  }
+}

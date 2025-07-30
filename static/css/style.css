@@ -305,4 +305,61 @@
   .section {
     margin-bottom: 2rem;
   }
+}/
+* Дисклеймер - базовые стили */
+.disclaimer-component {
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.default-disclaimer {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+}
+
+.disclaimer-component .disclaimer-icon {
+  margin-right: 12px;
+  flex-shrink: 0;
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+}
+
+.disclaimer-component .disclaimer-content {
+  flex-grow: 1;
+}
+
+.disclaimer-component .disclaimer-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.disclaimer-component .disclaimer-message {
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+/* Адаптивность для дисклеймера */
+@media (max-width: 640px) {
+  .disclaimer-component {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .disclaimer-component .disclaimer-icon {
+    margin-right: 8px;
+  }
+  
+  .disclaimer-component .disclaimer-title {
+    font-size: 0.9rem;
+  }
+  
+  .disclaimer-component .disclaimer-message {
+    font-size: 0.85rem;
+  }
 }

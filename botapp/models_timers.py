@@ -181,28 +181,94 @@ class SleepSession(Base):
 
 class FeedingSession(Base):
     """
-    Модель сессии кормления.
+    Модель сессии кормления с поддержкой двух таймеров.
     
     Эта модель представляет сессию кормления ребенка с информацией о типе кормления
-    (грудное или из бутылочки), количестве, продолжительности и т.д.
+    (грудное или из бутылочки), количестве, продолжительности и поддержкой
+    отдельных таймеров для каждой груди.
     """
     __tablename__ = 'feeding_sessions'
     
     id = Column(Integer, primary_key=True)
     child_id = Column(Integer, ForeignKey('children.id'), nullable=False)
     timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)
+    end_time = Column(DateTime)  # время окончания сессии
     type = Column(String(10), nullable=False)  # 'breast' или 'bottle'
     amount = Column(Float)  # в мл, только для бутылочки
-    duration = Column(Integer)  # в минутах, только для груди
-    breast = Column(String(5))  # 'left', 'right' или 'both', только для груди
+    duration = Column(Integer)  # в минутах, только для груди (устаревшее поле)
+    breast = Column(String(5))  # 'left', 'right' или 'both', только для груди (устаревшее поле)
     food_type = Column(String(50))  # тип пищи/смеси
+    milk_type = Column(String(50))  # тип молока/смеси (альтернативное название)
     notes = Column(String(255))
+    
+    # Новые поля для поддержки двух таймеров
+    left_breast_duration = Column(Integer, default=0)  # продолжительность кормления левой грудью в секундах
+    right_breast_duration = Column(Integer, default=0)  # продолжительность кормления правой грудью в секундах
+    left_timer_start = Column(DateTime)  # время начала таймера левой груди
+    right_timer_start = Column(DateTime)  # время начала таймера правой груди
+    left_timer_active = Column(Boolean, default=False)  # активен ли таймер левой груди
+    right_timer_active = Column(Boolean, default=False)  # активен ли таймер правой груди
+    last_active_breast = Column(String(5))  # последняя активная грудь ('left' или 'right')
     
     # Relationships
     child = relationship("Child", backref="feeding_sessions")
     
     def __repr__(self):
         return f'<Feeding Session {self.id} for Child {self.child_id}>'
+    
+    @property
+    def total_duration_seconds(self):
+        """Общая продолжительность кормления в секундах."""
+        return (self.left_breast_duration or 0) + (self.right_breast_duration or 0)
+    
+    @property
+    def total_duration_minutes(self):
+        """Общая продолжительность кормления в минутах."""
+        return self.total_duration_seconds / 60
+    
+    @property
+    def is_active(self):
+        """Проверяет, активна ли сессия кормления."""
+        return self.left_timer_active or self.right_timer_active
+    
+    def get_breast_duration_minutes(self, breast):
+        """
+        Возвращает продолжительность кормления для указанной груди в минутах.
+        
+        Args:
+            breast (str): 'left' или 'right'
+            
+        Returns:
+            float: Продолжительность в минутах
+        """
+        if breast == 'left':
+            return (self.left_breast_duration or 0) / 60
+        elif breast == 'right':
+            return (self.right_breast_duration or 0) / 60
+        return 0
+    
+    def get_breast_percentage(self, breast):
+        """
+        Возвращает процент времени кормления для указанной груди.
+        
+        Args:
+            breast (str): 'left' или 'right'
+            
+        Returns:
+            float: Процент времени (0-100)
+        """
+        total_seconds = self.total_duration_seconds
+        if total_seconds == 0:
+            return 0
+        
+        if breast == 'left':
+            breast_seconds = self.left_breast_duration or 0
+        elif breast == 'right':
+            breast_seconds = self.right_breast_duration or 0
+        else:
+            return 0
+        
+        return (breast_seconds / total_seconds) * 100
 
 
 # Вспомогательные функции для работы с моделью Contraction

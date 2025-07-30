@@ -1,0 +1,82 @@
+name: Уведомления
+
+on:
+  workflow_run:
+    workflows: ["Непрерывная интеграция", "Проверка качества кода"]
+    types:
+      - completed
+
+jobs:
+  notify-success:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+    - name: Уведомление об успешном завершении
+      run: |
+        echo "✅ Workflow '${{ github.event.workflow_run.name }}' завершен успешно"
+        echo "🔗 Ссылка: ${{ github.event.workflow_run.html_url }}"
+        echo "📝 Коммит: ${{ github.event.workflow_run.head_sha }}"
+        echo "🌿 Ветка: ${{ github.event.workflow_run.head_branch }}"
+
+  notify-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    
+    steps:
+    - name: Уведомление об ошибке
+      run: |
+        echo "❌ Workflow '${{ github.event.workflow_run.name }}' завершен с ошибкой"
+        echo "🔗 Ссылка: ${{ github.event.workflow_run.html_url }}"
+        echo "📝 Коммит: ${{ github.event.workflow_run.head_sha }}"
+        echo "🌿 Ветка: ${{ github.event.workflow_run.head_branch }}"
+        echo ""
+        echo "🔍 Проверьте логи для получения подробной информации об ошибках"
+        echo "💡 Возможные причины:"
+        echo "   - Не прошли тесты"
+        echo "   - Ошибки в коде"
+        echo "   - Проблемы с зависимостями"
+        echo "   - Нарушения стиля кода"
+
+  create-issue-on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.head_branch == 'main' }}
+    
+    steps:
+    - name: Создание issue при ошибке в main
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const title = `🚨 CI/CD ошибка в main ветке - ${context.payload.workflow_run.name}`;
+          const body = `
+          ## 🚨 Критическая ошибка в CI/CD
+          
+          **Workflow:** ${context.payload.workflow_run.name}
+          **Ветка:** ${context.payload.workflow_run.head_branch}
+          **Коммит:** ${context.payload.workflow_run.head_sha}
+          **Время:** ${new Date(context.payload.workflow_run.created_at).toLocaleString('ru-RU')}
+          
+          ### 🔗 Ссылки
+          - [Логи workflow](${context.payload.workflow_run.html_url})
+          - [Коммит](${context.payload.workflow_run.head_commit.url})
+          
+          ### 📋 Что нужно сделать
+          1. 🔍 Проанализировать логи ошибок
+          2. 🛠️ Исправить найденные проблемы
+          3. ✅ Убедиться, что тесты проходят локально
+          4. 🚀 Создать hotfix если необходимо
+          
+          ### 🏷️ Метки
+          Этот issue автоматически помечен как критический и требует немедленного внимания.
+          
+          ---
+          *Автоматически создано GitHub Actions*
+          `;
+          
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: title,
+            body: body,
+            labels: ['bug', 'critical', 'ci/cd', 'automated']
+          });

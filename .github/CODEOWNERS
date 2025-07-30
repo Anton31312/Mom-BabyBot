@@ -1,0 +1,53 @@
+# Владельцы кода для автоматического назначения ревьюеров
+
+# Глобальные владельцы - назначаются для всех изменений
+* @admin
+
+# Конфигурационные файлы
+/.github/ @admin
+/docker-compose.yml @admin
+/Dockerfile @admin
+/requirements.txt @admin
+/pyproject.toml @admin
+/.flake8 @admin
+/.pre-commit-config.yaml @admin
+
+# Django настройки и конфигурация
+/mom_baby_bot/settings*.py @admin
+/mom_baby_bot/urls.py @admin
+/manage.py @admin
+
+# Веб-приложение
+/webapp/ @admin
+/webapp/models.py @admin
+/webapp/api*.py @admin
+/webapp/views.py @admin
+
+# Telegram бот
+/botapp/ @admin
+/botapp/models*.py @admin
+/botapp/handlers/ @admin
+
+# Тесты
+/tests/ @admin
+/webapp/tests/ @admin
+/botapp/tests/ @admin
+**/test_*.py @admin
+**/tests.py @admin
+
+# Документация
+/docs/ @admin
+README.md @admin
+*.md @admin
+
+# Статические файлы и шаблоны
+/static/ @admin
+/webapp/templates/ @admin
+/botapp/templates/ @admin
+
+# Миграции базы данных
+**/migrations/ @admin
+
+# Скрипты развертывания и утилиты
+/nginx/ @admin
+*.py @admin

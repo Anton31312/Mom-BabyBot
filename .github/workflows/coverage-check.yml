@@ -1,0 +1,216 @@
+name: Проверка покрытия тестами
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Получение кода
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Настройка Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Установка зависимостей
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install coverage pytest pytest-django coverage-badge
+    
+    - name: Создание переменных окружения
+      run: |
+        echo "SECRET_KEY=test-secret-key-for-coverage" >> $GITHUB_ENV
+        echo "DEBUG=False" >> $GITHUB_ENV
+        echo "DATABASE_URL=sqlite:///coverage_test.sqlite3" >> $GITHUB_ENV
+        echo "TELEGRAM_BOT_TOKEN=test-token" >> $GITHUB_ENV
+        echo "ADMIN_IDS=123456789" >> $GITHUB_ENV
+    
+    - name: Запуск тестов с покрытием
+      run: |
+        coverage run --source='.' manage.py test --settings=mom_baby_bot.settings
+        coverage report --show-missing
+        coverage xml
+        coverage html
+    
+    - name: Создание бейджа покрытия
+      run: |
+        coverage-badge -o coverage.svg
+    
+    - name: Проверка минимального покрытия
+      run: |
+        # Проверяем общее покрытие (минимум 70%)
+        coverage report --fail-under=70
+        
+        # Получаем процент покрытия
+        COVERAGE=$(coverage report --format=total)
+        echo "COVERAGE_PERCENT=$COVERAGE" >> $GITHUB_ENV
+        
+        # Определяем цвет бейджа
+        if [ $COVERAGE -ge 90 ]; then
+          echo "COVERAGE_COLOR=brightgreen" >> $GITHUB_ENV
+        elif [ $COVERAGE -ge 80 ]; then
+          echo "COVERAGE_COLOR=green" >> $GITHUB_ENV
+        elif [ $COVERAGE -ge 70 ]; then
+          echo "COVERAGE_COLOR=yellow" >> $GITHUB_ENV
+        else
+          echo "COVERAGE_COLOR=red" >> $GITHUB_ENV
+        fi
+    
+    - name: Анализ покрытия по модулям
+      run: |
+        echo "## 📊 Детальный анализ покрытия по модулям" > coverage_report.md
+        echo "" >> coverage_report.md
+        
+        # Анализ покрытия для webapp
+        echo "### 🌐 Веб-приложение (webapp)" >> coverage_report.md
+        coverage report --include="webapp/*" --format=markdown >> coverage_report.md || echo "Нет данных о покрытии для webapp" >> coverage_report.md
+        echo "" >> coverage_report.md
+        
+        # Анализ покрытия для botapp
+        echo "### 🤖 Telegram бот (botapp)" >> coverage_report.md
+        coverage report --include="botapp/*" --format=markdown >> coverage_report.md || echo "Нет данных о покрытии для botapp" >> coverage_report.md
+        echo "" >> coverage_report.md
+        
+        # Анализ покрытия для основных модулей
+        echo "### ⚙️ Основные модули" >> coverage_report.md
+        coverage report --include="mom_baby_bot/*" --format=markdown >> coverage_report.md || echo "Нет данных о покрытии для основных модулей" >> coverage_report.md
+        
+        cat coverage_report.md
+    
+    - name: Проверка покрытия для измененных файлов (только для PR)
+      if: github.event_name == 'pull_request'
+      uses: tj-actions/changed-files@v39
+      id: changed-files
+      with:
+        files: |
+          **/*.py
+        files_ignore: |
+          **/migrations/**
+          **/tests/**
+          test_*.py
+          *_test.py
+    
+    - name: Анализ покрытия измененных файлов
+      if: github.event_name == 'pull_request' && steps.changed-files.outputs.any_changed == 'true'
+      run: |
+        echo "## 🔍 Покрытие измененных файлов" > changed_files_coverage.md
+        echo "" >> changed_files_coverage.md
+        
+        for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          if [[ "$file" == *.py ]] && [[ "$file" != */migrations/* ]] && [[ "$file" != */tests/* ]]; then
+            echo "### 📄 $file" >> changed_files_coverage.md
+            coverage report --include="$file" >> changed_files_coverage.md || echo "Нет данных о покрытии" >> changed_files_coverage.md
+            echo "" >> changed_files_coverage.md
+          fi
+        done
+        
+        cat changed_files_coverage.md
+    
+    - name: Загрузка отчетов о покрытии
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-reports
+        path: |
+          htmlcov/
+          coverage.xml
+          coverage.svg
+          coverage_report.md
+        retention-days: 30
+    
+    - name: Комментарий в PR с результатами покрытия
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          let comment = `## 📊 Отчет о покрытии тестами\n\n`;
+          comment += `**Общее покрытие:** ${process.env.COVERAGE_PERCENT}%\n\n`;
+          
+          // Определяем статус покрытия
+          const coverage = parseInt(process.env.COVERAGE_PERCENT);
+          let status = '';
+          let emoji = '';
+          
+          if (coverage >= 90) {
+            status = 'Отличное покрытие! 🎉';
+            emoji = '🟢';
+          } else if (coverage >= 80) {
+            status = 'Хорошее покрытие ✅';
+            emoji = '🟢';
+          } else if (coverage >= 70) {
+            status = 'Приемлемое покрытие ⚠️';
+            emoji = '🟡';
+          } else {
+            status = 'Низкое покрытие ❌';
+            emoji = '🔴';
+          }
+          
+          comment += `**Статус:** ${emoji} ${status}\n\n`;
+          
+          // Добавляем требования
+          comment += `### 📋 Требования к покрытию:\n`;
+          comment += `- ✅ Минимальное общее покрытие: 70%\n`;
+          comment += `- ✅ Рекомендуемое покрытие: 80%+\n`;
+          comment += `- ✅ Отличное покрытие: 90%+\n\n`;
+          
+          // Добавляем ссылки на артефакты
+          comment += `### 📁 Отчеты:\n`;
+          comment += `- 📊 [HTML отчет](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n`;
+          comment += `- 📄 [XML отчет](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\n`;
+          
+          // Читаем детальный отчет если он существует
+          try {
+            const detailedReport = fs.readFileSync('coverage_report.md', 'utf8');
+            comment += detailedReport;
+          } catch (error) {
+            comment += `*Детальный отчет недоступен*\n`;
+          }
+          
+          // Читаем отчет по измененным файлам если он существует
+          try {
+            const changedFilesReport = fs.readFileSync('changed_files_coverage.md', 'utf8');
+            comment += `\n${changedFilesReport}`;
+          } catch (error) {
+            // Файл не существует, пропускаем
+          }
+          
+          comment += `\n---\n*Автоматически создано GitHub Actions*`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+    
+    - name: Обновление README с бейджем покрытия
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        # Создаем или обновляем бейдж покрытия в README
+        if grep -q "coverage-" README.md; then
+          sed -i "s/coverage-[0-9]*%-[a-z]*/coverage-${COVERAGE_PERCENT}%-${COVERAGE_COLOR}/g" README.md
+        else
+          echo "Добавьте бейдж покрытия в README.md:"
+          echo "![Coverage](https://img.shields.io/badge/coverage-${COVERAGE_PERCENT}%-${COVERAGE_COLOR})"
+        fi
+    
+    - name: Проверка критически низкого покрытия
+      if: env.COVERAGE_PERCENT < 50
+      run: |
+        echo "🚨 КРИТИЧЕСКИ НИЗКОЕ ПОКРЫТИЕ ТЕСТАМИ!"
+        echo "Текущее покрытие: $COVERAGE_PERCENT%"
+        echo "Минимально допустимое: 70%"
+        echo ""
+        echo "Необходимо добавить тесты для улучшения покрытия."
+        exit 1

@@ -1,0 +1,78 @@
+name: Обновление зависимостей
+
+on:
+  schedule:
+    # Запуск каждый понедельник в 9:00 UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:  # Позволяет запускать вручную
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Получение кода
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Настройка Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Установка pip-tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install pip-tools
+    
+    - name: Обновление зависимостей
+      run: |
+        # Создаем requirements.in если его нет
+        if [ ! -f requirements.in ]; then
+          cp requirements.txt requirements.in
+        fi
+        
+        # Обновляем зависимости
+        pip-compile --upgrade requirements.in
+    
+    - name: Проверка изменений
+      id: changes
+      run: |
+        if git diff --quiet requirements.txt; then
+          echo "changed=false" >> $GITHUB_OUTPUT
+        else
+          echo "changed=true" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Создание Pull Request
+      if: steps.changes.outputs.changed == 'true'
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "🔄 Автоматическое обновление зависимостей"
+        title: "🔄 Обновление зависимостей"
+        body: |
+          ## 🔄 Автоматическое обновление зависимостей
+          
+          Этот PR содержит автоматические обновления зависимостей проекта.
+          
+          ### Изменения:
+          - Обновлены версии пакетов в requirements.txt
+          
+          ### Что нужно сделать:
+          1. ✅ Проверить, что все тесты проходят
+          2. ✅ Убедиться, что приложение работает корректно
+          3. ✅ Проверить changelog обновленных пакетов на наличие breaking changes
+          
+          **Автоматически создано GitHub Actions**
+        branch: dependency-updates
+        delete-branch: true
+        labels: |
+          dependencies
+          automated
+    
+    - name: Уведомление об отсутствии изменений
+      if: steps.changes.outputs.changed == 'false'
+      run: |
+        echo "📦 Все зависимости актуальны, обновления не требуются"

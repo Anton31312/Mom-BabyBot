@@ -1,0 +1,36 @@
+{% comment %}
+    Disclaimer Component
+    
+    Usage:
+    {% include 'components/disclaimer.html' with style="glass" %}
+    {% include 'components/disclaimer.html' with style="neo" %}
+    
+    Parameters:
+    - style: Design style variant ("glass" for glassmorphism, "neo" for neomorphism)
+    - custom_class: Optional additional CSS classes
+    - show_icon: Optional boolean to show/hide warning icon (default: true)
+{% endcomment %}
+
+{% load static %}
+
+<div class="disclaimer-component {% if style == 'glass' %}glass-disclaimer{% elif style == 'neo' %}neo-disclaimer{% else %}default-disclaimer{% endif %} {% if custom_class %}{{ custom_class }}{% endif %}">
+    {% if show_icon != False %}
+    <div class="disclaimer-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 9V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M12 17H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </div>
+    {% endif %}
+    
+    <div class="disclaimer-content">
+        <div class="disclaimer-title">
+            <strong>Внимание!</strong>
+        </div>
+        <div class="disclaimer-message">
+            Все рекомендации в приложении являются общими и могут не учитывать индивидуальные особенности. 
+            Для получения персонализированных рекомендаций обратитесь к специалисту.
+        </div>
+    </div>
+</div>

@@ -1,0 +1,236 @@
+name: Проверки Pull Request
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  pr-validation:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+    - name: Получение кода
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Получаем полную историю для анализа изменений
+    
+    - name: Настройка Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Установка зависимостей
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install coverage pytest pytest-django flake8 black isort mypy bandit safety
+    
+    - name: Анализ измененных файлов
+      id: changed-files
+      uses: tj-actions/changed-files@v39
+      with:
+        files: |
+          **/*.py
+        files_ignore: |
+          **/migrations/**
+          **/tests/**
+    
+    - name: Проверка стиля кода для измененных файлов
+      if: steps.changed-files.outputs.any_changed == 'true'
+      run: |
+        echo "🔍 Проверка стиля кода для измененных файлов..."
+        echo "Измененные файлы: ${{ steps.changed-files.outputs.all_changed_files }}"
+        
+        # Проверка с flake8
+        for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          echo "Проверка файла: $file"
+          flake8 "$file" || exit 1
+        done
+    
+    - name: Проверка форматирования для измененных файлов
+      if: steps.changed-files.outputs.any_changed == 'true'
+      run: |
+        echo "🎨 Проверка форматирования для измененных файлов..."
+        for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          echo "Проверка форматирования файла: $file"
+          black --check --diff "$file" || exit 1
+        done
+    
+    - name: Проверка сортировки импортов для измененных файлов
+      if: steps.changed-files.outputs.any_changed == 'true'
+      run: |
+        echo "📦 Проверка сортировки импортов для измененных файлов..."
+        for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          echo "Проверка импортов файла: $file"
+          isort --check-only --diff "$file" || exit 1
+        done
+    
+    - name: Создание переменных окружения для тестов
+      run: |
+        echo "SECRET_KEY=test-secret-key-for-pr" >> $GITHUB_ENV
+        echo "DEBUG=False" >> $GITHUB_ENV
+        echo "DATABASE_URL=sqlite:///test_pr.sqlite3" >> $GITHUB_ENV
+        echo "TELEGRAM_BOT_TOKEN=test-token" >> $GITHUB_ENV
+        echo "ADMIN_IDS=123456789" >> $GITHUB_ENV
+    
+    - name: Запуск тестов с покрытием
+      run: |
+        echo "🧪 Запуск тестов с измерением покрытия..."
+        coverage run --source='.' manage.py test --settings=mom_baby_bot.settings
+        coverage report --show-missing --fail-under=70
+        coverage xml
+    
+    - name: Проверка покрытия тестами для измененных файлов
+      if: steps.changed-files.outputs.any_changed == 'true'
+      run: |
+        echo "📊 Анализ покрытия для измененных файлов..."
+        coverage report --show-missing
+        
+        # Проверяем покрытие для каждого измененного файла
+        for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          if [[ "$file" == *.py ]] && [[ "$file" != */migrations/* ]] && [[ "$file" != */tests/* ]]; then
+            echo "Проверка покрытия для файла: $file"
+            coverage report --include="$file" --fail-under=60 || echo "⚠️ Низкое покрытие для файла $file"
+          fi
+        done
+    
+    - name: Проверка безопасности для измененных файлов
+      if: steps.changed-files.outputs.any_changed == 'true'
+      run: |
+        echo "🔒 Проверка безопасности для измененных файлов..."
+        for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          if [[ "$file" == *.py ]]; then
+            echo "Проверка безопасности файла: $file"
+            bandit "$file" || echo "⚠️ Потенциальные проблемы безопасности в файле $file"
+          fi
+        done
+    
+    - name: Комментарий в PR с результатами проверок
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          let comment = '## 🔍 Результаты проверки Pull Request\n\n';
+          
+          // Информация о измененных файлах
+          const changedFiles = '${{ steps.changed-files.outputs.all_changed_files }}';
+          if (changedFiles) {
+            comment += '### 📁 Измененные файлы:\n';
+            changedFiles.split(' ').forEach(file => {
+              comment += `- \`${file}\`\n`;
+            });
+            comment += '\n';
+          }
+          
+          comment += '### ✅ Выполненные проверки:\n';
+          comment += '- 🎨 Форматирование кода (Black)\n';
+          comment += '- 📦 Сортировка импортов (isort)\n';
+          comment += '- 📏 Стиль кода (flake8)\n';
+          comment += '- 🧪 Модульные тесты\n';
+          comment += '- 📊 Покрытие тестами (минимум 70%)\n';
+          comment += '- 🔒 Проверка безопасности (bandit)\n\n';
+          
+          comment += '### 📋 Чек-лист для ревьюера:\n';
+          comment += '- [ ] Код соответствует стандартам проекта\n';
+          comment += '- [ ] Все тесты проходят\n';
+          comment += '- [ ] Покрытие тестами достаточное\n';
+          comment += '- [ ] Нет проблем с безопасностью\n';
+          comment += '- [ ] Документация обновлена (если необходимо)\n';
+          comment += '- [ ] Изменения протестированы вручную\n\n';
+          
+          comment += '---\n';
+          comment += '*Автоматически создано GitHub Actions*';
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  size-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Получение кода
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Проверка размера PR
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { data: pr } = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+          
+          const additions = pr.additions;
+          const deletions = pr.deletions;
+          const changedFiles = pr.changed_files;
+          
+          let size = 'small';
+          let emoji = '🟢';
+          let message = 'Размер PR оптимальный для ревью';
+          
+          if (additions + deletions > 1000 || changedFiles > 20) {
+            size = 'large';
+            emoji = '🔴';
+            message = 'PR слишком большой. Рассмотрите возможность разделения на несколько меньших PR';
+          } else if (additions + deletions > 500 || changedFiles > 10) {
+            size = 'medium';
+            emoji = '🟡';
+            message = 'PR среднего размера. Убедитесь, что все изменения логически связаны';
+          }
+          
+          const comment = `## ${emoji} Анализ размера PR
+          
+          **Размер:** ${size}
+          **Добавлено строк:** ${additions}
+          **Удалено строк:** ${deletions}
+          **Измененных файлов:** ${changedFiles}
+          
+          ${message}
+          
+          ### 💡 Рекомендации:
+          - Небольшие PR (< 200 строк) легче ревьюить и имеют меньше багов
+          - Большие PR следует разбивать на логические части
+          - Каждый PR должен решать одну конкретную задачу
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  conflict-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Получение кода
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Проверка конфликтов слияния
+      run: |
+        echo "🔍 Проверка возможных конфликтов слияния..."
+        
+        # Получаем базовую ветку
+        git fetch origin ${{ github.event.pull_request.base.ref }}
+        
+        # Пытаемся выполнить пробное слияние
+        if git merge-tree $(git merge-base HEAD origin/${{ github.event.pull_request.base.ref }}) HEAD origin/${{ github.event.pull_request.base.ref }} | grep -q "<<<<<<< "; then
+          echo "❌ Обнаружены конфликты слияния!"
+          echo "Пожалуйста, разрешите конфликты перед слиянием PR"
+          exit 1
+        else
+          echo "✅ Конфликты слияния не обнаружены"
+        fi

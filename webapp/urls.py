@@ -8,6 +8,8 @@ from . import api_sleep
 from . import api_feeding
 from . import api_notification
 from . import api_performance
+from . import api_health
+from .utils.disclaimer_utils import acknowledge_disclaimer
 
 app_name = 'webapp'
 
@@ -33,6 +35,7 @@ urlpatterns = [
     path('documentation/api/', views.api_documentation, name='api_documentation'),
     path('documentation/architecture/', views.architecture, name='architecture'),
     path('documentation/deployment/', views.deployment, name='deployment'),
+    path('documentation/technical/', views.technical_documentation, name='technical_documentation'),
     
     # UI Components Showcase
     path('components/showcase/', views.components_showcase, name='components_showcase'),
@@ -48,6 +51,7 @@ urlpatterns = [
     path('tools/feeding-tracker/', views.feeding_tracker, name='feeding_tracker'),
     path('tools/child-profiles/', views.child_profiles, name='child_profiles'),
     path('tools/vaccine-calendar/', views.vaccine_calendar, name='vaccine_calendar'),
+    path('tools/health-tracker/', views.health_tracker, name='health_tracker'),
     
     # API endpoints
     path('api/user', views.create_user, name='create_user'),
@@ -89,6 +93,13 @@ urlpatterns = [
     path('api/users/<int:user_id>/children/<int:child_id>/feeding/<int:session_id>/', api_feeding.feeding_session_detail, name='feeding_session_detail'),
     path('api/users/<int:user_id>/children/<int:child_id>/feeding/statistics/', api_feeding.feeding_statistics, name='feeding_statistics'),
     
+    # Feeding Timer Management API endpoints
+    path('api/users/<int:user_id>/children/<int:child_id>/feeding/timer/start/', api_feeding.start_feeding_timer, name='start_feeding_timer'),
+    path('api/users/<int:user_id>/children/<int:child_id>/feeding/<int:session_id>/timer/pause/', api_feeding.pause_feeding_timer, name='pause_feeding_timer'),
+    path('api/users/<int:user_id>/children/<int:child_id>/feeding/<int:session_id>/timer/stop/', api_feeding.stop_feeding_session, name='stop_feeding_session'),
+    path('api/users/<int:user_id>/children/<int:child_id>/feeding/<int:session_id>/timer/switch/', api_feeding.switch_breast, name='switch_breast'),
+    path('api/users/<int:user_id>/children/<int:child_id>/feeding/active/', api_feeding.get_active_feeding_session, name='get_active_feeding_session'),
+    
     # Notification API endpoints
     path('api/users/<int:user_id>/notifications/preferences/', api_notification.notification_preferences, name='notification_preferences'),
     path('api/users/<int:user_id>/notifications/history/', api_notification.notification_history, name='notification_history'),
@@ -100,4 +111,15 @@ urlpatterns = [
     path('api/performance-metrics/get', api_performance.get_metrics, name='get_metrics'),
     path('api/performance-stats', api_performance.get_performance_stats, name='get_performance_stats'),
     path('api/performance-stats/reset', api_performance.reset_stats, name='reset_stats'),
+    
+    # Health API endpoints
+    path('api/users/<int:user_id>/health/weight/', api_health.weight_records, name='weight_records'),
+    path('api/users/<int:user_id>/health/weight/<int:record_id>/', api_health.weight_record_detail, name='weight_record_detail'),
+    path('api/users/<int:user_id>/health/blood-pressure/', api_health.blood_pressure_records, name='blood_pressure_records'),
+    path('api/users/<int:user_id>/health/blood-pressure/<int:record_id>/', api_health.blood_pressure_record_detail, name='blood_pressure_record_detail'),
+    path('api/users/<int:user_id>/health/statistics/', api_health.health_statistics, name='health_statistics'),
+    path('api/users/<int:user_id>/health/export/', api_health.health_data_export, name='health_data_export'),
+    
+    # Disclaimer acknowledgment endpoint
+    path('api/disclaimer/acknowledge/', acknowledge_disclaimer, name='acknowledge_disclaimer'),
 ]

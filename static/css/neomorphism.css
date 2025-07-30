@@ -346,4 +346,60 @@
   .neo-button {
     padding: 10px 20px;
   }
+}/*
+ Неоморфный дисклеймер */
+.neo-disclaimer {
+  border-radius: 12px;
+  background: var(--accent-color);
+  box-shadow: var(--neo-shadow-md);
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+.neo-disclaimer .disclaimer-icon {
+  margin-right: 12px;
+  flex-shrink: 0;
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+}
+
+.neo-disclaimer .disclaimer-content {
+  flex-grow: 1;
+}
+
+.neo-disclaimer .disclaimer-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #92400e;
+  font-size: 1rem;
+}
+
+.neo-disclaimer .disclaimer-message {
+  color: #78350f;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+/* Адаптивность для неоморфного дисклеймера */
+@media (max-width: 640px) {
+  .neo-disclaimer {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .neo-disclaimer .disclaimer-icon {
+    margin-right: 8px;
+  }
+  
+  .neo-disclaimer .disclaimer-title {
+    font-size: 0.9rem;
+  }
+  
+  .neo-disclaimer .disclaimer-message {
+    font-size: 0.85rem;
+  }
 }

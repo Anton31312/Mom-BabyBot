@@ -1,0 +1,246 @@
+/* Feeding Timer Styles */
+
+.timer-container {
+    position: relative;
+}
+
+.timer-display {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 20px;
+    margin: 15px 0;
+    box-shadow: 
+        inset 0 2px 4px rgba(255, 255, 255, 0.1),
+        0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.timer-display span {
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+}
+
+/* Timer States */
+.timer-container.active .timer-display {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    animation: pulse-active 2s infinite;
+}
+
+.timer-container.paused .timer-display {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.timer-container.inactive .timer-display {
+    background: linear-gradient(135deg, #a8a8a8 0%, #d3d3d3 100%);
+}
+
+@keyframes pulse-active {
+    0% {
+        box-shadow: 
+            inset 0 2px 4px rgba(255, 255, 255, 0.1),
+            0 8px 32px rgba(0, 0, 0, 0.1),
+            0 0 0 0 rgba(17, 153, 142, 0.7);
+    }
+    70% {
+        box-shadow: 
+            inset 0 2px 4px rgba(255, 255, 255, 0.1),
+            0 8px 32px rgba(0, 0, 0, 0.1),
+            0 0 0 10px rgba(17, 153, 142, 0);
+    }
+    100% {
+        box-shadow: 
+            inset 0 2px 4px rgba(255, 255, 255, 0.1),
+            0 8px 32px rgba(0, 0, 0, 0.1),
+            0 0 0 0 rgba(17, 153, 142, 0);
+    }
+}
+
+/* Button States */
+.timer-controls button {
+    transition: all 0.3s ease;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.timer-controls button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.timer-controls button:active {
+    transform: translateY(0);
+}
+
+/* Start Button */
+.timer-controls button.bg-green-500 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+.timer-controls button.bg-green-500:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+/* Pause Button */
+.timer-controls button.bg-yellow-500 {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border: none;
+}
+
+.timer-controls button.bg-yellow-500:hover {
+    background: linear-gradient(135deg, #e081e9 0%, #e3455a 100%);
+}
+
+/* Switch Buttons */
+button.bg-blue-500 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+}
+
+button.bg-blue-500:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+/* Stop Session Button */
+button.bg-red-500 {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    border: none;
+    padding: 12px 32px;
+    border-radius: 25px;
+    font-weight: 700;
+}
+
+button.bg-red-500:hover {
+    background: linear-gradient(135deg, #ff5252 0%, #d73a49 100%);
+}
+
+/* Active Session Info */
+#activeSessionInfo {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 2px solid #2196f3;
+    border-radius: 15px;
+    animation: fade-in 0.5s ease-in;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Total Time Display */
+#totalSessionTime {
+    color: #1976d2;
+    font-family: 'Courier New', monospace;
+    font-size: 1.1em;
+}
+
+/* Timer Cards Enhancement */
+.glass-card {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .timer-display span {
+        font-size: 2rem;
+    }
+    
+    .timer-controls button {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+    
+    button.bg-blue-500,
+    button.bg-red-500 {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Loading State */
+.timer-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.timer-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Success/Error States */
+.timer-success {
+    border: 2px solid #4caf50;
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.timer-error {
+    border: 2px solid #f44336;
+    background: rgba(244, 67, 54, 0.1);
+}
+
+/* Accessibility */
+.timer-controls button:focus {
+    outline: 3px solid #2196f3;
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .timer-display {
+        background: #000;
+        border: 2px solid #fff;
+    }
+    
+    .timer-display span {
+        color: #fff;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .timer-container.active .timer-display {
+        animation: none;
+    }
+    
+    @keyframes pulse-active {
+        0%, 100% {
+            box-shadow: 
+                inset 0 2px 4px rgba(255, 255, 255, 0.1),
+                0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+    }
+}

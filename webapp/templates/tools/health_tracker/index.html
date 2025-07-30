@@ -1,0 +1,1323 @@
+{% extends 'base.html' %}
+
+{% block title %}Mom&BabyBot - Отслеживание показателей здоровья{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="glass-container mb-6">
+    <h1 class="text-2xl font-bold mb-4">Отслеживание показателей здоровья</h1>
+    <p class="text-dark-gray mb-4">Записывайте и анализируйте ваши показатели здоровья: вес и артериальное давление.</p>
+</div>
+
+<!-- Disclaimer for medical recommendations -->
+{% include 'components/disclaimer.html' with style='glass' %}
+
+<div class="neo-container mb-6">
+    <div class="glass-tabs" data-tab-group="health-type">
+        <div class="glass-tab active" data-tab-target="weight-tracking">Вес</div>
+        <div class="glass-tab" data-tab-target="blood-pressure-tracking">Артериальное давление</div>
+        <div class="glass-tab" data-tab-target="health-statistics">Статистика</div>
+    </div>
+    
+    <div class="mt-6" data-tab-group="health-type">
+        <!-- Weight Tracking Tab -->
+        <div id="weight-tracking" class="tab-content">
+            <div class="glass-container p-6">
+                <h3 class="text-xl font-bold mb-6">Отслеживание веса</h3>
+                
+                <!-- Weight Input Form -->
+                <div class="mb-8">
+                    <form id="weightForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="weightValue" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Вес (кг) <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" 
+                                       id="weightValue" 
+                                       name="weight" 
+                                       step="0.1" 
+                                       min="0.1" 
+                                       max="999.99"
+                                       class="neo-input w-full" 
+                                       placeholder="65.5" 
+                                       required>
+                            </div>
+                            <div>
+                                <label for="weightDate" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Дата и время
+                                </label>
+                                <input type="datetime-local" 
+                                       id="weightDate" 
+                                       name="date" 
+                                       class="neo-input w-full">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="weightNotes" class="block text-sm font-medium text-gray-700 mb-2">
+                                Заметки
+                            </label>
+                            <textarea id="weightNotes" 
+                                      name="notes" 
+                                      rows="3" 
+                                      class="neo-input w-full" 
+                                      placeholder="Дополнительные заметки..."></textarea>
+                        </div>
+                        <div class="flex space-x-4">
+                            <button type="submit" class="neo-button bg-blue-500 text-white">
+                                Сохранить запись
+                            </button>
+                            <button type="button" id="clearWeightForm" class="neo-button bg-gray-500 text-white">
+                                Очистить
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Weight Records List -->
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-lg font-semibold">История записей веса</h4>
+                        <div class="flex space-x-2">
+                            <select id="weightPeriodFilter" class="neo-input text-sm">
+                                <option value="7">Последние 7 дней</option>
+                                <option value="30" selected>Последние 30 дней</option>
+                                <option value="90">Последние 3 месяца</option>
+                                <option value="365">Последний год</option>
+                            </select>
+                            <button id="refreshWeightRecords" class="neo-button bg-green-500 text-white text-sm">
+                                Обновить
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="weightRecordsList" class="space-y-3">
+                        <!-- Weight records will be loaded here -->
+                    </div>
+                    
+                    <div id="weightRecordsLoading" class="text-center py-8" style="display: none;">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                        <p class="mt-2 text-gray-600">Загрузка записей...</p>
+                    </div>
+                    
+                    <div id="weightRecordsEmpty" class="text-center py-8 text-gray-500" style="display: none;">
+                        <p>Записи веса не найдены</p>
+                        <p class="text-sm">Добавьте первую запись, используя форму выше</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Blood Pressure Tracking Tab -->
+        <div id="blood-pressure-tracking" class="tab-content" style="display: none;">
+            <div class="glass-container p-6">
+                <h3 class="text-xl font-bold mb-6">Отслеживание артериального давления</h3>
+                
+                <!-- Blood Pressure Input Form -->
+                <div class="mb-8">
+                    <form id="bloodPressureForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="systolicValue" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Систолическое (верхнее) <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" 
+                                       id="systolicValue" 
+                                       name="systolic" 
+                                       min="50" 
+                                       max="300"
+                                       class="neo-input w-full" 
+                                       placeholder="120" 
+                                       required>
+                            </div>
+                            <div>
+                                <label for="diastolicValue" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Диастолическое (нижнее) <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" 
+                                       id="diastolicValue" 
+                                       name="diastolic" 
+                                       min="30" 
+                                       max="200"
+                                       class="neo-input w-full" 
+                                       placeholder="80" 
+                                       required>
+                            </div>
+                            <div>
+                                <label for="pulseValue" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Пульс (уд/мин)
+                                </label>
+                                <input type="number" 
+                                       id="pulseValue" 
+                                       name="pulse" 
+                                       min="30" 
+                                       max="250"
+                                       class="neo-input w-full" 
+                                       placeholder="70">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="bpDate" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Дата и время
+                                </label>
+                                <input type="datetime-local" 
+                                       id="bpDate" 
+                                       name="date" 
+                                       class="neo-input w-full">
+                            </div>
+                            <div>
+                                <label for="bpNotes" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Заметки
+                                </label>
+                                <textarea id="bpNotes" 
+                                          name="notes" 
+                                          rows="2" 
+                                          class="neo-input w-full" 
+                                          placeholder="Дополнительные заметки..."></textarea>
+                            </div>
+                        </div>
+                        <div class="flex space-x-4">
+                            <button type="submit" class="neo-button bg-blue-500 text-white">
+                                Сохранить запись
+                            </button>
+                            <button type="button" id="clearBpForm" class="neo-button bg-gray-500 text-white">
+                                Очистить
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Blood Pressure Records List -->
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-lg font-semibold">История записей давления</h4>
+                        <div class="flex space-x-2">
+                            <select id="bpPeriodFilter" class="neo-input text-sm">
+                                <option value="7">Последние 7 дней</option>
+                                <option value="30" selected>Последние 30 дней</option>
+                                <option value="90">Последние 3 месяца</option>
+                                <option value="365">Последний год</option>
+                            </select>
+                            <button id="refreshBpRecords" class="neo-button bg-green-500 text-white text-sm">
+                                Обновить
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="bpRecordsList" class="space-y-3">
+                        <!-- Blood pressure records will be loaded here -->
+                    </div>
+                    
+                    <div id="bpRecordsLoading" class="text-center py-8" style="display: none;">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                        <p class="mt-2 text-gray-600">Загрузка записей...</p>
+                    </div>
+                    
+                    <div id="bpRecordsEmpty" class="text-center py-8 text-gray-500" style="display: none;">
+                        <p>Записи давления не найдены</p>
+                        <p class="text-sm">Добавьте первую запись, используя форму выше</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Health Statistics Tab -->
+        <div id="health-statistics" class="tab-content" style="display: none;">
+            <div class="glass-container p-6">
+                <h3 class="text-xl font-bold mb-6">Статистика здоровья</h3>
+                
+                <!-- Statistics Controls -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-lg font-semibold">Период анализа</h4>
+                        <div class="flex space-x-2">
+                            <select id="statisticsPeriod" class="neo-input">
+                                <option value="7">Последние 7 дней</option>
+                                <option value="30" selected>Последние 30 дней</option>
+                                <option value="90">Последние 3 месяца</option>
+                                <option value="365">Последний год</option>
+                            </select>
+                            <button id="refreshStatistics" class="neo-button bg-blue-500 text-white">
+                                Обновить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Statistics Content -->
+                <div id="statisticsContent">
+                    <!-- Weight Statistics -->
+                    <div class="mb-8">
+                        <h5 class="text-lg font-semibold mb-4">Статистика веса</h5>
+                        <div id="weightStatistics" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <!-- Weight stats will be loaded here -->
+                        </div>
+                        
+                        <!-- Weight Chart -->
+                        <div class="glass-card p-6">
+                            <h6 class="text-md font-semibold mb-4">График изменения веса</h6>
+                            <div class="relative" style="height: 300px;">
+                                <canvas id="weightChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Blood Pressure Statistics -->
+                    <div class="mb-8">
+                        <h5 class="text-lg font-semibold mb-4">Статистика артериального давления</h5>
+                        <div id="bpStatistics" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <!-- BP stats will be loaded here -->
+                        </div>
+                        
+                        <!-- Blood Pressure Chart -->
+                        <div class="glass-card p-6">
+                            <h6 class="text-md font-semibold mb-4">График изменения артериального давления</h6>
+                            <div class="relative" style="height: 300px;">
+                                <canvas id="bloodPressureChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recommendations -->
+                    <div id="healthRecommendations" class="mb-8">
+                        <h5 class="text-lg font-semibold mb-4">Рекомендации</h5>
+                        <div id="recommendationsList">
+                            <!-- Recommendations will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="statisticsLoading" class="text-center py-8" style="display: none;">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <p class="mt-2 text-gray-600">Загрузка статистики...</p>
+                </div>
+                
+                <div id="statisticsEmpty" class="text-center py-8 text-gray-500" style="display: none;">
+                    <p>Недостаточно данных для анализа</p>
+                    <p class="text-sm">Добавьте записи веса и давления для получения статистики</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Messages -->
+<div id="healthMessages" class="fixed top-4 right-4 z-50" style="display: none;">
+    <div id="healthMessageContent" class="glass-container p-4 rounded-lg shadow-lg">
+        <div class="flex items-center">
+            <div id="healthMessageIcon" class="mr-3"></div>
+            <div id="healthMessageText"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Record Modal -->
+<div id="editRecordModal" class="fixed inset-0 bg-black bg-opacity-50 z-50" style="display: none;">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="glass-container p-6 w-full max-w-md">
+            <h3 id="editModalTitle" class="text-xl font-bold mb-4">Редактировать запись</h3>
+            <form id="editRecordForm">
+                <div id="editFormContent">
+                    <!-- Form content will be dynamically generated -->
+                </div>
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" id="cancelEdit" class="neo-button bg-gray-500 text-white">
+                        Отмена
+                    </button>
+                    <button type="submit" class="neo-button bg-blue-500 text-white">
+                        Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 z-50" style="display: none;">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="glass-container p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">Подтверждение удаления</h3>
+            <p class="mb-6">Вы уверены, что хотите удалить эту запись? Это действие нельзя отменить.</p>
+            <div class="flex justify-end space-x-4">
+                <button type="button" id="cancelDelete" class="neo-button bg-gray-500 text-white">
+                    Отмена
+                </button>
+                <button type="button" id="confirmDelete" class="neo-button bg-red-500 text-white">
+                    Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Health Tracker JavaScript
+const HealthTracker = {
+    userId: {{ user_id }},
+    currentEditRecord: null,
+    currentDeleteRecord: null,
+    weightChart: null,
+    bloodPressureChart: null,
+    
+    init() {
+        this.setupEventListeners();
+        this.setCurrentDateTime();
+        this.loadWeightRecords();
+        this.loadBloodPressureRecords();
+        this.loadStatistics();
+    },
+    
+    setupEventListeners() {
+        // Tab switching
+        document.querySelectorAll('.glass-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const target = e.target.dataset.tabTarget;
+                this.switchTab(target);
+            });
+        });
+        
+        // Weight form
+        document.getElementById('weightForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveWeightRecord();
+        });
+        
+        document.getElementById('clearWeightForm').addEventListener('click', () => {
+            this.clearWeightForm();
+        });
+        
+        // Blood pressure form
+        document.getElementById('bloodPressureForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveBloodPressureRecord();
+        });
+        
+        document.getElementById('clearBpForm').addEventListener('click', () => {
+            this.clearBloodPressureForm();
+        });
+        
+        // Refresh buttons
+        document.getElementById('refreshWeightRecords').addEventListener('click', () => {
+            this.loadWeightRecords();
+        });
+        
+        document.getElementById('refreshBpRecords').addEventListener('click', () => {
+            this.loadBloodPressureRecords();
+        });
+        
+        document.getElementById('refreshStatistics').addEventListener('click', () => {
+            this.loadStatistics();
+        });
+        
+        // Period filters
+        document.getElementById('weightPeriodFilter').addEventListener('change', () => {
+            this.loadWeightRecords();
+        });
+        
+        document.getElementById('bpPeriodFilter').addEventListener('change', () => {
+            this.loadBloodPressureRecords();
+        });
+        
+        document.getElementById('statisticsPeriod').addEventListener('change', () => {
+            this.loadStatistics();
+        });
+        
+        // Modal events
+        document.getElementById('cancelEdit').addEventListener('click', () => {
+            this.hideEditModal();
+        });
+        
+        document.getElementById('editRecordForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveEditedRecord();
+        });
+        
+        document.getElementById('cancelDelete').addEventListener('click', () => {
+            this.hideDeleteModal();
+        });
+        
+        document.getElementById('confirmDelete').addEventListener('click', () => {
+            this.deleteRecord();
+        });
+    },
+    
+    setCurrentDateTime() {
+        const now = new Date();
+        const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        document.getElementById('weightDate').value = localDateTime;
+        document.getElementById('bpDate').value = localDateTime;
+    },
+    
+    switchTab(target) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.style.display = 'none';
+        });
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('.glass-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Show target content and activate tab
+        document.getElementById(target).style.display = 'block';
+        document.querySelector(`[data-tab-target="${target}"]`).classList.add('active');
+    },
+    
+    async saveWeightRecord() {
+        const form = document.getElementById('weightForm');
+        const formData = new FormData(form);
+        
+        const data = {
+            weight: parseFloat(formData.get('weight')),
+            notes: formData.get('notes') || ''
+        };
+        
+        if (formData.get('date')) {
+            data.date = new Date(formData.get('date')).toISOString();
+        }
+        
+        try {
+            const response = await fetch(`/api/users/${this.userId}/health/weight/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                this.showMessage('Запись веса успешно сохранена', 'success');
+                this.clearWeightForm();
+                this.loadWeightRecords();
+                this.loadStatistics();
+            } else {
+                const error = await response.json();
+                this.showMessage(error.error || 'Ошибка при сохранении записи', 'error');
+            }
+        } catch (error) {
+            this.showMessage('Ошибка сети при сохранении записи', 'error');
+        }
+    },
+    
+    async saveBloodPressureRecord() {
+        const form = document.getElementById('bloodPressureForm');
+        const formData = new FormData(form);
+        
+        const data = {
+            systolic: parseInt(formData.get('systolic')),
+            diastolic: parseInt(formData.get('diastolic')),
+            notes: formData.get('notes') || ''
+        };
+        
+        if (formData.get('pulse')) {
+            data.pulse = parseInt(formData.get('pulse'));
+        }
+        
+        if (formData.get('date')) {
+            data.date = new Date(formData.get('date')).toISOString();
+        }
+        
+        try {
+            const response = await fetch(`/api/users/${this.userId}/health/blood-pressure/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                this.showMessage('Запись давления успешно сохранена', 'success');
+                this.clearBloodPressureForm();
+                this.loadBloodPressureRecords();
+                this.loadStatistics();
+            } else {
+                const error = await response.json();
+                this.showMessage(error.error || 'Ошибка при сохранении записи', 'error');
+            }
+        } catch (error) {
+            this.showMessage('Ошибка сети при сохранении записи', 'error');
+        }
+    },
+    
+    async loadWeightRecords() {
+        const days = document.getElementById('weightPeriodFilter').value;
+        const loading = document.getElementById('weightRecordsLoading');
+        const list = document.getElementById('weightRecordsList');
+        const empty = document.getElementById('weightRecordsEmpty');
+        
+        loading.style.display = 'block';
+        list.innerHTML = '';
+        empty.style.display = 'none';
+        
+        try {
+            const response = await fetch(`/api/users/${this.userId}/health/weight/?days=${days}`);
+            const data = await response.json();
+            
+            loading.style.display = 'none';
+            
+            if (data.weight_records && data.weight_records.length > 0) {
+                this.renderWeightRecords(data.weight_records);
+            } else {
+                empty.style.display = 'block';
+            }
+        } catch (error) {
+            loading.style.display = 'none';
+            this.showMessage('Ошибка при загрузке записей веса', 'error');
+        }
+    },
+    
+    async loadBloodPressureRecords() {
+        const days = document.getElementById('bpPeriodFilter').value;
+        const loading = document.getElementById('bpRecordsLoading');
+        const list = document.getElementById('bpRecordsList');
+        const empty = document.getElementById('bpRecordsEmpty');
+        
+        loading.style.display = 'block';
+        list.innerHTML = '';
+        empty.style.display = 'none';
+        
+        try {
+            const response = await fetch(`/api/users/${this.userId}/health/blood-pressure/?days=${days}`);
+            const data = await response.json();
+            
+            loading.style.display = 'none';
+            
+            if (data.blood_pressure_records && data.blood_pressure_records.length > 0) {
+                this.renderBloodPressureRecords(data.blood_pressure_records);
+            } else {
+                empty.style.display = 'block';
+            }
+        } catch (error) {
+            loading.style.display = 'none';
+            this.showMessage('Ошибка при загрузке записей давления', 'error');
+        }
+    },
+    
+    async loadStatistics() {
+        const days = document.getElementById('statisticsPeriod').value;
+        const loading = document.getElementById('statisticsLoading');
+        const content = document.getElementById('statisticsContent');
+        const empty = document.getElementById('statisticsEmpty');
+        
+        loading.style.display = 'block';
+        content.style.display = 'none';
+        empty.style.display = 'none';
+        
+        try {
+            const response = await fetch(`/api/users/${this.userId}/health/statistics/?days=${days}`);
+            const data = await response.json();
+            
+            loading.style.display = 'none';
+            
+            if (data.weight_statistics.count > 0 || data.blood_pressure_statistics.count > 0) {
+                this.renderStatistics(data);
+                await this.loadChartsData(days);
+                content.style.display = 'block';
+            } else {
+                empty.style.display = 'block';
+            }
+        } catch (error) {
+            loading.style.display = 'none';
+            this.showMessage('Ошибка при загрузке статистики', 'error');
+        }
+    },
+    
+    async loadChartsData(days) {
+        try {
+            // Load weight data for chart
+            const weightResponse = await fetch(`/api/users/${this.userId}/health/weight/?days=${days}`);
+            const weightData = await weightResponse.json();
+            
+            // Load blood pressure data for chart
+            const bpResponse = await fetch(`/api/users/${this.userId}/health/blood-pressure/?days=${days}`);
+            const bpData = await bpResponse.json();
+            
+            // Render charts
+            this.renderWeightChart(weightData.weight_records || []);
+            this.renderBloodPressureChart(bpData.blood_pressure_records || []);
+            
+        } catch (error) {
+            console.error('Error loading chart data:', error);
+        }
+    },
+    
+    renderWeightChart(records) {
+        const ctx = document.getElementById('weightChart').getContext('2d');
+        
+        // Destroy existing chart if it exists
+        if (this.weightChart) {
+            this.weightChart.destroy();
+        }
+        
+        // Sort records by date
+        const sortedRecords = records.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        // Prepare data
+        const labels = sortedRecords.map(record => this.formatDateForChart(record.date));
+        const weights = sortedRecords.map(record => parseFloat(record.weight));
+        
+        // Calculate trend line
+        const trendData = this.calculateTrendLine(weights);
+        
+        this.weightChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Вес (кг)',
+                    data: weights,
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.1,
+                    pointBackgroundColor: 'rgb(59, 130, 246)',
+                    pointBorderColor: 'rgb(59, 130, 246)',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }, {
+                    label: 'Тренд',
+                    data: trendData,
+                    borderColor: 'rgba(239, 68, 68, 0.8)',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0,
+                    pointHoverRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: false
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Вес (кг)'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Дата'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                elements: {
+                    point: {
+                        hoverBackgroundColor: 'rgb(59, 130, 246)'
+                    }
+                }
+            }
+        });
+    },
+    
+    renderBloodPressureChart(records) {
+        const ctx = document.getElementById('bloodPressureChart').getContext('2d');
+        
+        // Destroy existing chart if it exists
+        if (this.bloodPressureChart) {
+            this.bloodPressureChart.destroy();
+        }
+        
+        // Sort records by date
+        const sortedRecords = records.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        // Prepare data
+        const labels = sortedRecords.map(record => this.formatDateForChart(record.date));
+        const systolicData = sortedRecords.map(record => record.systolic);
+        const diastolicData = sortedRecords.map(record => record.diastolic);
+        const pulseData = sortedRecords.map(record => record.pulse || null);
+        
+        // Create datasets
+        const datasets = [{
+            label: 'Систолическое',
+            data: systolicData,
+            borderColor: 'rgb(239, 68, 68)',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.1,
+            pointBackgroundColor: 'rgb(239, 68, 68)',
+            pointBorderColor: 'rgb(239, 68, 68)',
+            pointRadius: 4,
+            pointHoverRadius: 6
+        }, {
+            label: 'Диастолическое',
+            data: diastolicData,
+            borderColor: 'rgb(16, 185, 129)',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.1,
+            pointBackgroundColor: 'rgb(16, 185, 129)',
+            pointBorderColor: 'rgb(16, 185, 129)',
+            pointRadius: 4,
+            pointHoverRadius: 6
+        }];
+        
+        // Add pulse data if available
+        if (pulseData.some(p => p !== null)) {
+            datasets.push({
+                label: 'Пульс',
+                data: pulseData,
+                borderColor: 'rgb(168, 85, 247)',
+                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.1,
+                pointBackgroundColor: 'rgb(168, 85, 247)',
+                pointBorderColor: 'rgb(168, 85, 247)',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                yAxisID: 'y1'
+            });
+        }
+        
+        // Add normal range indicators
+        const normalSystolicLine = new Array(labels.length).fill(120);
+        const normalDiastolicLine = new Array(labels.length).fill(80);
+        
+        datasets.push({
+            label: 'Норма систолическое (120)',
+            data: normalSystolicLine,
+            borderColor: 'rgba(239, 68, 68, 0.3)',
+            backgroundColor: 'transparent',
+            borderWidth: 1,
+            borderDash: [3, 3],
+            fill: false,
+            pointRadius: 0,
+            pointHoverRadius: 0
+        });
+        
+        datasets.push({
+            label: 'Норма диастолическое (80)',
+            data: normalDiastolicLine,
+            borderColor: 'rgba(16, 185, 129, 0.3)',
+            backgroundColor: 'transparent',
+            borderWidth: 1,
+            borderDash: [3, 3],
+            fill: false,
+            pointRadius: 0,
+            pointHoverRadius: 0
+        });
+        
+        const scales = {
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                title: {
+                    display: true,
+                    text: 'Давление (мм рт. ст.)'
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                },
+                min: 40,
+                max: 200
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Дата'
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                }
+            }
+        };
+        
+        // Add second y-axis for pulse if needed
+        if (pulseData.some(p => p !== null)) {
+            scales.y1 = {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: {
+                    display: true,
+                    text: 'Пульс (уд/мин)'
+                },
+                grid: {
+                    drawOnChartArea: false,
+                },
+                min: 40,
+                max: 120
+            };
+        }
+        
+        this.bloodPressureChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: false
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: scales,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+    },
+    
+    calculateTrendLine(data) {
+        if (data.length < 2) return data;
+        
+        const n = data.length;
+        const sumX = (n * (n - 1)) / 2;
+        const sumY = data.reduce((sum, val) => sum + val, 0);
+        const sumXY = data.reduce((sum, val, index) => sum + (index * val), 0);
+        const sumXX = data.reduce((sum, val, index) => sum + (index * index), 0);
+        
+        const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+        const intercept = (sumY - slope * sumX) / n;
+        
+        return data.map((_, index) => slope * index + intercept);
+    },
+    
+    formatDateForChart(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ru-RU', {
+            month: '2-digit',
+            day: '2-digit'
+        });
+    },
+    
+    renderWeightRecords(records) {
+        const list = document.getElementById('weightRecordsList');
+        list.innerHTML = records.map(record => `
+            <div class="glass-card p-4">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-2xl font-bold text-blue-600">${record.weight} кг</span>
+                            <span class="text-sm text-gray-500">${this.formatDateTime(record.date)}</span>
+                        </div>
+                        ${record.notes ? `<p class="text-sm text-gray-600 mt-2">${record.notes}</p>` : ''}
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="HealthTracker.editWeightRecord(${record.id})" 
+                                class="text-blue-500 hover:text-blue-700 text-sm">
+                            Изменить
+                        </button>
+                        <button onclick="HealthTracker.confirmDeleteRecord('weight', ${record.id})" 
+                                class="text-red-500 hover:text-red-700 text-sm">
+                            Удалить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    },
+    
+    renderBloodPressureRecords(records) {
+        const list = document.getElementById('bpRecordsList');
+        list.innerHTML = records.map(record => {
+            const categoryClass = this.getBpCategoryClass(record.pressure_category);
+            const needsAttention = record.needs_medical_attention;
+            
+            return `
+                <div class="glass-card p-4 ${needsAttention ? 'border-l-4 border-red-500' : ''}">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-4">
+                                <span class="text-2xl font-bold ${categoryClass}">${record.pressure_reading}</span>
+                                ${record.pulse ? `<span class="text-lg text-gray-600">♥ ${record.pulse}</span>` : ''}
+                                <span class="text-sm text-gray-500">${this.formatDateTime(record.date)}</span>
+                            </div>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <span class="text-sm px-2 py-1 rounded ${categoryClass} bg-opacity-20">${record.pressure_category}</span>
+                                ${needsAttention ? '<span class="text-xs text-red-600 font-semibold">⚠ Требует внимания врача</span>' : ''}
+                            </div>
+                            ${record.notes ? `<p class="text-sm text-gray-600 mt-2">${record.notes}</p>` : ''}
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="HealthTracker.editBloodPressureRecord(${record.id})" 
+                                    class="text-blue-500 hover:text-blue-700 text-sm">
+                                Изменить
+                            </button>
+                            <button onclick="HealthTracker.confirmDeleteRecord('blood-pressure', ${record.id})" 
+                                    class="text-red-500 hover:text-red-700 text-sm">
+                                Удалить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+    
+    renderStatistics(data) {
+        // Weight statistics
+        const weightStats = data.weight_statistics;
+        document.getElementById('weightStatistics').innerHTML = `
+            <div class="glass-card p-4 text-center">
+                <div class="text-2xl font-bold text-blue-600">${weightStats.count}</div>
+                <div class="text-sm text-gray-600">Записей</div>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <div class="text-2xl font-bold text-green-600">${weightStats.latest_weight || 'N/A'} кг</div>
+                <div class="text-sm text-gray-600">Последний вес</div>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <div class="text-2xl font-bold text-purple-600">${weightStats.average_weight || 'N/A'} кг</div>
+                <div class="text-sm text-gray-600">Средний вес</div>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <div class="text-2xl font-bold ${this.getWeightChangeClass(weightStats.weight_change)}">${this.formatWeightChange(weightStats.weight_change)}</div>
+                <div class="text-sm text-gray-600">Изменение</div>
+            </div>
+        `;
+        
+        // Blood pressure statistics
+        const bpStats = data.blood_pressure_statistics;
+        document.getElementById('bpStatistics').innerHTML = `
+            <div class="glass-card p-4 text-center">
+                <div class="text-2xl font-bold text-blue-600">${bpStats.count}</div>
+                <div class="text-sm text-gray-600">Записей</div>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <div class="text-2xl font-bold text-red-600">${bpStats.latest_systolic || 'N/A'}/${bpStats.latest_diastolic || 'N/A'}</div>
+                <div class="text-sm text-gray-600">Последнее давление</div>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <div class="text-2xl font-bold text-green-600">${bpStats.normal_readings_count}</div>
+                <div class="text-sm text-gray-600">Нормальных</div>
+            </div>
+            <div class="glass-card p-4 text-center">
+                <div class="text-2xl font-bold text-red-600">${bpStats.critical_readings_count}</div>
+                <div class="text-sm text-gray-600">Критических</div>
+            </div>
+        `;
+        
+        // Recommendations
+        const recommendations = data.recommendations;
+        if (recommendations && recommendations.length > 0) {
+            document.getElementById('recommendationsList').innerHTML = recommendations.map(rec => {
+                const levelClass = rec.level === 'critical' ? 'border-red-500 bg-red-50' : 
+                                 rec.level === 'warning' ? 'border-yellow-500 bg-yellow-50' : 
+                                 'border-blue-500 bg-blue-50';
+                return `
+                    <div class="border-l-4 p-4 ${levelClass} mb-3">
+                        <p class="text-sm">${rec.message}</p>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            document.getElementById('recommendationsList').innerHTML = '<p class="text-gray-500">Рекомендации отсутствуют</p>';
+        }
+    },
+    
+    clearWeightForm() {
+        document.getElementById('weightForm').reset();
+        this.setCurrentDateTime();
+    },
+    
+    clearBloodPressureForm() {
+        document.getElementById('bloodPressureForm').reset();
+        this.setCurrentDateTime();
+    },
+    
+    async editWeightRecord(recordId) {
+        try {
+            const response = await fetch(`/api/users/${this.userId}/health/weight/${recordId}/`);
+            const record = await response.json();
+            
+            this.currentEditRecord = { type: 'weight', id: recordId, data: record };
+            this.showEditModal('weight', record);
+        } catch (error) {
+            this.showMessage('Ошибка при загрузке записи для редактирования', 'error');
+        }
+    },
+    
+    async editBloodPressureRecord(recordId) {
+        try {
+            const response = await fetch(`/api/users/${this.userId}/health/blood-pressure/${recordId}/`);
+            const record = await response.json();
+            
+            this.currentEditRecord = { type: 'blood-pressure', id: recordId, data: record };
+            this.showEditModal('blood-pressure', record);
+        } catch (error) {
+            this.showMessage('Ошибка при загрузке записи для редактирования', 'error');
+        }
+    },
+    
+    showEditModal(type, record) {
+        const modal = document.getElementById('editRecordModal');
+        const title = document.getElementById('editModalTitle');
+        const content = document.getElementById('editFormContent');
+        
+        if (type === 'weight') {
+            title.textContent = 'Редактировать запись веса';
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Вес (кг)</label>
+                        <input type="number" name="weight" step="0.1" min="0.1" max="999.99" 
+                               value="${record.weight}" class="neo-input w-full" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Дата и время</label>
+                        <input type="datetime-local" name="date" 
+                               value="${this.formatDateTimeForInput(record.date)}" class="neo-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Заметки</label>
+                        <textarea name="notes" rows="3" class="neo-input w-full">${record.notes || ''}</textarea>
+                    </div>
+                </div>
+            `;
+        } else {
+            title.textContent = 'Редактировать запись давления';
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Систолическое</label>
+                            <input type="number" name="systolic" min="50" max="300" 
+                                   value="${record.systolic}" class="neo-input w-full" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Диастолическое</label>
+                            <input type="number" name="diastolic" min="30" max="200" 
+                                   value="${record.diastolic}" class="neo-input w-full" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Пульс</label>
+                        <input type="number" name="pulse" min="30" max="250" 
+                               value="${record.pulse || ''}" class="neo-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Дата и время</label>
+                        <input type="datetime-local" name="date" 
+                               value="${this.formatDateTimeForInput(record.date)}" class="neo-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Заметки</label>
+                        <textarea name="notes" rows="3" class="neo-input w-full">${record.notes || ''}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+        
+        modal.style.display = 'block';
+    },
+    
+    hideEditModal() {
+        document.getElementById('editRecordModal').style.display = 'none';
+        this.currentEditRecord = null;
+    },
+    
+    async saveEditedRecord() {
+        if (!this.currentEditRecord) return;
+        
+        const form = document.getElementById('editRecordForm');
+        const formData = new FormData(form);
+        
+        let data = {};
+        let url = '';
+        
+        if (this.currentEditRecord.type === 'weight') {
+            data = {
+                weight: parseFloat(formData.get('weight')),
+                notes: formData.get('notes') || ''
+            };
+            url = `/api/users/${this.userId}/health/weight/${this.currentEditRecord.id}/`;
+        } else {
+            data = {
+                systolic: parseInt(formData.get('systolic')),
+                diastolic: parseInt(formData.get('diastolic')),
+                notes: formData.get('notes') || ''
+            };
+            if (formData.get('pulse')) {
+                data.pulse = parseInt(formData.get('pulse'));
+            }
+            url = `/api/users/${this.userId}/health/blood-pressure/${this.currentEditRecord.id}/`;
+        }
+        
+        if (formData.get('date')) {
+            data.date = new Date(formData.get('date')).toISOString();
+        }
+        
+        try {
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                this.showMessage('Запись успешно обновлена', 'success');
+                this.hideEditModal();
+                
+                if (this.currentEditRecord.type === 'weight') {
+                    this.loadWeightRecords();
+                } else {
+                    this.loadBloodPressureRecords();
+                }
+                this.loadStatistics();
+            } else {
+                const error = await response.json();
+                this.showMessage(error.error || 'Ошибка при обновлении записи', 'error');
+            }
+        } catch (error) {
+            this.showMessage('Ошибка сети при обновлении записи', 'error');
+        }
+    },
+    
+    confirmDeleteRecord(type, recordId) {
+        this.currentDeleteRecord = { type, id: recordId };
+        document.getElementById('deleteConfirmModal').style.display = 'block';
+    },
+    
+    hideDeleteModal() {
+        document.getElementById('deleteConfirmModal').style.display = 'none';
+        this.currentDeleteRecord = null;
+    },
+    
+    async deleteRecord() {
+        if (!this.currentDeleteRecord) return;
+        
+        const { type, id } = this.currentDeleteRecord;
+        const url = type === 'weight' 
+            ? `/api/users/${this.userId}/health/weight/${id}/`
+            : `/api/users/${this.userId}/health/blood-pressure/${id}/`;
+        
+        try {
+            const response = await fetch(url, { method: 'DELETE' });
+            
+            if (response.ok) {
+                this.showMessage('Запись успешно удалена', 'success');
+                this.hideDeleteModal();
+                
+                if (type === 'weight') {
+                    this.loadWeightRecords();
+                } else {
+                    this.loadBloodPressureRecords();
+                }
+                this.loadStatistics();
+            } else {
+                const error = await response.json();
+                this.showMessage(error.error || 'Ошибка при удалении записи', 'error');
+            }
+        } catch (error) {
+            this.showMessage('Ошибка сети при удалении записи', 'error');
+        }
+    },
+    
+    showMessage(message, type) {
+        const messageDiv = document.getElementById('healthMessages');
+        const messageContent = document.getElementById('healthMessageContent');
+        const messageIcon = document.getElementById('healthMessageIcon');
+        const messageText = document.getElementById('healthMessageText');
+        
+        messageText.textContent = message;
+        
+        if (type === 'success') {
+            messageContent.className = 'glass-container p-4 rounded-lg shadow-lg bg-green-100 border border-green-300';
+            messageIcon.innerHTML = '✓';
+            messageIcon.className = 'mr-3 text-green-600 font-bold';
+        } else {
+            messageContent.className = 'glass-container p-4 rounded-lg shadow-lg bg-red-100 border border-red-300';
+            messageIcon.innerHTML = '✗';
+            messageIcon.className = 'mr-3 text-red-600 font-bold';
+        }
+        
+        messageDiv.style.display = 'block';
+        
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
+    },
+    
+    formatDateTime(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString('ru-RU', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    },
+    
+    formatDateTimeForInput(dateString) {
+        const date = new Date(dateString);
+        return date.toISOString().slice(0, 16);
+    },
+    
+    getBpCategoryClass(category) {
+        switch (category) {
+            case 'Пониженное': return 'text-blue-600';
+            case 'Нормальное': return 'text-green-600';
+            case 'Повышенное нормальное': return 'text-yellow-600';
+            case 'Высокое нормальное': return 'text-orange-600';
+            case 'Гипертония 1 степени': return 'text-red-600';
+            case 'Гипертония 2 степени': return 'text-red-700';
+            case 'Гипертония 3 степени': return 'text-red-800';
+            default: return 'text-gray-600';
+        }
+    },
+    
+    getWeightChangeClass(change) {
+        if (!change) return 'text-gray-600';
+        return change > 0 ? 'text-red-600' : change < 0 ? 'text-green-600' : 'text-gray-600';
+    },
+    
+    formatWeightChange(change) {
+        if (!change) return 'N/A';
+        const sign = change > 0 ? '+' : '';
+        return `${sign}${change} кг`;
+    }
+};
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    HealthTracker.init();
+});
+</script>
+{% endblock %}

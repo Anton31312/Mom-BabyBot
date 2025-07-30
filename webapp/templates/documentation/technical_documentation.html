@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+
+{% block title %}Техническая документация | Mom&BabyBot{% endblock %}
+
+{% block extra_css %}
+.markdown-content {
+    line-height: 1.6;
+}
+
+.markdown-content h1 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: var(--dark-gray);
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 0.5rem;
+}
+
+.markdown-content h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--dark-gray);
+}
+
+.markdown-content h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--dark-gray);
+}
+
+.markdown-content h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--dark-gray);
+}
+
+.markdown-content p {
+    margin-bottom: 1rem;
+}
+
+.markdown-content ul, .markdown-content ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.markdown-content li {
+    margin-bottom: 0.25rem;
+}
+
+.markdown-content pre {
+    background-color: var(--light-gray);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+    border: 1px solid var(--medium-gray);
+}
+
+.markdown-content code {
+    background-color: var(--light-gray);
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+}
+
+.markdown-content pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.markdown-content blockquote {
+    border-left: 4px solid var(--primary);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    font-style: italic;
+    color: var(--dark-gray);
+}
+
+.markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.markdown-content th, .markdown-content td {
+    border: 1px solid var(--medium-gray);
+    padding: 0.5rem;
+    text-align: left;
+}
+
+.markdown-content th {
+    background-color: var(--light-gray);
+    font-weight: 600;
+}
+
+.admin-notice {
+    background: linear-gradient(135deg, var(--accent-secondary) 0%, var(--primary) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.access-warning {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    border: 1px solid #F59E0B;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    color: #92400E;
+}
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Уведомление для администратора -->
+    <div class="admin-notice">
+        <div class="flex items-center mb-2">
+            <svg class="w-6 h-6 mr-2 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+            <h2 class="text-lg font-semibold text-dark-gray">Доступ для администраторов</h2>
+        </div>
+        <p class="text-dark-gray">
+            Добро пожаловать, {{ user.first_name|default:user.username }}! 
+            Вы просматриваете техническую документацию, которая доступна только администраторам системы.
+        </p>
+    </div>
+
+    <!-- Предупреждение о конфиденциальности -->
+    <div class="access-warning">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <span class="font-medium">Внимание:</span>
+            <span class="ml-1">Данная документация содержит конфиденциальную техническую информацию. Не передавайте её третьим лицам.</span>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="neomorphic-card p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-dark-gray">Техническая документация</h1>
+            <div class="flex space-x-2">
+                <a href="{% url 'webapp:documentation' %}" class="neo-button neo-sm">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Назад к документации
+                </a>
+                <button onclick="window.print()" class="neo-button neo-sm">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                    </svg>
+                    Печать
+                </button>
+            </div>
+        </div>
+
+        <!-- Содержимое технической документации -->
+        <div class="markdown-content">
+            {% if tech_doc_content %}
+                {{ tech_doc_content|linebreaks }}
+            {% else %}
+                <div class="text-center py-8">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-medium-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-dark-gray mb-2">Документация недоступна</h3>
+                    <p class="text-medium-gray">Техническая документация не найдена или не может быть загружена.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Дополнительные ссылки для администраторов -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="{% url 'webapp:api_documentation' %}" class="neomorphic-button p-4 text-center hover:shadow-inner transition-all">
+            <svg class="w-8 h-8 mx-auto mb-2 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+            <h3 class="text-lg font-medium mb-1">API Документация</h3>
+            <p class="text-sm text-medium-gray">Подробное описание API интерфейсов</p>
+        </a>
+
+        <a href="{% url 'webapp:architecture' %}" class="neomorphic-button p-4 text-center hover:shadow-inner transition-all">
+            <svg class="w-8 h-8 mx-auto mb-2 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+            </svg>
+            <h3 class="text-lg font-medium mb-1">Архитектура</h3>
+            <p class="text-sm text-medium-gray">Описание архитектуры приложения</p>
+        </a>
+
+        <a href="{% url 'webapp:deployment' %}" class="neomorphic-button p-4 text-center hover:shadow-inner transition-all">
+            <svg class="w-8 h-8 mx-auto mb-2 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+            </svg>
+            <h3 class="text-lg font-medium mb-1">Развертывание</h3>
+            <p class="text-sm text-medium-gray">Инструкции по развертыванию</p>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+// Добавляем функциональность для улучшения отображения markdown контента
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка кода в markdown
+    const codeBlocks = document.querySelectorAll('.markdown-content pre code');
+    codeBlocks.forEach(function(block) {
+        // Добавляем подсветку синтаксиса если нужно
+        block.classList.add('language-text');
+    });
+    
+    // Добавляем копирование кода по клику
+    const preBlocks = document.querySelectorAll('.markdown-content pre');
+    preBlocks.forEach(function(pre) {
+        pre.style.position = 'relative';
+        pre.style.cursor = 'pointer';
+        pre.title = 'Нажмите для копирования';
+        
+        pre.addEventListener('click', function() {
+            const code = pre.textContent;
+            navigator.clipboard.writeText(code).then(function() {
+                // Показываем уведомление о копировании
+                const notification = document.createElement('div');
+                notification.textContent = 'Скопировано!';
+                notification.style.position = 'absolute';
+                notification.style.top = '10px';
+                notification.style.right = '10px';
+                notification.style.background = 'var(--primary)';
+                notification.style.color = 'var(--dark-gray)';
+                notification.style.padding = '4px 8px';
+                notification.style.borderRadius = '4px';
+                notification.style.fontSize = '12px';
+                notification.style.zIndex = '1000';
+                
+                pre.appendChild(notification);
+                
+                setTimeout(function() {
+                    notification.remove();
+                }, 2000);
+            });
+        });
+    });
+    
+    // Добавляем якоря для заголовков
+    const headings = document.querySelectorAll('.markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4');
+    headings.forEach(function(heading) {
+        const id = heading.textContent.toLowerCase()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/\s+/g, '-');
+        heading.id = id;
+        
+        // Добавляем ссылку-якорь
+        const anchor = document.createElement('a');
+        anchor.href = '#' + id;
+        anchor.style.textDecoration = 'none';
+        anchor.style.color = 'inherit';
+        anchor.innerHTML = heading.innerHTML;
+        
+        heading.innerHTML = '';
+        heading.appendChild(anchor);
+    });
+});
+{% endblock %}

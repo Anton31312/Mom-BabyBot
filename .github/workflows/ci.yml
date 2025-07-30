@@ -1,0 +1,166 @@
+name: Непрерывная интеграция
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: [3.9, 3.10, 3.11]
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - name: Получение кода
+      uses: actions/checkout@v4
+    
+    - name: Настройка Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Кэширование зависимостей pip
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Установка зависимостей
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install coverage pytest pytest-django flake8 black isort
+    
+    - name: Создание переменных окружения для тестов
+      run: |
+        echo "SECRET_KEY=test-secret-key-for-ci" >> $GITHUB_ENV
+        echo "DEBUG=False" >> $GITHUB_ENV
+        echo "DATABASE_URL=sqlite:///test_db.sqlite3" >> $GITHUB_ENV
+        echo "TELEGRAM_BOT_TOKEN=test-token" >> $GITHUB_ENV
+        echo "ADMIN_IDS=123456789" >> $GITHUB_ENV
+    
+    - name: Проверка стиля кода с flake8
+      run: |
+        # Остановка сборки при наличии синтаксических ошибок или неопределенных имен
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Проверка остальных правил стиля (предупреждения)
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Проверка форматирования кода с black
+      run: |
+        black --check --diff .
+      continue-on-error: true
+    
+    - name: Проверка сортировки импортов с isort
+      run: |
+        isort --check-only --diff .
+      continue-on-error: true
+    
+    - name: Создание тестовой базы данных
+      run: |
+        python manage.py migrate --settings=mom_baby_bot.settings
+    
+    - name: Запуск Django тестов с покрытием
+      run: |
+        coverage run --source='.' manage.py test --settings=mom_baby_bot.settings
+        coverage report --show-missing
+        coverage xml
+    
+    - name: Запуск дополнительных тестов
+      run: |
+        python test_runner.py
+        python run_tests.py
+      continue-on-error: true
+    
+    - name: Загрузка отчета о покрытии в Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+    
+    - name: Уведомление об успешном завершении
+      if: success()
+      run: |
+        echo "✅ Все тесты прошли успешно для Python ${{ matrix.python-version }}"
+    
+    - name: Уведомление об ошибке
+      if: failure()
+      run: |
+        echo "❌ Тесты не прошли для Python ${{ matrix.python-version }}"
+        echo "Проверьте логи выше для получения подробной информации об ошибках"
+
+  security-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Получение кода
+      uses: actions/checkout@v4
+    
+    - name: Настройка Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Установка зависимостей для проверки безопасности
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety bandit
+    
+    - name: Проверка уязвимостей в зависимостях
+      run: |
+        safety check --json || true
+    
+    - name: Проверка безопасности кода с bandit
+      run: |
+        bandit -r . -f json || true
+
+  build-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Получение кода
+      uses: actions/checkout@v4
+    
+    - name: Настройка Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Установка зависимостей
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Создание переменных окружения
+      run: |
+        echo "SECRET_KEY=test-secret-key-for-build" >> $GITHUB_ENV
+        echo "DEBUG=False" >> $GITHUB_ENV
+        echo "DATABASE_URL=sqlite:///build_test.sqlite3" >> $GITHUB_ENV
+    
+    - name: Проверка сборки Django
+      run: |
+        python manage.py check --settings=mom_baby_bot.settings
+        python manage.py collectstatic --noinput --settings=mom_baby_bot.settings
+    
+    - name: Проверка миграций
+      run: |
+        python manage.py makemigrations --check --dry-run --settings=mom_baby_bot.settings

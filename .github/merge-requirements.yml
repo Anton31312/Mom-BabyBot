@@ -1,0 +1,174 @@
+# Конфигурация требований для слияния Pull Request
+# Этот файл используется для автоматической проверки готовности PR к слиянию
+
+merge_requirements:
+  # Минимальные требования для всех PR
+  minimum:
+    # Обязательные проверки статуса
+    required_status_checks:
+      - "test (3.11)"           # Тесты на Python 3.11
+      - "code-quality"          # Проверка качества кода
+      - "pr-validation"         # Валидация PR
+      - "coverage"              # Проверка покрытия тестами
+    
+    # Минимальное покрытие тестами
+    minimum_coverage: 70
+    
+    # Максимальный размер PR (строки кода)
+    max_pr_size: 1000
+    
+    # Максимальное количество измененных файлов
+    max_changed_files: 20
+    
+    # Обязательные ревью
+    required_reviews: 1
+    
+    # Разрешение всех комментариев
+    require_conversation_resolution: true
+
+  # Дополнительные требования для ветки main
+  main_branch:
+    # Все проверки должны пройти
+    required_status_checks:
+      - "test (3.9)"            # Тесты на Python 3.9
+      - "test (3.10)"           # Тесты на Python 3.10
+      - "test (3.11)"           # Тесты на Python 3.11
+      - "security-check"        # Проверка безопасности
+      - "build-check"           # Проверка сборки
+      - "code-quality"          # Проверка качества кода
+      - "pr-validation"         # Валидация PR
+      - "coverage"              # Проверка покрытия тестами
+      - "size-check"            # Проверка размера PR
+      - "conflict-check"        # Проверка конфликтов
+    
+    # Повышенные требования к покрытию
+    minimum_coverage: 80
+    
+    # Более строгие ограничения размера
+    max_pr_size: 500
+    max_changed_files: 15
+    
+    # Больше ревью для критических изменений
+    required_reviews: 2
+    
+    # Обязательное ревью от владельцев кода
+    require_code_owner_reviews: true
+    
+    # Отклонение устаревших ревью при новых коммитах
+    dismiss_stale_reviews: true
+
+  # Требования для develop ветки
+  develop_branch:
+    required_status_checks:
+      - "test (3.11)"
+      - "code-quality"
+      - "pr-validation"
+      - "coverage"
+    
+    minimum_coverage: 70
+    max_pr_size: 1000
+    max_changed_files: 25
+    required_reviews: 1
+
+# Исключения для определенных типов файлов
+file_exceptions:
+  # Документация требует меньше проверок
+  documentation:
+    patterns:
+      - "*.md"
+      - "docs/**"
+    required_status_checks:
+      - "pr-validation"
+    minimum_coverage: 0
+    required_reviews: 1
+  
+  # Конфигурационные файлы
+  configuration:
+    patterns:
+      - ".github/**"
+      - "*.yml"
+      - "*.yaml"
+      - "*.toml"
+      - "requirements.txt"
+    required_status_checks:
+      - "build-check"
+      - "pr-validation"
+    minimum_coverage: 0
+    required_reviews: 1
+  
+  # Тесты
+  tests:
+    patterns:
+      - "**/tests/**"
+      - "test_*.py"
+      - "*_test.py"
+    required_status_checks:
+      - "test (3.11)"
+      - "code-quality"
+    minimum_coverage: 0  # Тесты сами по себе не требуют покрытия
+    required_reviews: 1
+
+# Автоматические действия
+automation:
+  # Автоматическое слияние для определенных условий
+  auto_merge:
+    enabled: false  # Отключено по умолчанию для безопасности
+    conditions:
+      - all_checks_passed: true
+      - required_reviews_approved: true
+      - no_requested_changes: true
+      - author_is_trusted: true  # Только для доверенных авторов
+  
+  # Автоматическое форматирование
+  auto_format:
+    enabled: true
+    tools:
+      - black
+      - isort
+  
+  # Автоматические комментарии
+  auto_comments:
+    enabled: true
+    types:
+      - coverage_report
+      - size_analysis
+      - security_scan_results
+
+# Уведомления
+notifications:
+  # Уведомления в Slack (если настроен)
+  slack:
+    enabled: false
+    webhook_url: ""  # Заполнить при необходимости
+    channels:
+      - "#development"
+      - "#code-review"
+  
+  # Email уведомления
+  email:
+    enabled: false
+    recipients:
+      - "dev-team@example.com"
+  
+  # GitHub уведомления
+  github:
+    enabled: true
+    events:
+      - pr_ready_for_review
+      - all_checks_passed
+      - merge_blocked
+      - security_issues_found
+
+# Метрики и аналитика
+metrics:
+  # Отслеживание времени ревью
+  review_time_tracking: true
+  
+  # Анализ качества кода
+  code_quality_trends: true
+  
+  # Статистика покрытия тестами
+  coverage_trends: true
+  
+  # Размер и сложность PR
+  pr_size_analysis: true

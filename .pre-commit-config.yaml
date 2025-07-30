@@ -1,0 +1,74 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+        name: Удаление пробелов в конце строк
+      - id: end-of-file-fixer
+        name: Добавление новой строки в конце файла
+      - id: check-yaml
+        name: Проверка YAML файлов
+      - id: check-json
+        name: Проверка JSON файлов
+      - id: check-toml
+        name: Проверка TOML файлов
+      - id: check-merge-conflict
+        name: Проверка конфликтов слияния
+      - id: check-added-large-files
+        name: Проверка больших файлов
+        args: ['--maxkb=1000']
+      - id: debug-statements
+        name: Проверка отладочных операторов
+
+  - repo: https://github.com/psf/black
+    rev: 23.7.0
+    hooks:
+      - id: black
+        name: Форматирование кода с Black
+        language_version: python3
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        name: Сортировка импортов с isort
+        args: ["--profile", "black"]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        name: Проверка стиля кода с flake8
+        additional_dependencies: [flake8-docstrings]
+
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        name: Проверка безопасности с bandit
+        args: ['-c', 'pyproject.toml']
+        additional_dependencies: ['bandit[toml]']
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.5.1
+    hooks:
+      - id: mypy
+        name: Проверка типов с mypy
+        additional_dependencies: [types-all]
+        args: [--ignore-missing-imports]
+
+  - repo: local
+    hooks:
+      - id: django-check
+        name: Проверка Django
+        entry: python manage.py check
+        language: system
+        pass_filenames: false
+        files: \.(py)$
+
+      - id: django-migrations-check
+        name: Проверка миграций Django
+        entry: python manage.py makemigrations --check --dry-run
+        language: system
+        pass_filenames: false
+        files: \.(py)$
