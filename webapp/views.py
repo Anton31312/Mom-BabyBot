@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views import View
 import json
@@ -25,7 +26,37 @@ def index(request):
 # Информационные разделы
 def pregnancy(request):
     """Страница с информацией о беременности"""
-    return render(request, 'pregnancy/index.html')
+    context = {}
+    
+    # Получаем информацию о беременности для авторизованного пользователя
+    if request.user.is_authenticated:
+        try:
+            from webapp.models import PregnancyInfo
+            pregnancy_info = PregnancyInfo.objects.get(user=request.user, is_active=True)
+            context['pregnancy_info'] = pregnancy_info
+        except PregnancyInfo.DoesNotExist:
+            context['pregnancy_info'] = None
+    
+    return render(request, 'pregnancy/index.html', context)
+
+
+def fetal_development(request):
+    """Страница с информацией о развитии плода по неделям"""
+    context = {}
+    
+    # Получаем информацию о беременности для авторизованного пользователя
+    if request.user.is_authenticated:
+        try:
+            from webapp.models import PregnancyInfo
+            pregnancy_info = PregnancyInfo.objects.get(user=request.user, is_active=True)
+            context['pregnancy_info'] = pregnancy_info
+        except PregnancyInfo.DoesNotExist:
+            context['pregnancy_info'] = None
+    
+    # Создаем диапазон недель для селектора
+    context['weeks_range'] = range(1, 43)  # 1-42 недели
+    
+    return render(request, 'pregnancy/fetal_development.html', context)
 
 
 def child_development(request):
@@ -311,3 +342,25 @@ def technical_documentation(request):
 def tooltips_example(request):
     """Страница с примерами подсказок в интерфейсе"""
     return render(request, 'components/tooltips_example.html')
+
+
+def achievements(request):
+    """
+    Страница достижений пользователя.
+    
+    Отображает интерфейс для просмотра достижений, прогресса и статистики.
+    Соответствует требованию 9.3 о создании системы достижений.
+    """
+    return render(request, 'achievements/achievements.html')
+
+
+@login_required
+def progress_dashboard(request):
+    """
+    Страница дашборда прогресса пользователя.
+    
+    Отображает визуальную статистику прогресса, графики и аналитику
+    использования приложения пользователем.
+    Соответствует требованию 9.4 о визуальной статистике прогресса и достижений.
+    """
+    return render(request, 'progress/progress_dashboard.html')

@@ -15,6 +15,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from webapp.models import WeightRecord, BloodPressureRecord
 
@@ -157,7 +158,7 @@ def weight_records(request, user_id):
                 return JsonResponse(weight_record_to_dict(weight_record), status=201)
                 
             except ValidationError as e:
-                return JsonResponse({'error': f'Ошибка валидации: {e}'}, status=400)
+                return JsonResponse({'error': _('Validation error: {}').format(str(e))}, status=400)
             except Exception as e:
                 logger.error(f"Error creating weight record: {e}")
                 return JsonResponse({'error': 'Ошибка при создании записи веса'}, status=500)
@@ -231,7 +232,7 @@ def weight_record_detail(request, user_id, record_id):
                 return JsonResponse(weight_record_to_dict(weight_record))
                 
             except ValidationError as e:
-                return JsonResponse({'error': f'Ошибка валидации: {e}'}, status=400)
+                return JsonResponse({'error': _('Validation error: {}').format(str(e))}, status=400)
             
         elif request.method == 'DELETE':
             # Удаляем запись веса
@@ -357,7 +358,7 @@ def blood_pressure_records(request, user_id):
                 return JsonResponse(blood_pressure_record_to_dict(bp_record), status=201)
                 
             except ValidationError as e:
-                return JsonResponse({'error': f'Ошибка валидации: {e}'}, status=400)
+                return JsonResponse({'error': _('Validation error: {}').format(str(e))}, status=400)
             except Exception as e:
                 logger.error(f"Error creating blood pressure record: {e}")
                 return JsonResponse({'error': 'Ошибка при создании записи давления'}, status=500)
@@ -446,7 +447,7 @@ def blood_pressure_record_detail(request, user_id, record_id):
                 return JsonResponse(blood_pressure_record_to_dict(bp_record))
                 
             except ValidationError as e:
-                return JsonResponse({'error': f'Ошибка валидации: {e}'}, status=400)
+                return JsonResponse({'error': _('Validation error: {}').format(str(e))}, status=400)
             
         elif request.method == 'DELETE':
             # Удаляем запись давления

@@ -8,6 +8,11 @@
     <p class="text-dark-gray mb-4">Полезная информация и советы для будущих мам, основанные на рекомендациях ведущих медицинских организаций.</p>
 </div>
 
+<!-- Визуальный индикатор прогресса беременности -->
+{% if user.is_authenticated %}
+    {% include 'components/pregnancy_progress_indicator.html' with pregnancy_info=pregnancy_info style='glass' show_details=True compact=False %}
+{% endif %}
+
 <!-- Disclaimer for medical recommendations -->
 {% include 'components/disclaimer.html' with style='glass' %}
 
@@ -277,6 +282,18 @@
             <div>
                 <h3 class="font-semibold">Счетчик шевелений</h3>
                 <p class="text-sm text-dark-gray">Следите за активностью малыша</p>
+            </div>
+        </a>
+        
+        <a href="{% url 'webapp:fetal_development' %}" class="neo-card p-4 flex items-center">
+            <div class="w-10 h-10 rounded-full bg-accent flex items-center justify-center mr-3">
+                <svg class="w-5 h-5 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <h3 class="font-semibold">Развитие плода</h3>
+                <p class="text-sm text-dark-gray">Информация по неделям беременности</p>
             </div>
         </a>
     </div>

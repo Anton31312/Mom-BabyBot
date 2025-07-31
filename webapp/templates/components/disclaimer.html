@@ -12,6 +12,7 @@
 {% endcomment %}
 
 {% load static %}
+{% load i18n %}
 
 <div class="disclaimer-component {% if style == 'glass' %}glass-disclaimer{% elif style == 'neo' %}neo-disclaimer{% else %}default-disclaimer{% endif %} {% if custom_class %}{{ custom_class }}{% endif %}">
     {% if show_icon != False %}
@@ -26,11 +27,10 @@
     
     <div class="disclaimer-content">
         <div class="disclaimer-title">
-            <strong>Внимание!</strong>
+            <strong>{% trans "Attention!" %}</strong>
         </div>
         <div class="disclaimer-message">
-            Все рекомендации в приложении являются общими и могут не учитывать индивидуальные особенности. 
-            Для получения персонализированных рекомендаций обратитесь к специалисту.
+            {% trans "All recommendations in the application are general and may not take into account individual characteristics. For personalized recommendations, consult a specialist." %}
         </div>
     </div>
 </div>

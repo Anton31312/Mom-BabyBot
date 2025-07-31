@@ -1,0 +1,972 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Статистика прогресса{% endblock %}
+
+{% block extra_css %}
+<style>
+    .progress-dashboard {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .dashboard-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .card-icon {
+        font-size: 2rem;
+    }
+    
+    .period-selector {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .period-btn {
+        padding: 5px 15px;
+        border: 2px solid #dee2e6;
+        border-radius: 20px;
+        background: white;
+        color: #495057;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .period-btn.active {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .period-btn:hover {
+        background: #f8f9fa;
+        text-decoration: none;
+        color: #495057;
+    }
+    
+    .period-btn.active:hover {
+        background: #0056b3;
+        color: white;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #007bff;
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #666;
+        font-weight: 500;
+    }
+    
+    .stat-trend {
+        font-size: 0.8rem;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+    
+    .trend-up { color: #28a745; }
+    .trend-down { color: #dc3545; }
+    .trend-stable { color: #6c757d; }
+    
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin: 20px 0;
+    }
+    
+    .chart-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .chart-tab {
+        padding: 10px 20px;
+        border: 2px solid #dee2e6;
+        border-radius: 25px;
+        background: white;
+        color: #495057;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+    
+    .chart-tab.active {
+        background: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+    
+    .chart-tab:hover {
+        background: #f8f9fa;
+        text-decoration: none;
+        color: #495057;
+    }
+    
+    .chart-tab.active:hover {
+        background: #1e7e34;
+        color: white;
+    }
+    
+    .level-progress {
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        color: #333;
+        margin-bottom: 25px;
+    }
+    
+    .level-number {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .level-progress-bar {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 25px;
+        height: 20px;
+        margin: 15px 0;
+        overflow: hidden;
+    }
+    
+    .level-progress-fill {
+        background: linear-gradient(90deg, #28a745, #20c997);
+        height: 100%;
+        border-radius: 25px;
+        transition: width 0.3s ease;
+        position: relative;
+    }
+    
+    .level-progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .achievements-preview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .achievement-preview {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .achievement-preview:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .achievement-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    
+    .achievement-title {
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #333;
+    }
+    
+    .achievement-progress {
+        background: #e9ecef;
+        border-radius: 10px;
+        height: 15px;
+        margin: 10px 0;
+        overflow: hidden;
+    }
+    
+    .achievement-progress-fill {
+        background: linear-gradient(90deg, #007bff, #0056b3);
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.3s ease;
+    }
+    
+    .milestone-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border-radius: 12px;
+        margin-bottom: 10px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .milestone-icon {
+        font-size: 2rem;
+        flex-shrink: 0;
+    }
+    
+    .milestone-content {
+        flex-grow: 1;
+    }
+    
+    .milestone-title {
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+    }
+    
+    .milestone-date {
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    .consistency-meter {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 20px;
+    }
+    
+    .consistency-circle {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: conic-gradient(
+            #28a745 0deg,
+            #28a745 var(--progress-angle, 0deg),
+            #e9ecef var(--progress-angle, 0deg),
+            #e9ecef 360deg
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    
+    .consistency-circle::before {
+        content: '';
+        position: absolute;
+        width: 80%;
+        height: 80%;
+        background: white;
+        border-radius: 50%;
+    }
+    
+    .consistency-score {
+        position: relative;
+        z-index: 1;
+        font-size: 2rem;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .loading-spinner {
+        text-align: center;
+        padding: 40px;
+    }
+    
+    .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+        text-align: center;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    @media (max-width: 768px) {
+        .dashboard-card {
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+        
+        .chart-container {
+            height: 300px;
+        }
+        
+        .period-selector,
+        .chart-tabs {
+            justify-content: center;
+        }
+        
+        .period-btn,
+        .chart-tab {
+            padding: 8px 16px;
+            font-size: 0.8rem;
+        }
+        
+        .achievements-preview {
+            grid-template-columns: 1fr;
+        }
+        
+        .consistency-meter {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .consistency-score {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="progress-dashboard">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="text-white text-center mb-4">
+                    📊 Статистика прогресса
+                </h1>
+            </div>
+        </div>
+        
+        <!-- Уровень пользователя -->
+        <div class="row">
+            <div class="col-12">
+                <div class="level-progress">
+                    <div class="level-number" id="user-level">1</div>
+                    <div>Уровень пользователя</div>
+                    <div class="level-progress-bar">
+                        <div class="level-progress-fill" id="level-progress-fill" style="width: 0%">
+                            <span class="level-progress-text" id="level-progress-text">0%</span>
+                        </div>
+                    </div>
+                    <div id="level-info">
+                        <span id="current-points">0</span> очков
+                        <span id="points-to-next" style="margin-left: 20px;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Основная статистика -->
+        <div class="row">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <span class="card-icon">📈</span>
+                            Общая статистика
+                        </h2>
+                        <div class="period-selector">
+                            <button class="period-btn active" data-period="week">Неделя</button>
+                            <button class="period-btn" data-period="month">Месяц</button>
+                            <button class="period-btn" data-period="quarter">Квартал</button>
+                            <button class="period-btn" data-period="year">Год</button>
+                        </div>
+                    </div>
+                    
+                    <div id="stats-loading" class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Загрузка...</span>
+                        </div>
+                        <p class="mt-2">Загружаем статистику...</p>
+                    </div>
+                    
+                    <div id="stats-error" class="error-message" style="display: none;">
+                        Произошла ошибка при загрузке статистики. Попробуйте обновить страницу.
+                    </div>
+                    
+                    <div id="stats-content" style="display: none;">
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span id="total-actions" class="stat-number">0</span>
+                                <span class="stat-label">Всего действий</span>
+                                <div id="activity-trend" class="stat-trend"></div>
+                            </div>
+                            <div class="stat-item">
+                                <span id="feeding-sessions" class="stat-number">0</span>
+                                <span class="stat-label">Сессий кормления</span>
+                            </div>
+                            <div class="stat-item">
+                                <span id="health-records" class="stat-number">0</span>
+                                <span class="stat-label">Записей здоровья</span>
+                            </div>
+                            <div class="stat-item">
+                                <span id="achievements-earned" class="stat-number">0</span>
+                                <span class="stat-label">Достижений получено</span>
+                                <div id="achievements-trend" class="stat-trend"></div>
+                            </div>
+                            <div class="stat-item">
+                                <span id="active-days" class="stat-number">0</span>
+                                <span class="stat-label">Активных дней</span>
+                            </div>
+                            <div class="stat-item">
+                                <div class="consistency-meter">
+                                    <div class="consistency-circle" id="consistency-circle">
+                                        <div class="consistency-score" id="consistency-score">0</div>
+                                    </div>
+                                </div>
+                                <span class="stat-label">Постоянство (%)</span>
+                                <div id="consistency-trend" class="stat-trend"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Графики -->
+        <div class="row">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <span class="card-icon">📊</span>
+                            Графики прогресса
+                        </h2>
+                    </div>
+                    
+                    <div class="chart-tabs">
+                        <button class="chart-tab active" data-chart="activity">Активность</button>
+                        <button class="chart-tab" data-chart="weight">Вес</button>
+                        <button class="chart-tab" data-chart="blood_pressure">Давление</button>
+                        <button class="chart-tab" data-chart="feeding">Кормление</button>
+                    </div>
+                    
+                    <div id="chart-loading" class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Загрузка...</span>
+                        </div>
+                        <p class="mt-2">Загружаем график...</p>
+                    </div>
+                    
+                    <div id="chart-error" class="error-message" style="display: none;">
+                        Произошла ошибка при загрузке графика. Попробуйте выбрать другой тип графика.
+                    </div>
+                    
+                    <div id="chart-empty" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📈</div>
+                        <h4>Недостаточно данных</h4>
+                        <p>Для отображения графика нужно больше данных. Продолжайте использовать приложение!</p>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="progress-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ближайшие достижения -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <span class="card-icon">🎯</span>
+                            Ближайшие достижения
+                        </h2>
+                    </div>
+                    
+                    <div id="next-achievements-loading" class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Загрузка...</span>
+                        </div>
+                    </div>
+                    
+                    <div id="next-achievements-empty" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">🏆</div>
+                        <h5>Все достижения получены!</h5>
+                        <p>Поздравляем! Вы получили все доступные достижения.</p>
+                    </div>
+                    
+                    <div id="next-achievements-content" class="achievements-preview">
+                        <!-- Достижения будут загружены через JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Недавние события -->
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <span class="card-icon">🎉</span>
+                            Недавние события
+                        </h2>
+                    </div>
+                    
+                    <div id="milestones-loading" class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Загрузка...</span>
+                        </div>
+                    </div>
+                    
+                    <div id="milestones-empty" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📅</div>
+                        <h5>Пока нет событий</h5>
+                        <p>Ваши достижения и важные события будут отображаться здесь.</p>
+                    </div>
+                    
+                    <div id="milestones-content">
+                        <!-- События будут загружены через JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Серия активности -->
+        <div class="row">
+            <div class="col-12">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <span class="card-icon">🔥</span>
+                            Серия активности
+                        </h2>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div style="font-size: 4rem; margin-bottom: 20px;">🔥</div>
+                        <div style="font-size: 3rem; font-weight: bold; color: #ff6b35; margin-bottom: 10px;" id="active-streak">0</div>
+                        <div style="font-size: 1.2rem; color: #666;">дней подряд активности</div>
+                        <div style="margin-top: 20px; color: #666;">
+                            Продолжайте использовать приложение каждый день, чтобы увеличить серию!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+class ProgressDashboard {
+    constructor() {
+        this.currentPeriod = 'month';
+        this.currentChart = 'activity';
+        this.chart = null;
+        
+        this.init();
+    }
+    
+    init() {
+        this.bindEvents();
+        this.loadSummary();
+        this.loadStatistics();
+        this.loadChart();
+    }
+    
+    bindEvents() {
+        // Обработчики переключения периода
+        document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.setPeriod(e.target.dataset.period);
+            });
+        });
+        
+        // Обработчики переключения графиков
+        document.querySelectorAll('.chart-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                this.setChart(e.target.dataset.chart);
+            });
+        });
+    }
+    
+    async loadSummary() {
+        try {
+            const response = await fetch('/api/progress/summary/');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateSummaryDisplay(data.summary);
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке сводки:', error);
+        }
+    }
+    
+    updateSummaryDisplay(summary) {
+        // Обновляем уровень пользователя
+        const level = summary.user_level;
+        document.getElementById('user-level').textContent = level.current_level;
+        document.getElementById('current-points').textContent = level.total_points;
+        
+        const progressFill = document.getElementById('level-progress-fill');
+        const progressText = document.getElementById('level-progress-text');
+        progressFill.style.width = level.progress_to_next_level + '%';
+        progressText.textContent = Math.round(level.progress_to_next_level) + '%';
+        
+        const pointsToNext = document.getElementById('points-to-next');
+        if (level.points_to_next_level > 0) {
+            pointsToNext.textContent = `(до следующего уровня: ${level.points_to_next_level} очков)`;
+        } else {
+            pointsToNext.textContent = '(максимальный уровень достигнут!)';
+        }
+        
+        // Обновляем серию активности
+        document.getElementById('active-streak').textContent = summary.active_streak;
+        
+        // Обновляем ближайшие достижения
+        this.updateNextAchievements(summary.next_achievements);
+        
+        // Обновляем недавние события
+        this.updateRecentMilestones(summary.recent_milestones);
+    }
+    
+    updateNextAchievements(achievements) {
+        const container = document.getElementById('next-achievements-content');
+        const loading = document.getElementById('next-achievements-loading');
+        const empty = document.getElementById('next-achievements-empty');
+        
+        loading.style.display = 'none';
+        
+        if (!achievements || achievements.length === 0) {
+            empty.style.display = 'block';
+            container.innerHTML = '';
+            return;
+        }
+        
+        empty.style.display = 'none';
+        container.innerHTML = '';
+        
+        achievements.forEach(achievement => {
+            const achievementEl = document.createElement('div');
+            achievementEl.className = 'achievement-preview';
+            achievementEl.innerHTML = `
+                <div class="achievement-icon">${achievement.icon}</div>
+                <div class="achievement-title">${achievement.title}</div>
+                <div class="achievement-progress">
+                    <div class="achievement-progress-fill" style="width: ${achievement.progress_percentage}%"></div>
+                </div>
+                <small>${achievement.current_progress} / ${achievement.target_value}</small>
+            `;
+            container.appendChild(achievementEl);
+        });
+    }
+    
+    updateRecentMilestones(milestones) {
+        const container = document.getElementById('milestones-content');
+        const loading = document.getElementById('milestones-loading');
+        const empty = document.getElementById('milestones-empty');
+        
+        loading.style.display = 'none';
+        
+        if (!milestones || milestones.length === 0) {
+            empty.style.display = 'block';
+            container.innerHTML = '';
+            return;
+        }
+        
+        empty.style.display = 'none';
+        container.innerHTML = '';
+        
+        milestones.forEach(milestone => {
+            const milestoneEl = document.createElement('div');
+            milestoneEl.className = 'milestone-item';
+            
+            const date = new Date(milestone.date);
+            const dateStr = date.toLocaleDateString('ru-RU');
+            
+            milestoneEl.innerHTML = `
+                <div class="milestone-icon">${milestone.icon}</div>
+                <div class="milestone-content">
+                    <div class="milestone-title">${milestone.title}</div>
+                    <div class="milestone-date">${dateStr}</div>
+                </div>
+            `;
+            container.appendChild(milestoneEl);
+        });
+    }
+    
+    async loadStatistics() {
+        try {
+            document.getElementById('stats-loading').style.display = 'block';
+            document.getElementById('stats-error').style.display = 'none';
+            document.getElementById('stats-content').style.display = 'none';
+            
+            const response = await fetch(`/api/progress/statistics/?period=${this.currentPeriod}&include_details=false`);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateStatisticsDisplay(data.statistics);
+            } else {
+                throw new Error(data.error || 'Неизвестная ошибка');
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке статистики:', error);
+            document.getElementById('stats-error').style.display = 'block';
+        } finally {
+            document.getElementById('stats-loading').style.display = 'none';
+        }
+    }
+    
+    updateStatisticsDisplay(stats) {
+        document.getElementById('stats-content').style.display = 'block';
+        
+        // Основные показатели
+        document.getElementById('total-actions').textContent = stats.activity.total_actions;
+        document.getElementById('feeding-sessions').textContent = stats.feeding.total_sessions;
+        document.getElementById('health-records').textContent = 
+            stats.health.weight_records_count + stats.health.blood_pressure_records_count;
+        document.getElementById('achievements-earned').textContent = stats.achievements.total_earned;
+        document.getElementById('active-days').textContent = stats.activity.days_active;
+        
+        // Постоянство
+        const consistencyScore = Math.round(stats.activity.consistency_score);
+        document.getElementById('consistency-score').textContent = consistencyScore;
+        
+        const consistencyCircle = document.getElementById('consistency-circle');
+        const progressAngle = (consistencyScore / 100) * 360;
+        consistencyCircle.style.setProperty('--progress-angle', progressAngle + 'deg');
+        
+        // Тренды
+        if (stats.trends) {
+            this.updateTrend('activity-trend', stats.trends.activity);
+            this.updateTrend('achievements-trend', stats.trends.achievements);
+            this.updateTrend('consistency-trend', stats.trends.consistency);
+        }
+    }
+    
+    updateTrend(elementId, trend) {
+        const element = document.getElementById(elementId);
+        if (!element || !trend) return;
+        
+        let icon, text, className;
+        
+        if (trend.direction === 'up') {
+            icon = '↗️';
+            className = 'trend-up';
+            text = trend.change_percentage ? `+${trend.change_percentage}%` : 'Рост';
+        } else if (trend.direction === 'down') {
+            icon = '↘️';
+            className = 'trend-down';
+            text = trend.change_percentage ? `${trend.change_percentage}%` : 'Снижение';
+        } else {
+            icon = '➡️';
+            className = 'trend-stable';
+            text = 'Стабильно';
+        }
+        
+        element.innerHTML = `<span class="${className}">${icon} ${text}</span>`;
+    }
+    
+    async loadChart() {
+        try {
+            document.getElementById('chart-loading').style.display = 'block';
+            document.getElementById('chart-error').style.display = 'none';
+            document.getElementById('chart-empty').style.display = 'none';
+            
+            const response = await fetch(
+                `/api/progress/charts/?chart_type=${this.currentChart}&period=${this.currentPeriod}&format=chart_js`
+            );
+            const data = await response.json();
+            
+            if (data.success) {
+                if (data.data.labels.length === 0) {
+                    document.getElementById('chart-empty').style.display = 'block';
+                } else {
+                    this.renderChart(data.data);
+                }
+            } else {
+                throw new Error(data.error || 'Неизвестная ошибка');
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке графика:', error);
+            document.getElementById('chart-error').style.display = 'block';
+        } finally {
+            document.getElementById('chart-loading').style.display = 'none';
+        }
+    }
+    
+    renderChart(chartData) {
+        const ctx = document.getElementById('progress-chart').getContext('2d');
+        
+        // Уничтожаем предыдущий график
+        if (this.chart) {
+            this.chart.destroy();
+        }
+        
+        // Форматируем даты для отображения
+        const formattedLabels = chartData.labels.map(label => {
+            const date = new Date(label);
+            return date.toLocaleDateString('ru-RU', { 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        });
+        
+        this.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: formattedLabels,
+                datasets: chartData.datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: this.getChartTitle()
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    }
+                },
+                elements: {
+                    point: {
+                        radius: 4,
+                        hoverRadius: 6
+                    }
+                }
+            }
+        });
+    }
+    
+    getChartTitle() {
+        const titles = {
+            'activity': 'Общая активность',
+            'weight': 'Изменение веса',
+            'blood_pressure': 'Артериальное давление',
+            'feeding': 'Продолжительность кормления'
+        };
+        return titles[this.currentChart] || 'График прогресса';
+    }
+    
+    setPeriod(period) {
+        this.currentPeriod = period;
+        
+        // Обновляем активную кнопку
+        document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`[data-period="${period}"]`).classList.add('active');
+        
+        // Перезагружаем данные
+        this.loadStatistics();
+        this.loadChart();
+    }
+    
+    setChart(chartType) {
+        this.currentChart = chartType;
+        
+        // Обновляем активную вкладку
+        document.querySelectorAll('.chart-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`[data-chart="${chartType}"]`).classList.add('active');
+        
+        // Перезагружаем график
+        this.loadChart();
+    }
+    
+    getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+    }
+}
+
+// Инициализируем дашборд при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    new ProgressDashboard();
+});
+</script>
+{% endblock %}

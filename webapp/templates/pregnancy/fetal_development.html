@@ -1,0 +1,401 @@
+{% extends 'base.html' %}
+
+{% block title %}Mom&BabyBot - Развитие плода по неделям{% endblock %}
+
+{% block content %}
+<div class="glass-container mb-6">
+    <h1 class="text-2xl font-bold mb-4">Развитие плода по неделям беременности</h1>
+    <p class="text-dark-gray mb-4">Подробная информация о том, как развивается ваш малыш на каждой неделе беременности.</p>
+</div>
+
+<!-- Визуальный индикатор прогресса беременности -->
+{% if user.is_authenticated %}
+    {% include 'components/pregnancy_progress_indicator.html' with pregnancy_info=pregnancy_info style='glass' show_details=True compact=False %}
+{% endif %}
+
+<!-- Disclaimer for medical recommendations -->
+{% include 'components/disclaimer.html' with style='glass' %}
+
+<!-- Навигация по неделям -->
+<div class="glass-container mb-6">
+    <div class="flex flex-wrap items-center justify-between mb-4">
+        <h2 class="text-xl font-bold">Выберите неделю беременности</h2>
+        <div class="flex items-center space-x-2">
+            <button id="prev-week" class="neo-button-secondary" disabled>
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Предыдущая
+            </button>
+            <span id="current-week-display" class="px-3 py-1 bg-primary rounded-lg text-dark-gray font-semibold">
+                Неделя 1
+            </span>
+            <button id="next-week" class="neo-button-secondary">
+                Следующая
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Селектор недель -->
+    <div class="grid grid-cols-7 gap-2 mb-4">
+        {% for week in weeks_range %}
+            <button class="week-selector neo-button-outline text-sm py-2" data-week="{{ week }}">
+                {{ week }}
+            </button>
+        {% endfor %}
+    </div>
+    
+    <!-- Селектор триместров -->
+    <div class="flex space-x-2">
+        <button class="trimester-selector neo-button-outline active" data-trimester="1">
+            1-й триместр (1-12)
+        </button>
+        <button class="trimester-selector neo-button-outline" data-trimester="2">
+            2-й триместр (13-28)
+        </button>
+        <button class="trimester-selector neo-button-outline" data-trimester="3">
+            3-й триместр (29-40)
+        </button>
+    </div>
+</div>
+
+<!-- Основной контент с информацией о развитии -->
+<div id="fetal-development-content" class="space-y-6">
+    <!-- Контент будет загружен через JavaScript -->
+    <div class="glass-container text-center py-8">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+        <p class="text-dark-gray">Загрузка информации о развитии плода...</p>
+    </div>
+</div>
+
+<!-- Шаблон для отображения информации о развитии -->
+<template id="fetal-development-template">
+    <div class="glass-container">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold" data-field="title"></h2>
+            <span class="px-3 py-1 rounded-full text-sm font-semibold" data-field="trimester_badge"></span>
+        </div>
+        
+        <!-- Размер плода -->
+        <div class="neo-card p-6 mb-6">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold">Размер плода</h3>
+            </div>
+            <p class="text-lg mb-2" data-field="fetal_size_formatted"></p>
+            <p class="text-dark-gray" data-field="development_summary"></p>
+        </div>
+        
+        <!-- Развитие органов -->
+        <div class="neo-card p-6 mb-6" data-section="organ_development">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold">Развитие органов и систем</h3>
+            </div>
+            <p data-field="organ_development"></p>
+        </div>
+        
+        <!-- Изменения у мамы -->
+        <div class="neo-card p-6 mb-6" data-section="maternal_changes">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-accent flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold">Изменения в организме мамы</h3>
+            </div>
+            <p data-field="maternal_changes"></p>
+        </div>
+        
+        <!-- Симптомы -->
+        <div class="neo-card p-6 mb-6" data-section="common_symptoms">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-warning flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold">Частые симптомы</h3>
+            </div>
+            <p data-field="common_symptoms"></p>
+        </div>
+        
+        <!-- Рекомендации -->
+        <div class="neo-card p-6 mb-6" data-section="recommendations">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-success flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold">Рекомендации</h3>
+            </div>
+            <p data-field="recommendations"></p>
+        </div>
+        
+        <!-- Что можно и нельзя -->
+        <div class="neo-card p-6 mb-6" data-section="dos_and_donts">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-error flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold">Что можно и нельзя делать</h3>
+            </div>
+            <p data-field="dos_and_donts"></p>
+        </div>
+        
+        <!-- Медицинские обследования -->
+        <div class="neo-card p-6 mb-6" data-section="medical_checkups">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-info flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold">Медицинские обследования</h3>
+            </div>
+            <p data-field="medical_checkups"></p>
+        </div>
+        
+        <!-- Интересные факты -->
+        <div class="neo-card p-6" data-section="interesting_facts">
+            <div class="flex items-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-dark-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold">Интересные факты</h3>
+            </div>
+            <p data-field="interesting_facts"></p>
+        </div>
+    </div>
+</template>
+
+<!-- Шаблон для ошибки -->
+<template id="error-template">
+    <div class="glass-container text-center py-8">
+        <div class="w-16 h-16 rounded-full bg-error flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">Ошибка загрузки</h3>
+        <p class="text-dark-gray mb-4" data-field="error_message"></p>
+        <button id="retry-button" class="neo-button-primary">Попробовать снова</button>
+    </div>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+document.addEventListener('DOMContentLoaded', function() {
+    let currentWeek = 1;
+    let currentTrimester = 1;
+    
+    // Элементы управления
+    const prevWeekBtn = document.getElementById('prev-week');
+    const nextWeekBtn = document.getElementById('next-week');
+    const currentWeekDisplay = document.getElementById('current-week-display');
+    const weekSelectors = document.querySelectorAll('.week-selector');
+    const trimesterSelectors = document.querySelectorAll('.trimester-selector');
+    const contentContainer = document.getElementById('fetal-development-content');
+    
+    // Шаблоны
+    const developmentTemplate = document.getElementById('fetal-development-template');
+    const errorTemplate = document.getElementById('error-template');
+    
+    // Инициализация
+    init();
+    
+    function init() {
+        // Если пользователь беременен, загружаем текущую неделю
+        {% if user.is_authenticated and pregnancy_info %}
+            currentWeek = {{ pregnancy_info.current_week|default:1 }};
+        {% endif %}
+        
+        updateWeekDisplay();
+        loadFetalDevelopmentInfo(currentWeek);
+        
+        // Обработчики событий
+        prevWeekBtn.addEventListener('click', () => changeWeek(-1));
+        nextWeekBtn.addEventListener('click', () => changeWeek(1));
+        
+        weekSelectors.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const week = parseInt(btn.dataset.week);
+                setCurrentWeek(week);
+            });
+        });
+        
+        trimesterSelectors.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const trimester = parseInt(btn.dataset.trimester);
+                setCurrentTrimester(trimester);
+            });
+        });
+    }
+    
+    function changeWeek(delta) {
+        const newWeek = currentWeek + delta;
+        if (newWeek >= 1 && newWeek <= 42) {
+            setCurrentWeek(newWeek);
+        }
+    }
+    
+    function setCurrentWeek(week) {
+        currentWeek = week;
+        updateWeekDisplay();
+        updateTrimesterFromWeek(week);
+        loadFetalDevelopmentInfo(week);
+    }
+    
+    function setCurrentTrimester(trimester) {
+        currentTrimester = trimester;
+        updateTrimesterDisplay();
+        
+        // Устанавливаем первую неделю триместра
+        let firstWeek;
+        if (trimester === 1) firstWeek = 1;
+        else if (trimester === 2) firstWeek = 13;
+        else if (trimester === 3) firstWeek = 29;
+        
+        setCurrentWeek(firstWeek);
+    }
+    
+    function updateWeekDisplay() {
+        currentWeekDisplay.textContent = `Неделя ${currentWeek}`;
+        
+        // Обновляем кнопки навигации
+        prevWeekBtn.disabled = currentWeek <= 1;
+        nextWeekBtn.disabled = currentWeek >= 42;
+        
+        // Обновляем селекторы недель
+        weekSelectors.forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.dataset.week) === currentWeek);
+        });
+    }
+    
+    function updateTrimesterFromWeek(week) {
+        let trimester;
+        if (week <= 12) trimester = 1;
+        else if (week <= 28) trimester = 2;
+        else trimester = 3;
+        
+        if (trimester !== currentTrimester) {
+            currentTrimester = trimester;
+            updateTrimesterDisplay();
+        }
+    }
+    
+    function updateTrimesterDisplay() {
+        trimesterSelectors.forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.dataset.trimester) === currentTrimester);
+        });
+    }
+    
+    function loadFetalDevelopmentInfo(week) {
+        // Показываем индикатор загрузки
+        showLoading();
+        
+        fetch(`/api/pregnancy/fetal-development/${week}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayFetalDevelopmentInfo(data.data);
+                } else {
+                    showError(data.error || 'Неизвестная ошибка');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки данных:', error);
+                showError('Ошибка сети. Проверьте подключение к интернету.');
+            });
+    }
+    
+    function showLoading() {
+        contentContainer.innerHTML = `
+            <div class="glass-container text-center py-8">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p class="text-dark-gray">Загрузка информации о развитии плода...</p>
+            </div>
+        `;
+    }
+    
+    function showError(message) {
+        const errorContent = errorTemplate.content.cloneNode(true);
+        errorContent.querySelector('[data-field="error_message"]').textContent = message;
+        
+        contentContainer.innerHTML = '';
+        contentContainer.appendChild(errorContent);
+        
+        // Обработчик для кнопки повтора
+        document.getElementById('retry-button').addEventListener('click', () => {
+            loadFetalDevelopmentInfo(currentWeek);
+        });
+    }
+    
+    function displayFetalDevelopmentInfo(data) {
+        const content = developmentTemplate.content.cloneNode(true);
+        
+        // Заполняем основные поля
+        content.querySelector('[data-field="title"]').textContent = data.title;
+        content.querySelector('[data-field="fetal_size_formatted"]').textContent = data.fetal_size_formatted;
+        content.querySelector('[data-field="development_summary"]').textContent = data.development_summary;
+        
+        // Устанавливаем бейдж триместра
+        const trimesterBadge = content.querySelector('[data-field="trimester_badge"]');
+        trimesterBadge.textContent = data.trimester_name;
+        trimesterBadge.className = `px-3 py-1 rounded-full text-sm font-semibold ${getTrimesterBadgeClass(data.trimester)}`;
+        
+        // Заполняем секции (скрываем пустые)
+        const sections = [
+            'organ_development',
+            'maternal_changes', 
+            'common_symptoms',
+            'recommendations',
+            'dos_and_donts',
+            'medical_checkups',
+            'interesting_facts'
+        ];
+        
+        sections.forEach(section => {
+            const sectionElement = content.querySelector(`[data-section="${section}"]`);
+            const fieldElement = content.querySelector(`[data-field="${section}"]`);
+            
+            if (data[section] && data[section].trim()) {
+                fieldElement.textContent = data[section];
+                sectionElement.style.display = 'block';
+            } else {
+                sectionElement.style.display = 'none';
+            }
+        });
+        
+        // Очищаем контейнер и добавляем новый контент
+        contentContainer.innerHTML = '';
+        contentContainer.appendChild(content);
+    }
+    
+    function getTrimesterBadgeClass(trimester) {
+        switch (trimester) {
+            case 1: return 'bg-primary text-dark-gray';
+            case 2: return 'bg-secondary text-dark-gray';
+            case 3: return 'bg-accent text-dark-gray';
+            default: return 'bg-gray-200 text-dark-gray';
+        }
+    }
+});
+{% endblock %}

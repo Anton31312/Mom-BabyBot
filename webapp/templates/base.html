@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -111,30 +112,30 @@
             
             <!-- Desktop Navigation -->
             <div class="hidden md:flex space-x-6">
-                <a href="{% url 'webapp:index' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">Главная</a>
-                <a href="{% url 'webapp:pregnancy' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">Беременность</a>
-                <a href="{% url 'webapp:child_development' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">Развитие</a>
-                <a href="{% url 'webapp:nutrition' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">Питание</a>
+                <a href="{% url 'webapp:index' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">{% trans "Home" %}</a>
+                <a href="{% url 'webapp:pregnancy' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">{% trans "Pregnancy" %}</a>
+                <a href="{% url 'webapp:child_development' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">{% trans "Child Development" %}</a>
+                <a href="{% url 'webapp:nutrition' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">{% trans "Nutrition" %}</a>
                 <div class="relative group">
                     <a href="#" class="text-dark-gray hover:text-black transition-colors duration-200 py-2 flex items-center">
-                        Инструменты
+                        {% trans "Tools" %}
                         <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </a>
                     <div class="absolute left-0 mt-2 w-56 glass-card hidden group-hover:block transform transition-transform duration-200 origin-top-left">
                         <div class="py-1" role="menu" aria-orientation="vertical">
-                            <a href="{% url 'webapp:contraction_counter' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">Счетчик схваток</a>
-                            <a href="{% url 'webapp:kick_counter' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">Счетчик шевелений</a>
-                            <a href="{% url 'webapp:sleep_timer' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">Таймер сна</a>
-                            <a href="{% url 'webapp:feeding_tracker' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">Отслеживание кормления</a>
-                            <a href="{% url 'webapp:child_profiles' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">Профили детей</a>
-                            <a href="{% url 'webapp:vaccine_calendar' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">Календарь прививок</a>
+                            <a href="{% url 'webapp:contraction_counter' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">{% trans "Contraction Counter" %}</a>
+                            <a href="{% url 'webapp:kick_counter' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">{% trans "Kick Counter" %}</a>
+                            <a href="{% url 'webapp:sleep_timer' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">{% trans "Sleep Timer" %}</a>
+                            <a href="{% url 'webapp:feeding_tracker' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">{% trans "Feeding Tracker" %}</a>
+                            <a href="{% url 'webapp:child_profiles' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">{% trans "Child Profiles" %}</a>
+                            <a href="{% url 'webapp:vaccine_calendar' %}" class="block px-4 py-2 text-sm text-dark-gray hover:bg-primary hover:bg-opacity-20 transition-colors duration-200">{% trans "Vaccine Calendar" %}</a>
                         </div>
                     </div>
                 </div>
-                <a href="{% url 'webapp:documentation' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">Руководство</a>
-                <a href="{% url 'webapp:components_showcase' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">UI Компоненты</a>
+                <a href="{% url 'webapp:documentation' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">{% trans "Guide" %}</a>
+                <a href="{% url 'webapp:components_showcase' %}" class="text-dark-gray hover:text-black transition-colors duration-200 py-2">{% trans "UI Components" %}</a>
             </div>
             
             <!-- Mobile Navigation Toggle -->
@@ -148,23 +149,23 @@
         <!-- Mobile Navigation Menu -->
         <div id="mobile-nav" class="md:hidden hidden pt-4 pb-2">
             <div class="container mx-auto space-y-2">
-                <a href="{% url 'webapp:index' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Главная</a>
-                <a href="{% url 'webapp:pregnancy' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Беременность</a>
-                <a href="{% url 'webapp:child_development' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Развитие</a>
-                <a href="{% url 'webapp:nutrition' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Питание</a>
+                <a href="{% url 'webapp:index' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">{% trans "Home" %}</a>
+                <a href="{% url 'webapp:pregnancy' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">{% trans "Pregnancy" %}</a>
+                <a href="{% url 'webapp:child_development' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">{% trans "Child Development" %}</a>
+                <a href="{% url 'webapp:nutrition' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">{% trans "Nutrition" %}</a>
                 <div class="py-1 px-4">
-                    <p class="font-medium mb-2">Инструменты:</p>
+                    <p class="font-medium mb-2">{% trans "Tools" %}:</p>
                     <div class="pl-2 space-y-2">
-                        <a href="{% url 'webapp:contraction_counter' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Счетчик схваток</a>
-                        <a href="{% url 'webapp:kick_counter' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Счетчик шевелений</a>
-                        <a href="{% url 'webapp:sleep_timer' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Таймер сна</a>
-                        <a href="{% url 'webapp:feeding_tracker' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Отслеживание кормления</a>
-                        <a href="{% url 'webapp:child_profiles' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Профили детей</a>
-                        <a href="{% url 'webapp:vaccine_calendar' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Календарь прививок</a>
+                        <a href="{% url 'webapp:contraction_counter' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">{% trans "Contraction Counter" %}</a>
+                        <a href="{% url 'webapp:kick_counter' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">{% trans "Kick Counter" %}</a>
+                        <a href="{% url 'webapp:sleep_timer' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">{% trans "Sleep Timer" %}</a>
+                        <a href="{% url 'webapp:feeding_tracker' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">{% trans "Feeding Tracker" %}</a>
+                        <a href="{% url 'webapp:child_profiles' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">{% trans "Child Profiles" %}</a>
+                        <a href="{% url 'webapp:vaccine_calendar' %}" class="block py-1 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">{% trans "Vaccine Calendar" %}</a>
                     </div>
                 </div>
-                <a href="{% url 'webapp:documentation' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">Руководство</a>
-                <a href="{% url 'webapp:components_showcase' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">UI Компоненты</a>
+                <a href="{% url 'webapp:documentation' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">{% trans "Guide" %}</a>
+                <a href="{% url 'webapp:components_showcase' %}" class="block py-2 px-4 text-dark-gray hover:bg-primary hover:bg-opacity-20 rounded-lg transition-colors duration-200">{% trans "UI Components" %}</a>
             </div>
         </div>
     </nav>
@@ -181,7 +182,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <h3 class="text-lg font-semibold mb-4">Mom&BabyBot</h3>
-                        <p class="text-dark-gray mb-4">Ваш надежный помощник в заботе о материнстве и детях.</p>
+                        <p class="text-dark-gray mb-4">{% trans "Your reliable assistant in caring for motherhood and children." %}</p>
                         <div class="flex space-x-4">
                             <a href="#" class="neo-button neo-sm">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -196,26 +197,26 @@
                         </div>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold mb-4">Навигация</h3>
+                        <h3 class="text-lg font-semibold mb-4">{% trans "Navigation" %}</h3>
                         <ul class="space-y-2">
-                            <li><a href="{% url 'webapp:index' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Главная</a></li>
-                            <li><a href="{% url 'webapp:pregnancy' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Беременность</a></li>
-                            <li><a href="{% url 'webapp:child_development' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Развитие ребенка</a></li>
-                            <li><a href="{% url 'webapp:nutrition' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Питание</a></li>
+                            <li><a href="{% url 'webapp:index' %}" class="text-dark-gray hover:text-black transition-colors duration-200">{% trans "Home" %}</a></li>
+                            <li><a href="{% url 'webapp:pregnancy' %}" class="text-dark-gray hover:text-black transition-colors duration-200">{% trans "Pregnancy" %}</a></li>
+                            <li><a href="{% url 'webapp:child_development' %}" class="text-dark-gray hover:text-black transition-colors duration-200">{% trans "Child Development" %}</a></li>
+                            <li><a href="{% url 'webapp:nutrition' %}" class="text-dark-gray hover:text-black transition-colors duration-200">{% trans "Nutrition" %}</a></li>
                         </ul>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold mb-4">Инструменты</h3>
+                        <h3 class="text-lg font-semibold mb-4">{% trans "Tools" %}</h3>
                         <ul class="space-y-2">
-                            <li><a href="{% url 'webapp:contraction_counter' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Счетчик схваток</a></li>
-                            <li><a href="{% url 'webapp:kick_counter' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Счетчик шевелений</a></li>
-                            <li><a href="{% url 'webapp:sleep_timer' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Таймер сна</a></li>
-                            <li><a href="{% url 'webapp:vaccine_calendar' %}" class="text-dark-gray hover:text-black transition-colors duration-200">Календарь прививок</a></li>
+                            <li><a href="{% url 'webapp:contraction_counter' %}" class="text-dark-gray hover:text-black transition-colors duration-200">{% trans "Contraction Counter" %}</a></li>
+                            <li><a href="{% url 'webapp:kick_counter' %}" class="text-dark-gray hover:text-black transition-colors duration-200">{% trans "Kick Counter" %}</a></li>
+                            <li><a href="{% url 'webapp:sleep_timer' %}" class="text-dark-gray hover:text-black transition-colors duration-200">{% trans "Sleep Timer" %}</a></li>
+                            <li><a href="{% url 'webapp:vaccine_calendar' %}" class="text-dark-gray hover:text-black transition-colors duration-200">{% trans "Vaccine Calendar" %}</a></li>
                         </ul>
                     </div>
                 </div>
                 <div class="mt-6 pt-6 border-t border-medium-gray text-center text-dark-gray">
-                    <p>&copy; 2025 Mom&BabyBot. Все права защищены.</p>
+                    <p>&copy; 2025 Mom&BabyBot. {% trans "All rights reserved." %}</p>
                 </div>
             </div>
         </div>
@@ -237,7 +238,7 @@
     <div id="active-timers-indicator" class="fixed bottom-4 right-4 hidden">
         <div class="glass-card p-3 flex items-center space-x-2">
             <div class="animate-pulse w-3 h-3 rounded-full bg-accent-secondary"></div>
-            <span id="active-timers-count" class="text-sm font-medium">1 активный таймер</span>
+            <span id="active-timers-count" class="text-sm font-medium">1 {% trans "active timer" %}</span>
         </div>
     </div>
     

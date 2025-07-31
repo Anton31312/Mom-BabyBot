@@ -1,0 +1,61 @@
+{% comment %}
+    Компонент значка достижения вехи беременности
+    
+    Используется в теге pregnancy_milestone_badge для отображения
+    отдельных достижений в прогрессе беременности.
+{% endcomment %}
+
+<div class="milestone-badge {% if milestone_achieved %}achieved{% else %}pending{% endif %}" 
+     data-milestone="{{ milestone_key }}">
+    <div class="milestone-badge-icon">{{ milestone_icon }}</div>
+    <div class="milestone-badge-title">{{ milestone_title }}</div>
+    {% if milestone_achieved %}
+    <div class="milestone-badge-check">✓</div>
+    {% endif %}
+</div>
+
+<style>
+.milestone-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.milestone-badge.achieved {
+    background: rgba(104, 211, 145, 0.2);
+    border: 1px solid rgba(104, 211, 145, 0.3);
+}
+
+.milestone-badge.pending {
+    background: rgba(160, 174, 192, 0.2);
+    border: 1px solid rgba(160, 174, 192, 0.3);
+    opacity: 0.6;
+}
+
+.milestone-badge-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.milestone-badge-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    flex-grow: 1;
+}
+
+.milestone-badge-check {
+    font-size: 0.9rem;
+    color: #68d391;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.milestone-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+</style>

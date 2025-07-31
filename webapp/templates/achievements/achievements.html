@@ -1,0 +1,672 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Достижения{% endblock %}
+
+{% block extra_css %}
+<style>
+    .achievement-card {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    }
+    
+    .achievement-card.earned {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #d4edda 0%, #ffffff 100%);
+        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+    }
+    
+    .achievement-card.in-progress {
+        border-color: #ffc107;
+        background: linear-gradient(135deg, #fff3cd 0%, #ffffff 100%);
+    }
+    
+    .achievement-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .achievement-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        display: block;
+        text-align: center;
+    }
+    
+    .achievement-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    
+    .achievement-description {
+        color: #666;
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+    
+    .achievement-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .achievement-points {
+        background: #007bff;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+    
+    .achievement-difficulty {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+    
+    .difficulty-easy { background: #d4edda; color: #155724; }
+    .difficulty-medium { background: #fff3cd; color: #856404; }
+    .difficulty-hard { background: #f8d7da; color: #721c24; }
+    .difficulty-legendary { background: #d1ecf1; color: #0c5460; }
+    
+    .progress-bar-container {
+        background: #e9ecef;
+        border-radius: 10px;
+        height: 20px;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+    
+    .progress-bar {
+        background: linear-gradient(90deg, #28a745, #20c997);
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.3s ease;
+        position: relative;
+    }
+    
+    .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .filter-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-tab {
+        padding: 10px 20px;
+        border: 2px solid #dee2e6;
+        border-radius: 25px;
+        background: white;
+        color: #495057;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .filter-tab.active {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .filter-tab:hover {
+        background: #f8f9fa;
+        text-decoration: none;
+        color: #495057;
+    }
+    
+    .filter-tab.active:hover {
+        background: #0056b3;
+        color: white;
+    }
+    
+    .notification-badge {
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        font-size: 0.7rem;
+        margin-left: 5px;
+    }
+    
+    .earned-date {
+        color: #28a745;
+        font-size: 0.9rem;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+    
+    .loading-spinner {
+        text-align: center;
+        padding: 40px;
+    }
+    
+    .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+        text-align: center;
+    }
+    
+    @media (max-width: 768px) {
+        .achievement-card {
+            padding: 15px;
+        }
+        
+        .achievement-icon {
+            font-size: 2.5rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .filter-tabs {
+            justify-content: center;
+        }
+        
+        .filter-tab {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                🏆 Мои достижения
+                <span id="notification-badge" class="notification-badge" style="display: none;">0</span>
+            </h1>
+            
+            <!-- Статистика -->
+            <div class="stats-card">
+                <h3>Ваш прогресс</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span id="total-achievements" class="stat-number">0</span>
+                        <span class="stat-label">Получено достижений</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="total-points" class="stat-number">0</span>
+                        <span class="stat-label">Очков заработано</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="completion-percentage" class="stat-number">0%</span>
+                        <span class="stat-label">Завершено</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="recent-achievements" class="stat-number">0</span>
+                        <span class="stat-label">За последний месяц</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Фильтры -->
+            <div class="filter-tabs">
+                <a href="#" class="filter-tab active" data-filter="all">Все</a>
+                <a href="#" class="filter-tab" data-filter="earned">Полученные</a>
+                <a href="#" class="filter-tab" data-filter="available">Доступные</a>
+                <a href="#" class="filter-tab" data-filter="pregnancy_milestone">Беременность</a>
+                <a href="#" class="filter-tab" data-filter="baby_milestone">Развитие ребенка</a>
+                <a href="#" class="filter-tab" data-filter="feeding_milestone">Кормление</a>
+                <a href="#" class="filter-tab" data-filter="health_milestone">Здоровье</a>
+                <a href="#" class="filter-tab" data-filter="app_usage">Использование приложения</a>
+            </div>
+            
+            <!-- Загрузка -->
+            <div id="loading" class="loading-spinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Загрузка...</span>
+                </div>
+                <p class="mt-2">Загружаем ваши достижения...</p>
+            </div>
+            
+            <!-- Ошибка -->
+            <div id="error-message" class="error-message" style="display: none;">
+                Произошла ошибка при загрузке достижений. Попробуйте обновить страницу.
+            </div>
+            
+            <!-- Список достижений -->
+            <div id="achievements-container" class="row">
+                <!-- Достижения будут загружены через JavaScript -->
+            </div>
+            
+            <!-- Пагинация -->
+            <nav id="pagination-container" style="display: none;">
+                <ul class="pagination justify-content-center">
+                    <!-- Пагинация будет добавлена через JavaScript -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для детальной информации о достижении -->
+<div class="modal fade" id="achievementModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <span id="modal-icon"></span>
+                    <span id="modal-title"></span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-content">
+                    <!-- Содержимое будет загружено через JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+class AchievementManager {
+    constructor() {
+        this.currentFilter = 'all';
+        this.currentPage = 1;
+        this.achievements = [];
+        this.stats = {};
+        
+        this.init();
+    }
+    
+    init() {
+        this.bindEvents();
+        this.loadStatistics();
+        this.loadAchievements();
+        this.checkForNewAchievements();
+    }
+    
+    bindEvents() {
+        // Обработчики фильтров
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.setActiveFilter(tab.dataset.filter);
+            });
+        });
+        
+        // Обработчик клика по достижению
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.achievement-card')) {
+                const achievementId = e.target.closest('.achievement-card').dataset.achievementId;
+                this.showAchievementDetails(achievementId);
+            }
+        });
+    }
+    
+    async loadStatistics() {
+        try {
+            const response = await fetch('/api/achievements/stats/');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.stats = data.statistics;
+                this.updateStatisticsDisplay();
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке статистики:', error);
+        }
+    }
+    
+    updateStatisticsDisplay() {
+        document.getElementById('total-achievements').textContent = this.stats.total_achievements || 0;
+        document.getElementById('total-points').textContent = this.stats.total_points || 0;
+        document.getElementById('completion-percentage').textContent = (this.stats.completion_percentage || 0) + '%';
+        document.getElementById('recent-achievements').textContent = this.stats.recent_achievements_count || 0;
+        
+        // Обновляем значок уведомлений
+        const badge = document.getElementById('notification-badge');
+        if (this.stats.unread_notifications > 0) {
+            badge.textContent = this.stats.unread_notifications;
+            badge.style.display = 'inline';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    
+    async loadAchievements() {
+        try {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            
+            const params = new URLSearchParams({
+                page: this.currentPage,
+                limit: 12
+            });
+            
+            if (this.currentFilter === 'earned') {
+                params.append('completed', 'true');
+            } else if (this.currentFilter === 'available') {
+                params.append('completed', 'false');
+            } else if (this.currentFilter !== 'all') {
+                params.append('type', this.currentFilter);
+            }
+            
+            const response = await fetch(`/api/achievements/?${params}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.achievements = data.achievements;
+                this.renderAchievements();
+                this.renderPagination(data.pagination);
+            } else {
+                throw new Error(data.error || 'Неизвестная ошибка');
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке достижений:', error);
+            document.getElementById('error-message').style.display = 'block';
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
+    
+    renderAchievements() {
+        const container = document.getElementById('achievements-container');
+        container.innerHTML = '';
+        
+        if (this.achievements.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 text-center">
+                    <p class="text-muted">Достижения не найдены</p>
+                </div>
+            `;
+            return;
+        }
+        
+        this.achievements.forEach(achievement => {
+            const achievementCard = this.createAchievementCard(achievement);
+            container.appendChild(achievementCard);
+        });
+    }
+    
+    createAchievementCard(achievement) {
+        const col = document.createElement('div');
+        col.className = 'col-md-6 col-lg-4';
+        
+        const cardClass = achievement.is_earned ? 'achievement-card earned' : 
+                         (achievement.progress && achievement.progress.progress_percentage > 0) ? 'achievement-card in-progress' : 'achievement-card';
+        
+        let progressBar = '';
+        if (!achievement.is_earned && achievement.show_progress && achievement.progress) {
+            const percentage = achievement.progress.progress_percentage;
+            progressBar = `
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: ${percentage}%">
+                        <span class="progress-text">${percentage}%</span>
+                    </div>
+                </div>
+                <small class="text-muted mt-1">
+                    ${achievement.progress.current_progress} / ${achievement.progress.target_value}
+                </small>
+            `;
+        }
+        
+        let earnedDate = '';
+        if (achievement.is_earned && achievement.earned_at) {
+            const date = new Date(achievement.earned_at);
+            earnedDate = `
+                <div class="earned-date">
+                    ✅ Получено ${date.toLocaleDateString('ru-RU')}
+                </div>
+            `;
+        }
+        
+        col.innerHTML = `
+            <div class="${cardClass}" data-achievement-id="${achievement.id}">
+                <div class="achievement-icon">${achievement.icon}</div>
+                <div class="achievement-title">${achievement.title}</div>
+                <div class="achievement-description">${achievement.description}</div>
+                <div class="achievement-meta">
+                    <span class="achievement-points">${achievement.points} очков</span>
+                    <span class="achievement-difficulty difficulty-${achievement.difficulty}">
+                        ${achievement.difficulty_display}
+                    </span>
+                </div>
+                ${progressBar}
+                ${earnedDate}
+            </div>
+        `;
+        
+        return col;
+    }
+    
+    renderPagination(pagination) {
+        const container = document.getElementById('pagination-container');
+        
+        if (pagination.total_pages <= 1) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        container.style.display = 'block';
+        const ul = container.querySelector('.pagination');
+        ul.innerHTML = '';
+        
+        // Предыдущая страница
+        if (pagination.has_previous) {
+            ul.innerHTML += `
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="${pagination.current_page - 1}">Предыдущая</a>
+                </li>
+            `;
+        }
+        
+        // Номера страниц
+        for (let i = 1; i <= pagination.total_pages; i++) {
+            const activeClass = i === pagination.current_page ? 'active' : '';
+            ul.innerHTML += `
+                <li class="page-item ${activeClass}">
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                </li>
+            `;
+        }
+        
+        // Следующая страница
+        if (pagination.has_next) {
+            ul.innerHTML += `
+                <li class="page-item">
+                    <a class="page-link" href="#" data-page="${pagination.current_page + 1}">Следующая</a>
+                </li>
+            `;
+        }
+        
+        // Обработчики событий для пагинации
+        ul.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = parseInt(e.target.dataset.page);
+                if (page && page !== this.currentPage) {
+                    this.currentPage = page;
+                    this.loadAchievements();
+                }
+            });
+        });
+    }
+    
+    setActiveFilter(filter) {
+        this.currentFilter = filter;
+        this.currentPage = 1;
+        
+        // Обновляем активный таб
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+        
+        this.loadAchievements();
+    }
+    
+    async showAchievementDetails(achievementId) {
+        try {
+            const response = await fetch(`/api/achievements/${achievementId}/`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const achievement = data.achievement;
+                
+                document.getElementById('modal-icon').textContent = achievement.icon;
+                document.getElementById('modal-title').textContent = achievement.title;
+                
+                let modalContent = `
+                    <p><strong>Описание:</strong> ${achievement.description}</p>
+                    <p><strong>Тип:</strong> ${achievement.type_display}</p>
+                    <p><strong>Сложность:</strong> ${achievement.difficulty_display}</p>
+                    <p><strong>Очки:</strong> ${achievement.points}</p>
+                `;
+                
+                if (achievement.is_earned) {
+                    const earnedDate = new Date(achievement.earned_at);
+                    modalContent += `
+                        <div class="alert alert-success">
+                            <strong>✅ Достижение получено!</strong><br>
+                            Дата получения: ${earnedDate.toLocaleDateString('ru-RU')} в ${earnedDate.toLocaleTimeString('ru-RU')}
+                        </div>
+                    `;
+                } else if (achievement.progress && achievement.show_progress) {
+                    const progress = achievement.progress;
+                    modalContent += `
+                        <div class="alert alert-info">
+                            <strong>📊 Прогресс выполнения:</strong><br>
+                            ${progress.current_progress} / ${progress.target_value} (${progress.progress_percentage}%)
+                            <div class="progress mt-2">
+                                <div class="progress-bar" style="width: ${progress.progress_percentage}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('modal-content').innerHTML = modalContent;
+                $('#achievementModal').modal('show');
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке деталей достижения:', error);
+        }
+    }
+    
+    async checkForNewAchievements() {
+        try {
+            const response = await fetch('/api/achievements/check/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.new_achievements.length > 0) {
+                this.showNewAchievementNotification(data.new_achievements);
+                // Обновляем статистику и список достижений
+                this.loadStatistics();
+                this.loadAchievements();
+            }
+        } catch (error) {
+            console.error('Ошибка при проверке новых достижений:', error);
+        }
+    }
+    
+    showNewAchievementNotification(achievements) {
+        achievements.forEach(achievement => {
+            // Создаем уведомление о новом достижении
+            const notification = document.createElement('div');
+            notification.className = 'alert alert-success alert-dismissible fade show position-fixed';
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+            notification.innerHTML = `
+                <strong>🎉 Новое достижение!</strong><br>
+                ${achievement.icon} ${achievement.title}<br>
+                <small>+${achievement.points} очков</small>
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Автоматически скрываем через 5 секунд
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        });
+    }
+    
+    getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+    }
+}
+
+// Инициализируем менеджер достижений при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    new AchievementManager();
+});
+</script>
+{% endblock %}

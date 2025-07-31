@@ -1,0 +1,823 @@
+{% comment %}
+    Компонент визуального индикатора прогресса беременности
+    
+    Этот компонент отображает текущую неделю беременности, прогресс в процентах,
+    визуальный индикатор и информацию о текущем триместре.
+    
+    Соответствует требованию 10.1 о визуальном индикаторе прогресса беременности.
+    
+    Использование:
+    {% include 'components/pregnancy_progress_indicator.html' with pregnancy_info=pregnancy_info style='glass' %}
+    
+    Параметры:
+    - pregnancy_info: Объект PregnancyInfo с информацией о беременности
+    - style: Стиль компонента ('glass' или 'neo', по умолчанию 'glass')
+    - show_details: Показывать ли детальную информацию (по умолчанию True)
+    - compact: Компактный режим отображения (по умолчанию False)
+{% endcomment %}
+
+{% load pregnancy_extras %}
+
+{% if pregnancy_info and pregnancy_info.is_active %}
+    {% with current_week=pregnancy_info.current_week progress_percentage=pregnancy_info.progress_percentage trimester=pregnancy_info.current_trimester %}
+    <div class="pregnancy-progress-indicator {% if style == 'neo' %}neo-style{% else %}glass-style{% endif %} {% if compact %}compact{% endif %}">
+        <!-- Заголовок компонента -->
+        <div class="progress-header">
+            <div class="progress-title">
+                <span class="progress-icon">🤱</span>
+                <h3 class="progress-heading">Прогресс беременности</h3>
+            </div>
+            {% if not compact %}
+            <div class="progress-summary">
+                <span class="current-week">{{ current_week }} неделя</span>
+                <span class="progress-percent">{{ progress_percentage|floatformat:0 }}%</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Основной индикатор прогресса -->
+        <div class="progress-main">
+            <!-- Круговой индикатор -->
+            <div class="circular-progress">
+                <svg class="progress-ring" width="120" height="120">
+                    <circle class="progress-ring-background" 
+                            cx="60" cy="60" r="50" 
+                            stroke-width="8" 
+                            fill="transparent"/>
+                    <circle class="progress-ring-progress" 
+                            cx="60" cy="60" r="50" 
+                            stroke-width="8" 
+                            fill="transparent"
+                            stroke-dasharray="{{ progress_percentage|multiply:3.14159 }} 314.159"
+                            stroke-dashoffset="0"/>
+                </svg>
+                <div class="progress-center">
+                    <div class="week-number">{{ current_week }}</div>
+                    <div class="week-label">неделя</div>
+                </div>
+            </div>
+            
+            <!-- Информация о прогрессе -->
+            {% if not compact %}
+            <div class="progress-info">
+                <div class="trimester-info">
+                    <div class="trimester-label">{{ trimester }} триместр</div>
+                    <div class="trimester-description">
+                        {% if trimester == 1 %}
+                            Формирование основных органов
+                        {% elif trimester == 2 %}
+                            Активный рост и развитие
+                        {% else %}
+                            Подготовка к родам
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="timeline-info">
+                    <div class="days-info">
+                        <span class="days-count">{{ pregnancy_info.days_pregnant }}</span>
+                        <span class="days-label">дней</span>
+                    </div>
+                    <div class="due-info">
+                        <span class="due-label">До родов:</span>
+                        <span class="due-count">{{ pregnancy_info.days_until_due }}</span>
+                        <span class="due-unit">дней</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Линейный индикатор прогресса -->
+        <div class="linear-progress">
+            <div class="progress-track">
+                <div class="progress-fill" style="width: {{ progress_percentage }}%"></div>
+                <div class="progress-markers">
+                    <!-- Маркеры триместров -->
+                    <div class="marker trimester-1 {% if current_week >= 12 %}completed{% endif %}" style="left: 30%">
+                        <div class="marker-dot"></div>
+                        <div class="marker-label">12 нед</div>
+                    </div>
+                    <div class="marker trimester-2 {% if current_week >= 28 %}completed{% endif %}" style="left: 70%">
+                        <div class="marker-dot"></div>
+                        <div class="marker-label">28 нед</div>
+                    </div>
+                    <div class="marker full-term {% if current_week >= 37 %}completed{% endif %}" style="left: 92.5%">
+                        <div class="marker-dot"></div>
+                        <div class="marker-label">37 нед</div>
+                    </div>
+                </div>
+            </div>
+            <div class="progress-labels">
+                <span class="start-label">Начало</span>
+                <span class="end-label">40 недель</span>
+            </div>
+        </div>
+        
+        <!-- Детальная информация -->
+        {% if show_details|default:True and not compact %}
+        <div class="progress-details">
+            <div class="detail-item">
+                <div class="detail-icon">📅</div>
+                <div class="detail-content">
+                    <div class="detail-label">Предполагаемая дата родов</div>
+                    <div class="detail-value">{{ pregnancy_info.due_date|date:"d.m.Y" }}</div>
+                </div>
+            </div>
+            
+            <div class="detail-item">
+                <div class="detail-icon">⏱️</div>
+                <div class="detail-content">
+                    <div class="detail-label">Текущий день недели</div>
+                    <div class="detail-value">{{ pregnancy_info.current_day_of_week }} день</div>
+                </div>
+            </div>
+            
+            {% if pregnancy_info.is_high_risk_week %}
+            <div class="detail-item warning">
+                <div class="detail-icon">⚠️</div>
+                <div class="detail-content">
+                    <div class="detail-label">Важный период</div>
+                    <div class="detail-value">Требуется особое внимание</div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if pregnancy_info.is_full_term %}
+            <div class="detail-item success">
+                <div class="detail-icon">✅</div>
+                <div class="detail-content">
+                    <div class="detail-label">Доношенная беременность</div>
+                    <div class="detail-value">Ребенок готов к рождению</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <!-- Вехи развития -->
+        {% if show_details|default:True and not compact %}
+        <div class="milestones">
+            <div class="milestones-title">Достигнутые вехи</div>
+            <div class="milestones-list">
+                {% if pregnancy_info.milestones.heart_beating %}
+                <div class="milestone completed">
+                    <span class="milestone-icon">💓</span>
+                    <span class="milestone-text">Сердце бьется</span>
+                </div>
+                {% endif %}
+                
+                {% if pregnancy_info.milestones.first_trimester_complete %}
+                <div class="milestone completed">
+                    <span class="milestone-icon">🎯</span>
+                    <span class="milestone-text">Первый триместр завершен</span>
+                </div>
+                {% endif %}
+                
+                {% if pregnancy_info.milestones.viability_threshold %}
+                <div class="milestone completed">
+                    <span class="milestone-icon">🛡️</span>
+                    <span class="milestone-text">Порог жизнеспособности</span>
+                </div>
+                {% endif %}
+                
+                {% if pregnancy_info.milestones.full_term %}
+                <div class="milestone completed">
+                    <span class="milestone-icon">🎉</span>
+                    <span class="milestone-text">Доношенная беременность</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Кнопка подробностей для компактного режима -->
+        {% if compact %}
+        <div class="compact-actions">
+            <button class="details-button" onclick="showPregnancyDetails()">
+                Подробнее
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    {% endwith %}
+{% else %}
+    <!-- Состояние когда беременность неактивна -->
+    <div class="pregnancy-progress-indicator inactive">
+        <div class="inactive-content">
+            <div class="inactive-icon">👶</div>
+            <div class="inactive-title">Информация о беременности</div>
+            <div class="inactive-description">
+                Добавьте информацию о беременности, чтобы отслеживать прогресс
+            </div>
+            <button class="setup-button" onclick="setupPregnancy()">
+                Настроить
+            </button>
+        </div>
+    </div>
+{% endif %}
+
+<style>
+/* Основные стили компонента */
+.pregnancy-progress-indicator {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+    border-radius: 20px;
+    padding: 24px;
+    margin: 20px 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(255, 154, 158, 0.3);
+}
+
+.pregnancy-progress-indicator.glass-style {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.pregnancy-progress-indicator.neo-style {
+    background: #f0f0f0;
+    box-shadow: 
+        8px 8px 16px rgba(0, 0, 0, 0.1),
+        -8px -8px 16px rgba(255, 255, 255, 0.8);
+}
+
+.pregnancy-progress-indicator.compact {
+    padding: 16px;
+    margin: 10px 0;
+}
+
+/* Заголовок */
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.progress-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.progress-icon {
+    font-size: 1.8rem;
+}
+
+.progress-heading {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #2d3748;
+}
+
+.glass-style .progress-heading {
+    color: white;
+}
+
+.progress-summary {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.current-week {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2d3748;
+}
+
+.glass-style .current-week {
+    color: white;
+}
+
+.progress-percent {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    color: #4a5568;
+}
+
+.glass-style .progress-percent {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Основной индикатор */
+.progress-main {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 24px;
+}
+
+.compact .progress-main {
+    gap: 20px;
+    margin-bottom: 16px;
+}
+
+/* Круговой индикатор */
+.circular-progress {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.compact .circular-progress svg {
+    width: 80px;
+    height: 80px;
+}
+
+.progress-ring-background {
+    stroke: rgba(255, 255, 255, 0.2);
+}
+
+.neo-style .progress-ring-background {
+    stroke: rgba(0, 0, 0, 0.1);
+}
+
+.progress-ring-progress {
+    stroke: #ff6b6b;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dasharray 0.5s ease;
+}
+
+.progress-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.week-number {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #2d3748;
+    line-height: 1;
+}
+
+.compact .week-number {
+    font-size: 1.4rem;
+}
+
+.glass-style .week-number {
+    color: white;
+}
+
+.week-label {
+    font-size: 0.8rem;
+    color: #4a5568;
+    margin-top: 2px;
+}
+
+.glass-style .week-label {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Информация о прогрессе */
+.progress-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.trimester-info {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(5px);
+}
+
+.neo-style .trimester-info {
+    background: rgba(0, 0, 0, 0.05);
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.trimester-label {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #2d3748;
+    margin-bottom: 4px;
+}
+
+.glass-style .trimester-label {
+    color: white;
+}
+
+.trimester-description {
+    font-size: 0.9rem;
+    color: #4a5568;
+}
+
+.glass-style .trimester-description {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.timeline-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.days-info, .due-info {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.days-count, .due-count {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2d3748;
+}
+
+.glass-style .days-count,
+.glass-style .due-count {
+    color: white;
+}
+
+.days-label, .due-label, .due-unit {
+    font-size: 0.9rem;
+    color: #4a5568;
+}
+
+.glass-style .days-label,
+.glass-style .due-label,
+.glass-style .due-unit {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Линейный индикатор */
+.linear-progress {
+    margin-bottom: 20px;
+}
+
+.progress-track {
+    position: relative;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.neo-style .progress-track {
+    background: rgba(0, 0, 0, 0.1);
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+    border-radius: 6px;
+    transition: width 0.5s ease;
+}
+
+.progress-markers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.marker {
+    position: absolute;
+    top: -4px;
+    transform: translateX(-50%);
+}
+
+.marker-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    border: 2px solid #ff6b6b;
+    transition: all 0.3s ease;
+}
+
+.marker.completed .marker-dot {
+    background: #ff6b6b;
+    border-color: #ff6b6b;
+}
+
+.marker-label {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: #4a5568;
+    white-space: nowrap;
+}
+
+.glass-style .marker-label {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #4a5568;
+}
+
+.glass-style .progress-labels {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Детальная информация */
+.progress-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+}
+
+.neo-style .detail-item {
+    background: rgba(0, 0, 0, 0.05);
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.detail-item.warning {
+    border-left: 4px solid #f6ad55;
+}
+
+.detail-item.success {
+    border-left: 4px solid #68d391;
+}
+
+.detail-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.detail-content {
+    flex-grow: 1;
+}
+
+.detail-label {
+    font-size: 0.8rem;
+    color: #4a5568;
+    margin-bottom: 2px;
+}
+
+.glass-style .detail-label {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.detail-value {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #2d3748;
+}
+
+.glass-style .detail-value {
+    color: white;
+}
+
+/* Вехи развития */
+.milestones {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    backdrop-filter: blur(5px);
+}
+
+.neo-style .milestones {
+    background: rgba(0, 0, 0, 0.05);
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.milestones-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #2d3748;
+    margin-bottom: 12px;
+}
+
+.glass-style .milestones-title {
+    color: white;
+}
+
+.milestones-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+}
+
+.milestone {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.neo-style .milestone {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.milestone.completed {
+    background: rgba(104, 211, 145, 0.2);
+}
+
+.milestone-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.milestone-text {
+    font-size: 0.8rem;
+    color: #2d3748;
+}
+
+.glass-style .milestone-text {
+    color: white;
+}
+
+/* Компактный режим */
+.compact-actions {
+    text-align: center;
+    margin-top: 16px;
+}
+
+.details-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #2d3748;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.glass-style .details-button {
+    color: white;
+}
+
+.details-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Неактивное состояние */
+.pregnancy-progress-indicator.inactive {
+    background: linear-gradient(135deg, #e2e8f0 0%, #f7fafc 100%);
+    text-align: center;
+    padding: 40px 24px;
+}
+
+.inactive-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.inactive-icon {
+    font-size: 3rem;
+    opacity: 0.6;
+}
+
+.inactive-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2d3748;
+}
+
+.inactive-description {
+    font-size: 0.9rem;
+    color: #4a5568;
+    max-width: 300px;
+}
+
+.setup-button {
+    background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.setup-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .pregnancy-progress-indicator {
+        padding: 16px;
+        margin: 16px 0;
+    }
+    
+    .progress-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .progress-main {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .progress-info {
+        width: 100%;
+    }
+    
+    .timeline-info {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .progress-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .milestones-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .progress-heading {
+        font-size: 1.2rem;
+    }
+    
+    .circular-progress svg {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .week-number {
+        font-size: 1.6rem;
+    }
+    
+    .progress-markers {
+        display: none; /* Скрываем маркеры на очень маленьких экранах */
+    }
+}
+</style>
+
+<script>
+// Функции для интерактивности
+function showPregnancyDetails() {
+    // Открыть модальное окно или перейти на страницу с подробностями
+    window.location.href = '/pregnancy/details/';
+}
+
+function setupPregnancy() {
+    // Открыть форму настройки беременности
+    window.location.href = '/pregnancy/setup/';
+}
+
+// Анимация появления компонента
+document.addEventListener('DOMContentLoaded', function() {
+    const indicator = document.querySelector('.pregnancy-progress-indicator');
+    if (indicator && !indicator.classList.contains('inactive')) {
+        // Анимация заполнения кругового индикатора
+        const progressRing = indicator.querySelector('.progress-ring-progress');
+        if (progressRing) {
+            const currentDashArray = progressRing.style.strokeDasharray || progressRing.getAttribute('stroke-dasharray');
+            progressRing.style.strokeDasharray = '0 314.159';
+            
+            setTimeout(() => {
+                progressRing.style.strokeDasharray = currentDashArray;
+            }, 500);
+        }
+        
+        // Анимация заполнения линейного индикатора
+        const progressFill = indicator.querySelector('.progress-fill');
+        if (progressFill) {
+            const currentWidth = progressFill.style.width;
+            progressFill.style.width = '0%';
+            
+            setTimeout(() => {
+                progressFill.style.width = currentWidth;
+            }, 800);
+        }
+    }
+});
+</script>
