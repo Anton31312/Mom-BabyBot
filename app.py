@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 """
-Точка входа для запуска Django приложения с Gunicorn на Amvera
+Точка входа для запуска Django приложения, бота и веб-приложения на Amvera
 """
 import os
 import sys
 import django
+import multiprocessing
+import time
+import signal
 from pathlib import Path
 
 # Добавляем путь к проекту
@@ -39,7 +42,7 @@ def init_database():
         print(f"⚠️ Ошибка инициализации: {e}")
 
 def run_gunicorn():
-    """Запуск Django приложения с Gunicorn"""
+    """Запуск Django веб-приложения с Gunicorn"""
     try:
         from django.core.management import execute_from_command_line
         
@@ -59,7 +62,7 @@ def run_gunicorn():
         workers = int(os.getenv('GUNICORN_WORKERS', '2'))
         timeout = int(os.getenv('GUNICORN_TIMEOUT', '120'))
         
-        print(f"🚀 Запуск Gunicorn на порту {port} с {workers} workers...")
+        print(f"🌐 Запуск веб-приложения на порту {port} с {workers} workers...")
         
         # Запускаем Gunicorn
         import gunicorn.app.base
@@ -87,26 +90,115 @@ def run_gunicorn():
             'max_requests_jitter': 100,
             'keepalive': 5,
             'preload_app': True,
-            'access_logfile': '-',
-            'error_logfile': '-',
+            'accesslog': '-',
+            'errorlog': '-',
             'loglevel': 'info',
         }
         
         StandaloneApplication(application, options).run()
         
     except Exception as e:
-        print(f"❌ Ошибка запуска Gunicorn: {e}")
+        print(f"❌ Ошибка запуска веб-приложения: {e}")
         sys.exit(1)
 
+def run_bot():
+    """Запуск Telegram бота"""
+    try:
+        print("🤖 Запуск Telegram бота...")
+        
+        # Импортируем и запускаем бота
+        from botapp.management.commands.runbot import Command
+        from django.core.management import execute_from_command_line
+        
+        # Запускаем бота через management команду
+        execute_from_command_line(['manage.py', 'runbot'])
+        
+    except Exception as e:
+        print(f"❌ Ошибка запуска бота: {e}")
+        # Не выходим из процесса, так как веб-приложение может работать
+
+def run_webapp():
+    """Запуск веб-приложения Django"""
+    try:
+        print("🌐 Запуск веб-приложения Django...")
+        
+        # Импортируем и запускаем веб-приложение
+        from django.core.management import execute_from_command_line
+        
+        # Запускаем веб-приложение через runserver (для разработки)
+        # В продакшене используется Gunicorn
+        port = int(os.getenv('WEBAPP_PORT', '8000'))
+        execute_from_command_line(['manage.py', 'runserver', f'0.0.0.0:{port}'])
+        
+    except Exception as e:
+        print(f"❌ Ошибка запуска веб-приложения: {e}")
+
+def signal_handler(signum, frame):
+    """Обработчик сигналов для корректного завершения"""
+    print(f"\n🛑 Получен сигнал {signum}, завершение работы...")
+    sys.exit(0)
+
 def main():
-    """Главная функция"""
-    print("🚀 Запуск Mom&Baby Bot с Gunicorn на Amvera...")
+    """Главная функция с многопроцессным запуском"""
+    print("🚀 Запуск Mom&Baby Bot на Amvera...")
+    
+    # Регистрируем обработчик сигналов
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
     
     # Инициализируем базу данных
     init_database()
     
-    # Запускаем Gunicorn
-    run_gunicorn()
+    # Определяем режим запуска
+    run_mode = os.getenv('RUN_MODE', 'all')  # all, web, bot, gunicorn
+    
+    if run_mode == 'gunicorn':
+        # Только Gunicorn (основной режим для Amvera)
+        print("🌐 Запуск только веб-приложения с Gunicorn...")
+        run_gunicorn()
+    elif run_mode == 'web':
+        # Только веб-приложение
+        print("🌐 Запуск только веб-приложения...")
+        run_webapp()
+    elif run_mode == 'bot':
+        # Только бот
+        print("🤖 Запуск только бота...")
+        run_bot()
+    else:
+        # Все компоненты (для разработки)
+        print("🚀 Запуск всех компонентов...")
+        
+        # Создаем процессы
+        processes = []
+        
+        # Процесс для веб-приложения
+        web_process = multiprocessing.Process(target=run_webapp, name="WebApp")
+        web_process.start()
+        processes.append(web_process)
+        print("✅ Веб-приложение запущено")
+        
+        # Небольшая задержка
+        time.sleep(2)
+        
+        # Процесс для бота
+        bot_process = multiprocessing.Process(target=run_bot, name="Bot")
+        bot_process.start()
+        processes.append(bot_process)
+        print("✅ Бот запущен")
+        
+        # Ждем завершения процессов
+        try:
+            for process in processes:
+                process.join()
+        except KeyboardInterrupt:
+            print("\n🛑 Получен сигнал прерывания, завершение процессов...")
+            for process in processes:
+                if process.is_alive():
+                    process.terminate()
+                    process.join(timeout=5)
+                    if process.is_alive():
+                        process.kill()
+            print("✅ Все процессы завершены")
 
 if __name__ == '__main__':
     main() 
