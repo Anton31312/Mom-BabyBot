@@ -39,18 +39,14 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Cache settings
+# Cache settings - используем локальный кэш вместо Redis
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'mom-baby-bot-cache',
         'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'PARSER_CLASS': 'redis.connection.HiredisParser',
-            'SOCKET_CONNECT_TIMEOUT': 5,
-            'SOCKET_TIMEOUT': 5,
-            'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
-            'IGNORE_EXCEPTIONS': True,
+            'MAX_ENTRIES': 1000,
+            'CULL_FREQUENCY': 3,
         }
     }
 }
@@ -58,46 +54,32 @@ CACHES = {
 # Cache timeout settings
 CACHE_TIMEOUT = 60 * 60 * 24  # 24 hours
 
-# Session cache
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'default'
+# Session cache - используем базу данных для сессий
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
-# Database settings - принудительно используем PostgreSQL для production
-DATABASE_URL = os.getenv('DATABASE_URL', '')
-
-if DATABASE_URL:
-    # Парсим DATABASE_URL для PostgreSQL
-    import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
-    }
-else:
-    # Fallback конфигурация для PostgreSQL
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', 'mombabybot'),
-            'USER': os.getenv('DB_USER', 'mombabybot'),
-            'PASSWORD': os.getenv('DB_PASSWORD', ''),
-            'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', '5432'),
-            'CONN_MAX_AGE': 600,
-            'OPTIONS': {
-                'connect_timeout': 10,
-            }
+# Database settings - используем SQLite для production
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': '/app/data/mom_baby_bot.db',
+        'OPTIONS': {
+            'timeout': 20,
         }
     }
+}
 
-# SQLAlchemy настройки для production
-SQLALCHEMY_DATABASE_URL = DATABASE_URL if DATABASE_URL else f"postgresql://{os.getenv('DB_USER', 'mombabybot')}:{os.getenv('DB_PASSWORD', '')}@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'mombabybot')}"
+# SQLAlchemy настройки для production с SQLite
+SQLALCHEMY_DATABASE_URL = 'sqlite:////app/data/mom_baby_bot.db'
 
-# Настройки SQLAlchemy engine для PostgreSQL
+# Настройки SQLAlchemy engine для SQLite
 SQLALCHEMY_ENGINE_OPTIONS = {
     'pool_pre_ping': True,
     'pool_recycle': 300,
-    'pool_size': 5,
-    'max_overflow': 10,
     'echo': False,  # Отключаем в production
+    'connect_args': {
+        'check_same_thread': False,  # Для SQLite в многопоточной среде
+        'timeout': 20,  # Таймаут подключения
+    }
 }
 
 # SQLAlchemy engine и session factory будут созданы позже

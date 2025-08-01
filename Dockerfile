@@ -13,9 +13,8 @@ WORKDIR /app
 # Устанавливаем системные зависимости
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    libpq-dev \
-    postgresql-client \
     curl \
+    sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Копируем и устанавливаем Python зависимости

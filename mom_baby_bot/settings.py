@@ -164,7 +164,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Конфигурация SQLAlchemy
 # Позволяет использовать SQLAlchemy вместе с Django
-SQLALCHEMY_DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///data/mom_baby_bot.db')
+SQLALCHEMY_DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:////app/data/mom_baby_bot.db')
 
 # Настройки для различных типов баз данных
 if SQLALCHEMY_DATABASE_URL.startswith('sqlite'):

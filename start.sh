@@ -13,41 +13,36 @@ else
     echo "❌ Проверка готовности не прошла, но продолжаем..."
 fi
 
-# Ждем доступности базы данных
-echo "⏳ Ожидание доступности базы данных..."
+# Проверяем доступность SQLite базы данных
+echo "🗄️ Проверка SQLite базы данных..."
 python -c "
 import os
-import time
-import psycopg2
-from urllib.parse import urlparse
+import sqlite3
 
-max_attempts = 30
-attempt = 0
+db_path = '/app/data/mom_baby_bot.db'
+db_dir = os.path.dirname(db_path)
 
-database_url = os.getenv('DATABASE_URL', '')
-if database_url:
-    parsed = urlparse(database_url)
-    while attempt < max_attempts:
-        try:
-            conn = psycopg2.connect(
-                host=parsed.hostname,
-                port=parsed.port or 5432,
-                user=parsed.username,
-                password=parsed.password,
-                database=parsed.path[1:] if parsed.path else 'postgres'
-            )
-            conn.close()
-            print('✅ База данных доступна!')
-            break
-        except psycopg2.OperationalError:
-            attempt += 1
-            print(f'⏳ Попытка {attempt}/{max_attempts}: база данных недоступна, ждем...')
-            time.sleep(2)
-    else:
-        print('❌ Не удалось подключиться к базе данных')
-        exit(1)
-else:
-    print('⚠️ DATABASE_URL не установлен')
+# Создаем директорию если не существует
+if not os.path.exists(db_dir):
+    os.makedirs(db_dir, exist_ok=True)
+    print(f'✅ Создана директория: {db_dir}')
+
+# Проверяем доступность SQLite
+try:
+    conn = sqlite3.connect(db_path, timeout=10)
+    cursor = conn.cursor()
+    cursor.execute('SELECT 1')
+    conn.close()
+    print('✅ SQLite база данных доступна!')
+except Exception as e:
+    print(f'⚠️ Проблема с SQLite: {e}')
+    print('🔧 Создаем новую базу данных...')
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.close()
+        print('✅ SQLite база данных создана!')
+    except Exception as e2:
+        print(f'❌ Не удалось создать SQLite базу: {e2}')
 "
 
 # Применяем миграции Django
@@ -67,28 +62,14 @@ else
     echo "⚠️ Предупреждение: не удалось собрать статические файлы"
 fi
 
-# Инициализируем SQLAlchemy базу данных
-echo "🗄️ Инициализация SQLAlchemy базы данных..."
-if python manage.py init_sqlalchemy; then
-    echo "✅ SQLAlchemy инициализирована успешно"
+# Инициализируем SQLite базу данных
+echo "🗄️ Полная инициализация SQLite базы данных..."
+if python init_sqlite.py; then
+    echo "✅ SQLite база данных полностью инициализирована"
 else
-    echo "⚠️ Предупреждение: не удалось инициализировать SQLAlchemy"
-    echo "🔄 Пытаемся альтернативный способ..."
-    python -c "
-import os
-import django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mom_baby_bot.settings_prod')
-django.setup()
-
-try:
-    from botapp.models import Base
-    from django.conf import settings
-    Base.metadata.create_all(settings.SQLALCHEMY_ENGINE)
-    print('✅ SQLAlchemy таблицы созданы альтернативным способом')
-except Exception as e:
-    print(f'⚠️ Альтернативный способ также не удался: {e}')
-    print('🚀 Продолжаем запуск без SQLAlchemy...')
-"
+    echo "⚠️ Предупреждение: проблемы с инициализацией SQLite"
+    echo "🔄 Пытаемся базовую инициализацию..."
+    python manage.py init_sqlalchemy || echo "⚠️ Базовая инициализация также не удалась"
 fi
 
 echo "🎉 Инициализация завершена! Запуск приложения..."

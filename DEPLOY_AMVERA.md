@@ -32,32 +32,26 @@
 DEBUG=False
 DJANGO_SETTINGS_MODULE=mom_baby_bot.settings_prod
 SECRET_KEY=ваш-секретный-ключ-django
+```
+
+#### Опциональные переменные (для Telegram бота):
+```
 TELEGRAM_BOT_TOKEN=ваш-токен-бота
 ADMIN_IDS=список-id-администраторов-через-запятую
+WEBHOOK_URL=https://ваш-домен.amvera.ru/webhook
+WEBAPP_URL=https://ваш-домен.amvera.ru
 ```
 
 #### Настройки домена:
 ```
 ALLOWED_HOSTS=ваш-домен.amvera.ru,*.amvera.ru
-WEBHOOK_URL=https://ваш-домен.amvera.ru/webhook
-WEBAPP_URL=https://ваш-домен.amvera.ru
-```
-
-#### Дополнительные настройки:
-```
 USE_HTTPS=True
-LOG_LEVEL=INFO
-BOT_LOG_LEVEL=INFO
-DJANGO_LOG_LEVEL=WARNING
 ```
 
-### 3. Настройка сервисов
+### 3. База данных
 
-Amvera автоматически создаст и настроит:
-- PostgreSQL базу данных
-- Redis для кэширования
-
-Переменные `DATABASE_URL` и `REDIS_URL` будут установлены автоматически.
+Приложение использует SQLite базу данных, которая создается автоматически в контейнере.
+Никаких внешних сервисов баз данных не требуется.
 
 ### 4. Развертывание
 
