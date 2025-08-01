@@ -99,7 +99,7 @@ SQLALCHEMY_SESSION_FACTORY = None
 
 def get_sqlalchemy_engine():
     """Ленивое создание SQLAlchemy engine для production"""
-    global SQLALCHEMY_ENGINE
+    global SQLALCHEMY_ENGINE, SQLALCHEMY_DATABASE_URL
     if SQLALCHEMY_ENGINE is None:
         from sqlalchemy import create_engine
         
@@ -129,7 +129,6 @@ def get_sqlalchemy_engine():
                     conn = sqlite3.connect(fallback_path)
                     conn.close()
                     # Обновляем URL для fallback
-                    global SQLALCHEMY_DATABASE_URL
                     SQLALCHEMY_DATABASE_URL = f'sqlite:///{fallback_path}'
         
         SQLALCHEMY_ENGINE = create_engine(

@@ -18,7 +18,8 @@ deploy:
     ALLOWED_HOSTS: "*.amvera.ru,*.amvera.io"
     USE_HTTPS: "True"
     PYTHONUNBUFFERED: "1"
-    DATABASE_URL: "sqlite:////app/data/mom_baby_bot.db"
+    DATABASE_URL: "sqlite:////data/mom_baby_bot.db"
+    DATABASE_PATH: "/data/mom_baby_bot.db"
     # Дополнительные настройки для стабильности
     DJANGO_LOG_LEVEL: "INFO"
     BOT_LOG_LEVEL: "INFO"

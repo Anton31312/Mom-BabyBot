@@ -64,7 +64,7 @@ def create_tables():
         import os
 
         # Получаем URL базы данных
-        database_url = getattr(settings, 'SQLALCHEMY_DATABASE_URL', 'sqlite:////app/data/mom_baby_bot.db')
+        database_url = getattr(settings, 'SQLALCHEMY_DATABASE_URL', 'sqlite:////data/mom_baby_bot.db')
 
         # Для SQLite убеждаемся что файл существует
         if database_url.startswith('sqlite'):
@@ -143,7 +143,7 @@ def check_database_connection():
         import os
 
         # Получаем URL базы данных
-        database_url = getattr(settings, 'SQLALCHEMY_DATABASE_URL', 'sqlite:////app/data/mom_baby_bot.db')
+        database_url = getattr(settings, 'SQLALCHEMY_DATABASE_URL', 'sqlite:////data/mom_baby_bot.db')
 
         # Для SQLite проверяем/создаем директорию и файл
         if database_url.startswith('sqlite'):

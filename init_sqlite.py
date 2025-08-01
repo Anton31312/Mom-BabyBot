@@ -76,7 +76,7 @@ def create_sqlalchemy_tables():
             engine = settings.get_sqlalchemy_engine()
         else:
             from sqlalchemy import create_engine
-            engine = create_engine('sqlite:////app/data/mom_baby_bot.db')
+            engine = create_engine('sqlite:////data/mom_baby_bot.db')
         
         Base.metadata.create_all(engine)
         print("✅ SQLAlchemy таблицы созданы")
