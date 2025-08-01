@@ -62,7 +62,7 @@ import os
 
 # Создаем директорию для базы данных если не существует
 # Используем переменную окружения если она установлена
-DB_PATH = os.getenv('DATABASE_PATH', '/data/mom_baby_bot.db')
+DB_PATH = os.getenv('DATABASE_PATH', '/app/data/mom_baby_bot.db')
 DB_DIR = os.path.dirname(DB_PATH)
 
 # Создаем директорию если не существует
