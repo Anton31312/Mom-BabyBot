@@ -17,7 +17,7 @@ def check_database_access():
     
     # Пробуем несколько путей для базы данных
     possible_paths = [
-        '/data/mom_baby_bot.db',
+        '/app/data/mom_baby_bot.db',
         os.path.join(os.getcwd(), 'mom_baby_bot.db'),
         '/tmp/mom_baby_bot.db',
         '/var/tmp/mom_baby_bot.db'

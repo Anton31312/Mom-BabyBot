@@ -58,7 +58,8 @@ def check_directories():
     logger.info("📁 Проверка директорий...")
     
     dirs_to_check = [
-        '/data',
+        '/app',
+        '/app/data',
         '/tmp',
         os.getcwd()
     ]
