@@ -100,21 +100,33 @@ SQLALCHEMY_ENGINE_OPTIONS = {
     'echo': False,  # Отключаем в production
 }
 
-# Пересоздаем SQLAlchemy engine с новыми настройками
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+# SQLAlchemy engine и session factory будут созданы позже
+SQLALCHEMY_ENGINE = None
+SQLALCHEMY_SESSION_FACTORY = None
 
-SQLALCHEMY_ENGINE = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    **SQLALCHEMY_ENGINE_OPTIONS
-)
+def get_sqlalchemy_engine():
+    """Ленивое создание SQLAlchemy engine для production"""
+    global SQLALCHEMY_ENGINE
+    if SQLALCHEMY_ENGINE is None:
+        from sqlalchemy import create_engine
+        SQLALCHEMY_ENGINE = create_engine(
+            SQLALCHEMY_DATABASE_URL,
+            **SQLALCHEMY_ENGINE_OPTIONS
+        )
+    return SQLALCHEMY_ENGINE
 
-SQLALCHEMY_SESSION_FACTORY = sessionmaker(
-    bind=SQLALCHEMY_ENGINE,
-    autocommit=False,
-    autoflush=True,
-    expire_on_commit=False
-)
+def get_sqlalchemy_session_factory():
+    """Ленивое создание SQLAlchemy session factory для production"""
+    global SQLALCHEMY_SESSION_FACTORY
+    if SQLALCHEMY_SESSION_FACTORY is None:
+        from sqlalchemy.orm import sessionmaker
+        SQLALCHEMY_SESSION_FACTORY = sessionmaker(
+            bind=get_sqlalchemy_engine(),
+            autocommit=False,
+            autoflush=True,
+            expire_on_commit=False
+        )
+    return SQLALCHEMY_SESSION_FACTORY
 
 # Logging settings for production
 LOGGING = {

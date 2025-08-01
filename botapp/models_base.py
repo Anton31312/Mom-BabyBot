@@ -25,13 +25,15 @@ class SQLAlchemyManager:
     def __init__(self):
         self.engine = None
         self.Session = None
-        self._setup_engine()
+        # Не инициализируем engine автоматически
     
-    def _setup_engine(self):
-        """Настройка SQLAlchemy engine"""
+    def setup_engine(self, database_url=None):
+        """Настройка SQLAlchemy engine (вызывается вручную)"""
         try:
-            # Получаем URL базы данных из переменных окружения
-            database_url = os.getenv('DATABASE_URL', 'sqlite:///data/mom_baby_bot.db')
+            # Получаем URL базы данных
+            if database_url is None:
+                database_url = os.getenv('DATABASE_URL', 'sqlite:///data/mom_baby_bot.db')
+            
             logger.info(f"Connecting to database: {database_url}")
             
             # Настройки для разных типов баз данных
@@ -65,6 +67,8 @@ class SQLAlchemyManager:
     def create_tables(self):
         """Создание всех таблиц"""
         try:
+            if self.engine is None:
+                raise Exception("Engine not initialized. Call setup_engine() first.")
             Base.metadata.create_all(self.engine)
             logger.info("Database tables created successfully")
         except Exception as e:
@@ -73,6 +77,8 @@ class SQLAlchemyManager:
     
     def get_session(self):
         """Получение новой сессии SQLAlchemy"""
+        if self.Session is None:
+            raise Exception("Session factory not initialized. Call setup_engine() first.")
         return self.Session()
     
     def close_session(self, session):

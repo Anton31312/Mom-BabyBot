@@ -32,29 +32,34 @@ class Command(BaseCommand):
             from botapp.models import User, Base
             from botapp.models_child import Child, Measurement
             
-            # Создаем engine
-            self.stdout.write("🔗 Создание SQLAlchemy engine...")
-            from sqlalchemy import create_engine, text
+            # Используем ленивую инициализацию из настроек
+            self.stdout.write("🔗 Инициализация SQLAlchemy engine...")
+            from django.conf import settings
             
-            if database_url.startswith('postgresql'):
-                engine_options = {
-                    'pool_pre_ping': True,
-                    'pool_recycle': 300,
-                    'pool_size': 5,
-                    'max_overflow': 10,
-                    'echo': False
-                }
+            if hasattr(settings, 'get_sqlalchemy_engine'):
+                engine = settings.get_sqlalchemy_engine()
             else:
-                engine_options = {
-                    'pool_pre_ping': True,
-                    'pool_recycle': 300,
-                    'echo': False
-                }
-            
-            engine = create_engine(database_url, **engine_options)
+                # Fallback для старых настроек
+                from sqlalchemy import create_engine
+                if database_url.startswith('postgresql'):
+                    engine_options = {
+                        'pool_pre_ping': True,
+                        'pool_recycle': 300,
+                        'pool_size': 5,
+                        'max_overflow': 10,
+                        'echo': False
+                    }
+                else:
+                    engine_options = {
+                        'pool_pre_ping': True,
+                        'pool_recycle': 300,
+                        'echo': False
+                    }
+                engine = create_engine(database_url, **engine_options)
             
             # Проверяем подключение
             self.stdout.write("🔍 Проверка подключения...")
+            from sqlalchemy import text
             with engine.connect() as connection:
                 connection.execute(text("SELECT 1"))
             self.stdout.write(self.style.SUCCESS("✅ Подключение работает"))
@@ -73,6 +78,12 @@ class Command(BaseCommand):
             db_manager.engine = engine
             from sqlalchemy.orm import sessionmaker
             db_manager.Session = sessionmaker(bind=engine)
+            
+            # Обновляем настройки Django
+            if hasattr(settings, 'get_sqlalchemy_session_factory'):
+                # Принудительно пересоздаем session factory
+                settings.SQLALCHEMY_SESSION_FACTORY = None
+                settings.get_sqlalchemy_session_factory()
             
             self.stdout.write(self.style.SUCCESS("🎉 SQLAlchemy успешно инициализирована!"))
             

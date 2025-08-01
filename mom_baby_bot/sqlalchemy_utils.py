@@ -27,7 +27,13 @@ def get_sqlalchemy_session():
             user = session.query(User).first()
             # ... do work with session
     """
-    session = settings.SQLALCHEMY_SESSION_FACTORY()
+    # Используем ленивую инициализацию
+    if hasattr(settings, 'get_sqlalchemy_session_factory'):
+        session_factory = settings.get_sqlalchemy_session_factory()
+    else:
+        session_factory = settings.SQLALCHEMY_SESSION_FACTORY
+    
+    session = session_factory()
     
     try:
         yield session
@@ -55,8 +61,14 @@ def create_tables():
         # Import all models to ensure they are registered
         from botapp.models import Base
         
+        # Используем ленивую инициализацию engine
+        if hasattr(settings, 'get_sqlalchemy_engine'):
+            engine = settings.get_sqlalchemy_engine()
+        else:
+            engine = settings.SQLALCHEMY_ENGINE
+        
         # Create all tables
-        Base.metadata.create_all(bind=settings.SQLALCHEMY_ENGINE)
+        Base.metadata.create_all(bind=engine)
         logger.info("SQLAlchemy tables created successfully")
         
     except Exception as e:
@@ -75,8 +87,14 @@ def drop_tables():
         # Import all models to ensure they are registered
         from botapp.models import Base
         
+        # Используем ленивую инициализацию engine
+        if hasattr(settings, 'get_sqlalchemy_engine'):
+            engine = settings.get_sqlalchemy_engine()
+        else:
+            engine = settings.SQLALCHEMY_ENGINE
+        
         # Drop all tables
-        Base.metadata.drop_all(bind=settings.SQLALCHEMY_ENGINE)
+        Base.metadata.drop_all(bind=engine)
         logger.warning("SQLAlchemy tables dropped")
         
     except Exception as e:
@@ -93,8 +111,13 @@ def check_database_connection():
     """
     try:
         from sqlalchemy import text
-        # Используем engine из настроек Django
-        with settings.SQLALCHEMY_ENGINE.connect() as connection:
+        # Используем ленивую инициализацию engine
+        if hasattr(settings, 'get_sqlalchemy_engine'):
+            engine = settings.get_sqlalchemy_engine()
+        else:
+            engine = settings.SQLALCHEMY_ENGINE
+            
+        with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
         logger.info("Database connection check passed")
         return True

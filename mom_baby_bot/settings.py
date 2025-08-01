@@ -207,26 +207,38 @@ else:
         'echo': DEBUG,
     }
 
-# Создание SQLAlchemy engine с настройками
-SQLALCHEMY_ENGINE = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    **SQLALCHEMY_ENGINE_OPTIONS
-)
+# SQLAlchemy engine и session factory будут созданы позже
+# через management команды или при первом использовании
+SQLALCHEMY_ENGINE = None
+SQLALCHEMY_SESSION_FACTORY = None
 
-# Создание фабрики сессий SQLAlchemy
-SQLALCHEMY_SESSION_FACTORY = sessionmaker(
-    bind=SQLALCHEMY_ENGINE,
-    autocommit=False,
-    autoflush=True,
-    expire_on_commit=False  # Предотвращает истечение объектов после коммита
-)
+def get_sqlalchemy_engine():
+    """Ленивое создание SQLAlchemy engine"""
+    global SQLALCHEMY_ENGINE
+    if SQLALCHEMY_ENGINE is None:
+        SQLALCHEMY_ENGINE = create_engine(
+            SQLALCHEMY_DATABASE_URL,
+            **SQLALCHEMY_ENGINE_OPTIONS
+        )
+    return SQLALCHEMY_ENGINE
+
+def get_sqlalchemy_session_factory():
+    """Ленивое создание SQLAlchemy session factory"""
+    global SQLALCHEMY_SESSION_FACTORY
+    if SQLALCHEMY_SESSION_FACTORY is None:
+        SQLALCHEMY_SESSION_FACTORY = sessionmaker(
+            bind=get_sqlalchemy_engine(),
+            autocommit=False,
+            autoflush=True,
+            expire_on_commit=False  # Предотвращает истечение объектов после коммита
+        )
+    return SQLALCHEMY_SESSION_FACTORY
 
 # Конфигурация сессий SQLAlchemy
 SQLALCHEMY_SESSION_OPTIONS = {
     'autocommit': False,
     'autoflush': True,
     'expire_on_commit': False,
-    'bind': SQLALCHEMY_ENGINE
 }
 
 # Настройки для миграций SQLAlchemy
