@@ -11,7 +11,7 @@ def create_sqlite_db():
     """Создание SQLite базы данных"""
     print("🗄️ Создание SQLite базы данных...")
     
-    db_path = '/app/data/mom_baby_bot.db'
+    db_path = '/data/mom_baby_bot.db'
     db_dir = os.path.dirname(db_path)
     
     try:
