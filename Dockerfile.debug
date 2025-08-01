@@ -1,4 +1,4 @@
-# Используем Python 3.11 для лучшей производительности
+# Debug версия Dockerfile для диагностики проблем
 FROM python:3.11-slim
 
 # Устанавливаем переменные окружения
@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     postgresql-client \
     curl \
+    vim \
     && rm -rf /var/lib/apt/lists/*
 
 # Копируем и устанавливаем Python зависимости
@@ -29,10 +30,7 @@ COPY . .
 # Создаем необходимые директории
 RUN mkdir -p /app/staticfiles /app/media /app/logs /app/data
 
-# Собираем статические файлы (только если есть статика)
-RUN python manage.py collectstatic --noinput --clear || true
-
-# Делаем startup скрипты исполняемыми
+# Делаем скрипты исполняемыми
 RUN chmod +x start.sh start_simple.sh
 
 # Создаем пользователя для безопасности
@@ -40,12 +38,8 @@ RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
-# Открываем порт (Amvera автоматически определяет порт из переменной PORT)
+# Открываем порт
 EXPOSE $PORT
 
-# Healthcheck для мониторинга
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:$PORT/health/ || exit 1
-
-# Запускаем приложение через startup скрипт
-CMD ["./start.sh"]
+# Простой запуск для отладки
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
