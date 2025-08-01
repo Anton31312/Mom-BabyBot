@@ -93,13 +93,10 @@ SQLALCHEMY_ENGINE_OPTIONS = {
     }
 }
 
-# SQLAlchemy engine и session factory будут созданы позже
-SQLALCHEMY_ENGINE = None
-SQLALCHEMY_SESSION_FACTORY = None
-
 def get_sqlalchemy_engine():
     """Ленивое создание SQLAlchemy engine для production"""
     global SQLALCHEMY_ENGINE, SQLALCHEMY_DATABASE_URL
+    
     if SQLALCHEMY_ENGINE is None:
         from sqlalchemy import create_engine
         
