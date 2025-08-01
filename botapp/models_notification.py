@@ -43,7 +43,7 @@ class NotificationPreference(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
+    # Связи
     user = relationship("User", backref="notification_preferences")
     
     def __repr__(self):
@@ -61,14 +61,14 @@ class NotificationLog(Base):
     
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    notification_type = Column(String(50), nullable=False)  # sleep, feeding, contraction, kick, vaccine
+    notification_type = Column(String(50), nullable=False)  # сон, кормление, схватки, шевеления, прививки
     entity_id = Column(Integer)  # ID связанной сущности (сессии сна, кормления и т.д.)
     channel = Column(String(20), nullable=False)  # telegram, web
     content = Column(Text)
     sent_at = Column(DateTime, default=datetime.utcnow)
-    status = Column(String(20), default='sent')  # sent, failed, delivered
+    status = Column(String(20), default='sent')  # отправлено, ошибка, доставлено
     
-    # Relationships
+    # Связи
     user = relationship("User", backref="notification_logs")
     
     def __repr__(self):

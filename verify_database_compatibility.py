@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Database compatibility verification script for Mom&BabyBot Django migration.
-This script checks if the existing database is compatible with the migrated application.
+Скрипт проверки совместимости базы данных для миграции Mom&BabyBot Django.
+Этот скрипт проверяет, совместима ли существующая база данных с мигрированным приложением.
 """
 
 import os
@@ -10,18 +10,18 @@ import sqlite3
 from pathlib import Path
 from datetime import datetime
 
-# Add the project root to Python path
+# Добавление корневой директории проекта в Python path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-# Set Django settings module
+# Установка модуля настроек Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mom_baby_bot.settings')
 
 def check_database_files():
-    """Check for database files and their structure"""
+    """Проверка файлов базы данных и их структуры"""
     print("🔍 Checking database files...")
     
-    db_files = ['mom_baby_bot.db', 'db.sqlite3', 'instance/mom_baby_bot.db']
+    db_files = ['data/mom_baby_bot.db', 'db.sqlite3', 'instance/mom_baby_bot.db']
     found_dbs = []
     
     for db_file in db_files:
@@ -37,24 +37,24 @@ def check_database_files():
     return found_dbs
 
 def check_table_structure(db_file):
-    """Check the structure of tables in the database"""
+    """Проверка структуры таблиц в базе данных"""
     print(f"\n📊 Checking table structure in {db_file}...")
     
     try:
         conn = sqlite3.connect(db_file)
         cursor = conn.cursor()
         
-        # Get list of tables
+        # Получение списка таблиц
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = [row[0] for row in cursor.fetchall()]
         
         print(f"Found tables: {', '.join(tables)}")
         
-        # Check users table
+        # Проверка таблицы пользователей
         if 'users' in tables:
             print("✅ Users table exists")
             
-            # Check columns
+            # Проверка столбцов
             cursor.execute("PRAGMA table_info(users);")
             columns = {row[1]: row[2] for row in cursor.fetchall()}
             
@@ -62,7 +62,7 @@ def check_table_structure(db_file):
             for col_name, col_type in columns.items():
                 print(f"  - {col_name} ({col_type})")
             
-            # Check for required columns
+            # Проверка обязательных столбцов
             required_columns = {
                 'id': 'INTEGER',
                 'telegram_id': 'INTEGER',
@@ -88,11 +88,11 @@ def check_table_structure(db_file):
             else:
                 print("✅ All required columns exist")
             
-            # Check for old baby_age column
+            # Проверка старого столбца baby_age
             if 'baby_age' in columns:
                 print("⚠️ Old 'baby_age' column found. This should be migrated to 'baby_birth_date'")
             
-            # Check data
+            # Проверка данных
             cursor.execute("SELECT COUNT(*) FROM users;")
             user_count = cursor.fetchone()[0]
             print(f"\nFound {user_count} users in database")
@@ -113,7 +113,7 @@ def check_table_structure(db_file):
         print(f"❌ Error checking database structure: {e}")
 
 def test_sqlalchemy_connection():
-    """Test SQLAlchemy connection to the database"""
+    """Тестирование подключения SQLAlchemy к базе данных"""
     print("\n🔌 Testing SQLAlchemy connection...")
     
     try:
@@ -122,33 +122,33 @@ def test_sqlalchemy_connection():
         
         from botapp.models import db_manager
         
-        # Test connection
+        # Тестирование соединения
         session = db_manager.get_session()
         try:
-            # Test simple query
+            # Тестирование простого запроса
             from botapp.models import User
             user_count = session.query(User).count()
             print(f"✅ SQLAlchemy connection successful. Found {user_count} users.")
             
-            # Check if tables exist
+            # Проверка существования таблиц
             from sqlalchemy import inspect
             inspector = inspect(db_manager.engine)
             tables = inspector.get_table_names()
             print(f"Tables in database: {', '.join(tables)}")
             
             if 'users' in tables:
-                # Get column information
+                # Получение информации о столбцах
                 columns = inspector.get_columns('users')
                 column_names = [col['name'] for col in columns]
                 print(f"Columns in users table: {', '.join(column_names)}")
                 
-                # Check for baby_birth_date column
+                # Проверка столбца baby_birth_date
                 if 'baby_birth_date' in column_names:
                     print("✅ baby_birth_date column exists")
                 else:
                     print("⚠️ baby_birth_date column not found")
                 
-                # Check for old baby_age column
+                # Проверка старого столбца baby_age
                 if 'baby_age' in column_names:
                     print("⚠️ Old baby_age column still exists")
             
@@ -159,7 +159,7 @@ def test_sqlalchemy_connection():
         print(f"❌ Error testing SQLAlchemy connection: {e}")
 
 def check_data_migration():
-    """Check if data migration is needed"""
+    """Проверка необходимости миграции данных"""
     print("\n🔄 Checking if data migration is needed...")
     
     try:
@@ -170,13 +170,13 @@ def check_data_migration():
         
         session = db_manager.get_session()
         try:
-            # Check if any users have baby_birth_date set
+            # Проверка наличия установленного baby_birth_date у пользователей
             from sqlalchemy import inspect
             inspector = inspect(db_manager.engine)
             columns = [col['name'] for col in inspector.get_columns('users')]
             
             if 'baby_birth_date' in columns and 'baby_age' in columns:
-                # Both columns exist, check if migration is needed
+                # Оба столбца существуют, проверяем необходимость миграции
                 users_with_age = session.query(User).filter(
                     User.baby_age.isnot(None),
                     User.baby_birth_date.is_(None)
@@ -200,22 +200,22 @@ def check_data_migration():
         print(f"❌ Error checking data migration: {e}")
 
 def main():
-    """Main function"""
+    """Основная функция"""
     print("=" * 60)
     print("Mom&BabyBot Database Compatibility Verification")
     print("=" * 60)
     
-    # Check database files
+    # Проверка файлов базы данных
     db_files = check_database_files()
     
-    # Check table structure for each database file
+    # Проверка структуры таблиц для каждого файла базы данных
     for db_file in db_files:
         check_table_structure(db_file)
     
-    # Test SQLAlchemy connection
+    # Тестирование подключения SQLAlchemy
     test_sqlalchemy_connection()
     
-    # Check if data migration is needed
+    # Проверка необходимости миграции данных
     check_data_migration()
     
     print("\n" + "=" * 60)

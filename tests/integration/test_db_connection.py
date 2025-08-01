@@ -11,7 +11,7 @@ def test_sqlite_connection():
     """Test SQLite database connection."""
     print("Testing SQLite database connection...")
     
-    db_path = os.getenv('DB_NAME', 'mom_baby_bot.db')
+    db_path = os.getenv('DB_NAME', 'data/mom_baby_bot.db')
     print(f"Database path: {db_path}")
     
     try:

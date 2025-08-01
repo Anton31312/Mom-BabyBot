@@ -29,7 +29,7 @@ def find_database_files():
     """Поиск файлов базы данных"""
     logger.info("Поиск файлов базы данных...")
     
-    db_files = ['mom_baby_bot.db', 'db.sqlite3', 'instance/mom_baby_bot.db']
+    db_files = ['data/mom_baby_bot.db', 'db.sqlite3', 'instance/mom_baby_bot.db']
     found_dbs = []
     
     for db_file in db_files:

@@ -42,7 +42,7 @@ pip install -r requirements.txt
 4. Создайте файл `.env` в корневой директории проекта и добавьте необходимые переменные окружения:
 ```env
 TELEGRAM_TOKEN=your_telegram_bot_token
-DATABASE_URL=sqlite:///mom_baby_bot.db
+DATABASE_URL=sqlite:///data/mom_baby_bot.db
 DJANGO_SECRET_KEY=your_django_secret_key
 DEBUG=True
 ```

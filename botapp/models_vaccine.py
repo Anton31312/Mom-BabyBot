@@ -29,7 +29,7 @@ class Vaccine(Base):
     updated_at = Column(DateTime, default=datetime.utcnow,
                         onupdate=datetime.utcnow)
 
-    # Relationships
+    # Связи
     child_vaccines = relationship(
         "ChildVaccine", back_populates="vaccine", cascade="all, delete-orphan")
 
@@ -56,7 +56,7 @@ class ChildVaccine(Base):
     updated_at = Column(DateTime, default=datetime.utcnow,
                         onupdate=datetime.utcnow)
 
-    # Relationships
+    # Связи
     child = relationship("Child", back_populates="vaccines")
     vaccine = relationship("Vaccine", back_populates="child_vaccines")
 

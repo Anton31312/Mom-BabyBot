@@ -47,7 +47,7 @@ def create_mo_file(po_file_path, mo_file_path):
             print("Создаем пустой .mo файл")
             # Создаем минимальный пустой .mo файл
             with open(mo_file_path, 'wb') as f:
-                # Magic number + version + 0 strings + offsets
+                # Магическое число + версия + 0 строк + смещения
                 f.write(b'\xde\x12\x04\x95\x00\x00\x00\x00\x00\x00\x00\x00\x1c\x00\x00\x00\x1c\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
             return
         
@@ -66,13 +66,13 @@ def create_mo_file(po_file_path, mo_file_path):
             valuestart += len(k)
         
         # Создаем заголовок
-        output = struct.pack('<I', 0x950412de)  # Magic number
-        output += struct.pack('<I', 0)  # Version
-        output += struct.pack('<I', len(keys))  # Number of entries
-        output += struct.pack('<I', 7 * 4)  # Offset of key table
-        output += struct.pack('<I', 7 * 4 + 8 * len(keys))  # Offset of value table
-        output += struct.pack('<I', 0)  # Hash table size
-        output += struct.pack('<I', 0)  # Hash table offset
+        output = struct.pack('<I', 0x950412de)  # Магическое число
+        output += struct.pack('<I', 0)  # Версия
+        output += struct.pack('<I', len(keys))  # Количество записей
+        output += struct.pack('<I', 7 * 4)  # Смещение таблицы ключей
+        output += struct.pack('<I', 7 * 4 + 8 * len(keys))  # Смещение таблицы значений
+        output += struct.pack('<I', 0)  # Размер хеш-таблицы
+        output += struct.pack('<I', 0)  # Смещение хеш-таблицы
         
         # Создаем таблицы ключей и значений
         koffsets = []

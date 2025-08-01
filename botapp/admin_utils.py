@@ -26,7 +26,7 @@ from sqlalchemy.sql.elements import BinaryExpression
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.engine.result import Result
 
-# Custom LRU cache with TTL
+# Пользовательский LRU кеш с TTL
 def lru_cache(maxsize=128, ttl=None):
     """
     Декоратор для кэширования результатов функции с ограничением времени жизни.

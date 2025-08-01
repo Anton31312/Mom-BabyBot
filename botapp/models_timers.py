@@ -26,7 +26,7 @@ class Contraction(Base):
     end_time = Column(DateTime)
     notes = Column(String(255))
     
-    # Relationships
+    # Связи
     user = relationship("User", backref="contractions")
     contraction_events = relationship("ContractionEvent", back_populates="session", cascade="all, delete-orphan")
     
@@ -81,7 +81,7 @@ class ContractionEvent(Base):
     duration = Column(Integer)  # продолжительность в секундах
     intensity = Column(Integer)  # шкала интенсивности от 1 до 10
     
-    # Relationships
+    # Связи
     session = relationship("Contraction", back_populates="contraction_events")
     
     def __repr__(self):
@@ -103,7 +103,7 @@ class Kick(Base):
     end_time = Column(DateTime)
     notes = Column(String(255))
     
-    # Relationships
+    # Связи
     user = relationship("User", backref="kicks")
     kick_events = relationship("KickEvent", back_populates="session", cascade="all, delete-orphan")
     
@@ -139,7 +139,7 @@ class KickEvent(Base):
     timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)
     intensity = Column(Integer)  # шкала интенсивности от 1 до 10
     
-    # Relationships
+    # Связи
     session = relationship("Kick", back_populates="kick_events")
     
     def __repr__(self):
@@ -163,7 +163,7 @@ class SleepSession(Base):
     quality = Column(Integer)  # шкала качества от 1 до 5
     notes = Column(String(255))
     
-    # Relationships
+    # Связи
     child = relationship("Child", backref="sleep_sessions")
     
     def __repr__(self):
@@ -210,7 +210,7 @@ class FeedingSession(Base):
     right_timer_active = Column(Boolean, default=False)  # активен ли таймер правой груди
     last_active_breast = Column(String(5))  # последняя активная грудь ('left' или 'right')
     
-    # Relationships
+    # Связи
     child = relationship("Child", backref="feeding_sessions")
     
     def __repr__(self):

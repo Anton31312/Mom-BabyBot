@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """
-Script to generate an accessibility report for the application.
+Скрипт для генерации отчета о доступности приложения.
 
-This script:
-1. Scans all HTML templates for accessibility issues
-2. Checks for common accessibility problems
-3. Generates a comprehensive report with recommendations
+Этот скрипт:
+1. Сканирует все HTML шаблоны на предмет проблем доступности
+2. Проверяет распространенные проблемы доступности
+3. Генерирует подробный отчет с рекомендациями
 """
 
 import os
@@ -17,7 +17,7 @@ from pathlib import Path
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
-# Check if required packages are installed
+# Проверка установки необходимых пакетов
 try:
     from bs4 import BeautifulSoup
     import colorama
@@ -30,35 +30,35 @@ except ImportError:
     import colorama
     from colorama import Fore, Style
 
-# Initialize colorama
+# Инициализация colorama
 colorama.init()
 
-# Set paths
+# Настройка путей
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "webapp" / "templates"
 REPORTS_DIR = BASE_DIR / "accessibility_reports"
 
-# Create reports directory if it doesn't exist
+# Создание директории для отчетов, если она не существует
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Accessibility checks
+# Проверки доступности
 class AccessibilityChecker:
     def __init__(self):
         self.issues = []
     
     def check_file(self, file_path):
-        """Check a single file for accessibility issues."""
+        """Проверка одного файла на проблемы доступности."""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             
-            # Parse HTML
+            # Парсинг HTML
             soup = BeautifulSoup(content, 'html.parser')
             
-            # Get relative path for reporting
+            # Получение относительного пути для отчета
             rel_path = file_path.relative_to(BASE_DIR)
             
-            # Run checks
+            # Запуск проверок
             self._check_images_alt(soup, rel_path)
             self._check_form_labels(soup, rel_path)
             self._check_heading_hierarchy(soup, rel_path)
@@ -83,7 +83,7 @@ class AccessibilityChecker:
             return 1
     
     def _check_images_alt(self, soup, file_path):
-        """Check if all images have alt attributes."""
+        """Проверка наличия alt атрибутов у всех изображений."""
         images = soup.find_all('img')
         for img in images:
             if not img.has_attr('alt'):
@@ -94,14 +94,14 @@ class AccessibilityChecker:
                                'Add an alt attribute to describe the image or use alt="" for decorative images.')
     
     def _check_form_labels(self, soup, file_path):
-        """Check if all form inputs have associated labels."""
+        """Проверка наличия связанных меток у всех элементов форм."""
         inputs = soup.find_all(['input', 'select', 'textarea'])
         for input_elem in inputs:
-            # Skip hidden inputs and submit/button types
+            # Пропускаем скрытые поля ввода и кнопки
             if input_elem.has_attr('type') and input_elem['type'] in ['hidden', 'submit', 'button', 'reset']:
                 continue
             
-            # Check for id attribute
+            # Проверка наличия атрибута id
             if not input_elem.has_attr('id'):
                 self._add_issue(file_path, 'missing-label', 
                                f"Form control without id attribute: {input_elem}", 
@@ -110,7 +110,7 @@ class AccessibilityChecker:
                                'Add an id attribute to the input and a corresponding label element.')
                 continue
             
-            # Check for associated label
+            # Проверка наличия связанной метки
             input_id = input_elem['id']
             label = soup.find('label', attrs={'for': input_id})
             if not label:
@@ -121,12 +121,12 @@ class AccessibilityChecker:
                                f"Add a label element with for='{input_id}' attribute.")
     
     def _check_heading_hierarchy(self, soup, file_path):
-        """Check for proper heading hierarchy."""
+        """Проверка правильной иерархии заголовков."""
         headings = soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
         if not headings:
             return
         
-        # Check if h1 exists
+        # Проверка существования h1
         if not soup.find('h1'):
             self._add_issue(file_path, 'missing-h1', 
                            "No h1 heading found in the document", 
@@ -134,12 +134,12 @@ class AccessibilityChecker:
                            'medium',
                            'Add an h1 heading as the main title of the page.')
         
-        # Check heading order
+        # Проверка порядка заголовков
         current_level = 0
         for heading in headings:
             level = int(heading.name[1])
             
-            # First heading should be h1
+            # Первый заголовок должен быть h1
             if current_level == 0 and level != 1:
                 self._add_issue(file_path, 'wrong-heading-order', 
                                f"First heading is {heading.name} instead of h1", 
@@ -147,7 +147,7 @@ class AccessibilityChecker:
                                'medium',
                                'Start with an h1 heading as the main title of the page.')
             
-            # Heading levels should not skip
+            # Уровни заголовков не должны пропускаться
             elif current_level > 0 and level > current_level + 1:
                 self._add_issue(file_path, 'skipped-heading-level', 
                                f"Heading level skipped from h{current_level} to {heading.name}", 
@@ -158,8 +158,8 @@ class AccessibilityChecker:
             current_level = level
     
     def _check_color_contrast(self, soup, file_path):
-        """Check for potential color contrast issues (basic check)."""
-        # Look for inline styles with color definitions
+        """Проверка потенциальных проблем с контрастностью цветов (базовая проверка)."""
+        # Поиск встроенных стилей с определениями цветов
         elements_with_style = soup.find_all(style=True)
         for elem in elements_with_style:
             style = elem['style']
@@ -171,11 +171,11 @@ class AccessibilityChecker:
                                'Ensure sufficient color contrast (4.5:1 for normal text, 3:1 for large text).')
     
     def _check_aria_attributes(self, soup, file_path):
-        """Check for proper ARIA attributes."""
-        # Check for aria-* attributes
+        """Проверка правильности ARIA атрибутов."""
+        # Проверка aria-* атрибутов
         elements_with_aria = soup.find_all(lambda tag: any(attr.startswith('aria-') for attr in tag.attrs))
         for elem in elements_with_aria:
-            # Check for aria-hidden="true" on focusable elements
+            # Проверка aria-hidden="true" на фокусируемых элементах
             if elem.has_attr('aria-hidden') and elem['aria-hidden'] == 'true':
                 if elem.name in ['a', 'button', 'input', 'select', 'textarea'] or elem.has_attr('tabindex'):
                     self._add_issue(file_path, 'aria-hidden-focusable', 
@@ -185,7 +185,7 @@ class AccessibilityChecker:
                                    'Remove aria-hidden from focusable elements or make them non-focusable.')
     
     def _check_language(self, soup, file_path):
-        """Check if the document has a language attribute."""
+        """Проверка наличия атрибута языка в документе."""
         html = soup.find('html')
         if html and not html.has_attr('lang'):
             self._add_issue(file_path, 'missing-lang', 
@@ -195,7 +195,7 @@ class AccessibilityChecker:
                            'Add a lang attribute to the html element, e.g., <html lang="en">.')
     
     def _check_document_title(self, soup, file_path):
-        """Check if the document has a title."""
+        """Проверка наличия заголовка документа."""
         if not soup.find('title'):
             self._add_issue(file_path, 'missing-title', 
                            "Document missing title element", 
@@ -204,10 +204,10 @@ class AccessibilityChecker:
                            'Add a descriptive title element within the head section.')
     
     def _check_links(self, soup, file_path):
-        """Check links for accessibility issues."""
+        """Проверка ссылок на проблемы доступности."""
         links = soup.find_all('a')
         for link in links:
-            # Check for empty links
+            # Проверка пустых ссылок
             if not link.get_text(strip=True) and not link.find('img'):
                 self._add_issue(file_path, 'empty-link', 
                                f"Link without text content: {link}", 
@@ -215,7 +215,7 @@ class AccessibilityChecker:
                                'high',
                                'Add text content to the link or an image with alt text.')
             
-            # Check for generic link text
+            # Проверка общего текста ссылок
             text = link.get_text(strip=True).lower()
             if text in ['click here', 'here', 'more', 'read more', 'link']:
                 self._add_issue(file_path, 'generic-link-text', 
@@ -225,10 +225,10 @@ class AccessibilityChecker:
                                'Use descriptive link text that makes sense out of context.')
     
     def _check_tables(self, soup, file_path):
-        """Check tables for accessibility issues."""
+        """Проверка таблиц на проблемы доступности."""
         tables = soup.find_all('table')
         for table in tables:
-            # Check for table headers
+            # Проверка заголовков таблиц
             if not table.find('th'):
                 self._add_issue(file_path, 'missing-table-headers', 
                                "Table without header cells (th)", 
@@ -236,7 +236,7 @@ class AccessibilityChecker:
                                'medium',
                                'Add th elements to identify table headers.')
             
-            # Check for caption
+            # Проверка подписи таблицы
             if not table.find('caption'):
                 self._add_issue(file_path, 'missing-table-caption', 
                                "Table without caption", 
@@ -245,11 +245,11 @@ class AccessibilityChecker:
                                'Add a caption element to describe the table content.')
     
     def _get_line_number(self, element):
-        """Get approximate line number for an element (if available)."""
-        return 0  # Simplified version
+        """Получение приблизительного номера строки для элемента (если доступно)."""
+        return 0  # Упрощенная версия
     
     def _add_issue(self, file_path, issue_type, description, line, severity, recommendation):
-        """Add an issue to the list."""
+        """Добавление проблемы в список."""
         self.issues.append({
             'file': str(file_path),
             'type': issue_type,
@@ -260,27 +260,27 @@ class AccessibilityChecker:
         })
 
 def scan_templates(templates_dir):
-    """Scan all template files for accessibility issues."""
+    """Сканирование всех файлов шаблонов на проблемы доступности."""
     checker = AccessibilityChecker()
     template_files = []
     
-    # Find all HTML files
+    # Поиск всех HTML файлов
     for root, _, files in os.walk(templates_dir):
         for file in files:
             if file.endswith('.html'):
                 template_files.append(Path(root) / file)
     
-    # Process files in parallel
+    # Параллельная обработка файлов
     with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
         results = list(executor.map(checker.check_file, template_files))
     
     return checker.issues, sum(results), len(template_files)
 
 def generate_report(issues, total_issues, total_files):
-    """Generate HTML and JSON reports."""
+    """Генерация HTML и JSON отчетов."""
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
-    # Save JSON report
+    # Сохранение JSON отчета
     json_report_path = REPORTS_DIR / f"accessibility_report_{timestamp}.json"
     with open(json_report_path, 'w', encoding='utf-8') as f:
         json.dump({
@@ -297,10 +297,10 @@ def generate_report(issues, total_issues, total_files):
             'issues': issues
         }, f, indent=2)
     
-    # Save HTML report
+    # Сохранение HTML отчета
     html_report_path = REPORTS_DIR / f"accessibility_report_{timestamp}.html"
     
-    # Group issues by file
+    # Группировка проблем по файлам
     issues_by_file = {}
     for issue in issues:
         file_path = issue['file']
@@ -308,7 +308,7 @@ def generate_report(issues, total_issues, total_files):
             issues_by_file[file_path] = []
         issues_by_file[file_path].append(issue)
     
-    # Generate HTML
+    # Генерация HTML
     html = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -350,7 +350,7 @@ def generate_report(issues, total_issues, total_files):
         <h2>Issues by File</h2>
     """
     
-    # Sort files by number of issues (descending)
+    # Сортировка файлов по количеству проблем (по убыванию)
     sorted_files = sorted(issues_by_file.items(), key=lambda x: len(x[1]), reverse=True)
     
     for file_path, file_issues in sorted_files:
@@ -360,7 +360,7 @@ def generate_report(issues, total_issues, total_files):
             <p>Issues: {len(file_issues)}</p>
         """
         
-        # Sort issues by severity
+        # Сортировка проблем по серьезности
         severity_order = {'high': 0, 'medium': 1, 'low': 2}
         sorted_issues = sorted(file_issues, key=lambda x: severity_order.get(x['severity'], 3))
         
@@ -393,7 +393,7 @@ def generate_report(issues, total_issues, total_files):
     return json_report_path, html_report_path
 
 def print_summary(issues, total_issues, total_files, json_report_path, html_report_path):
-    """Print a summary of the accessibility scan."""
+    """Вывод сводки сканирования доступности."""
     high_issues = sum(1 for issue in issues if issue['severity'] == 'high')
     medium_issues = sum(1 for issue in issues if issue['severity'] == 'medium')
     low_issues = sum(1 for issue in issues if issue['severity'] == 'low')
@@ -425,7 +425,7 @@ def print_summary(issues, total_issues, total_files, json_report_path, html_repo
     print("=" * 80)
 
 def main():
-    """Main function to run accessibility checks."""
+    """Основная функция для запуска проверок доступности."""
     parser = argparse.ArgumentParser(description="Generate accessibility report")
     parser.add_argument("--templates-dir", default=str(TEMPLATES_DIR), help="Directory containing HTML templates")
     args = parser.parse_args()

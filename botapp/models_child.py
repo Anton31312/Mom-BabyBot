@@ -27,7 +27,7 @@ class Child(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
+    # Связи
     measurements = relationship("Measurement", back_populates="child", cascade="all, delete-orphan")
     vaccines = relationship("ChildVaccine", back_populates="child", cascade="all, delete-orphan")
     
@@ -42,7 +42,7 @@ class Child(Base):
         
         today = datetime.utcnow()
         age_in_days = (today - self.birth_date).days
-        return age_in_days // 30  # Approximate months
+        return age_in_days // 30  # Приблизительные месяцы
     
     @property
     def age_display(self):
@@ -76,12 +76,12 @@ class Measurement(Base):
     id = Column(Integer, primary_key=True)
     child_id = Column(Integer, ForeignKey('children.id'), nullable=False)
     date = Column(DateTime, default=datetime.utcnow)
-    height = Column(Float)  # in centimeters
-    weight = Column(Float)  # in kilograms
-    head_circumference = Column(Float)  # in centimeters
+    height = Column(Float)  # в сантиметрах
+    weight = Column(Float)  # в килограммах
+    head_circumference = Column(Float)  # в сантиметрах
     notes = Column(String(255))
     
-    # Relationships
+    # Связи
     child = relationship("Child", back_populates="measurements")
     
     def __repr__(self):

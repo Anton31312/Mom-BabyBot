@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """
-Script to optimize static files for production.
+Скрипт для оптимизации статических файлов для продакшена.
 
-This script:
-1. Minifies CSS and JavaScript files
-2. Optimizes images
-3. Generates gzip and brotli compressed versions of static files
+Этот скрипт:
+1. Минифицирует CSS и JavaScript файлы
+2. Оптимизирует изображения
+3. Создает сжатые версии статических файлов в форматах gzip и brotli
 """
 
 import os
@@ -17,7 +17,7 @@ import subprocess
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
-# Check if required tools are installed
+# Проверка установки необходимых инструментов
 try:
     import csscompressor
     import jsmin
@@ -29,21 +29,21 @@ except ImportError:
     import jsmin
     from PIL import Image
 
-# Set paths
+# Установка путей
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / 'static'
 OUTPUT_DIR = BASE_DIR / 'staticfiles'
 
-# Create output directory if it doesn't exist
+# Создание выходной директории, если она не существует
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-# File extensions to process
+# Расширения файлов для обработки
 CSS_EXTENSIONS = ['.css']
 JS_EXTENSIONS = ['.js']
 IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif']
 COMPRESS_EXTENSIONS = ['.css', '.js', '.html', '.txt', '.xml', '.json', '.svg']
 
-# Counter for statistics
+# Счетчик для статистики
 stats = {
     'css_files': 0,
     'js_files': 0,
@@ -54,18 +54,18 @@ stats = {
 }
 
 def get_file_size(path):
-    """Get file size in bytes."""
+    """Получение размера файла в байтах."""
     return os.path.getsize(path)
 
 def optimize_css(source_path, dest_path):
-    """Minify CSS file."""
+    """Минификация CSS файла."""
     try:
         with open(source_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
         minified = csscompressor.compress(content)
         
-        # Create directory if it doesn't exist
+        # Создание директории, если она не существует
         os.makedirs(os.path.dirname(dest_path), exist_ok=True)
         
         with open(dest_path, 'w', encoding='utf-8') as f:
@@ -85,19 +85,19 @@ def optimize_css(source_path, dest_path):
         return dest_path
     except Exception as e:
         print(f"Error optimizing CSS {source_path}: {e}")
-        # Copy original file if optimization fails
+        # Копирование оригинального файла при ошибке оптимизации
         shutil.copy2(source_path, dest_path)
         return dest_path
 
 def optimize_js(source_path, dest_path):
-    """Minify JavaScript file."""
+    """Минификация JavaScript файла."""
     try:
         with open(source_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
         minified = jsmin.jsmin(content)
         
-        # Create directory if it doesn't exist
+        # Создание директории, если она не существует
         os.makedirs(os.path.dirname(dest_path), exist_ok=True)
         
         with open(dest_path, 'w', encoding='utf-8') as f:
@@ -117,20 +117,20 @@ def optimize_js(source_path, dest_path):
         return dest_path
     except Exception as e:
         print(f"Error optimizing JS {source_path}: {e}")
-        # Copy original file if optimization fails
+        # Копирование оригинального файла при ошибке оптимизации
         shutil.copy2(source_path, dest_path)
         return dest_path
 
 def optimize_image(source_path, dest_path):
-    """Optimize image file."""
+    """Оптимизация файла изображения."""
     try:
-        # Create directory if it doesn't exist
+        # Создание директории, если она не существует
         os.makedirs(os.path.dirname(dest_path), exist_ok=True)
         
-        # Open image
+        # Открытие изображения
         img = Image.open(source_path)
         
-        # Save optimized image
+        # Сохранение оптимизированного изображения
         if source_path.suffix.lower() in ['.jpg', '.jpeg']:
             img.save(dest_path, 'JPEG', optimize=True, quality=85)
         elif source_path.suffix.lower() == '.png':
@@ -138,7 +138,7 @@ def optimize_image(source_path, dest_path):
         elif source_path.suffix.lower() == '.gif':
             img.save(dest_path, 'GIF', optimize=True)
         else:
-            # For unsupported formats, just copy the file
+            # Для неподдерживаемых форматов просто копируем файл
             shutil.copy2(source_path, dest_path)
         
         original_size = get_file_size(source_path)
@@ -155,19 +155,19 @@ def optimize_image(source_path, dest_path):
         return dest_path
     except Exception as e:
         print(f"Error optimizing image {source_path}: {e}")
-        # Copy original file if optimization fails
+        # Копирование оригинального файла при ошибке оптимизации
         shutil.copy2(source_path, dest_path)
         return dest_path
 
 def compress_file(path):
-    """Create gzip and brotli compressed versions of a file."""
+    """Создание сжатых версий файла в форматах gzip и brotli."""
     try:
-        # Gzip compression
+        # Сжатие Gzip
         with open(path, 'rb') as f_in:
             with gzip.open(f"{path}.gz", 'wb', compresslevel=9) as f_out:
                 shutil.copyfileobj(f_in, f_out)
         
-        # Brotli compression
+        # Сжатие Brotli
         with open(path, 'rb') as f_in:
             content = f_in.read()
             compressed = brotli.compress(content, quality=11)
@@ -188,18 +188,18 @@ def compress_file(path):
         print(f"Error compressing {path}: {e}")
 
 def process_file(source_path, dest_path):
-    """Process a single file based on its extension."""
+    """Обработка одного файла на основе его расширения."""
     source_path = Path(source_path)
     dest_path = Path(dest_path)
     
-    # Skip if source doesn't exist
+    # Пропуск, если исходный файл не существует
     if not source_path.exists():
         return
     
-    # Create output directory if it doesn't exist
+    # Создание выходной директории, если она не существует
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     
-    # Process based on file extension
+    # Обработка на основе расширения файла
     if source_path.suffix.lower() in CSS_EXTENSIONS:
         optimize_css(source_path, dest_path)
     elif source_path.suffix.lower() in JS_EXTENSIONS:
@@ -207,44 +207,44 @@ def process_file(source_path, dest_path):
     elif source_path.suffix.lower() in IMAGE_EXTENSIONS:
         optimize_image(source_path, dest_path)
     else:
-        # Copy other files without processing
+        # Копирование других файлов без обработки
         shutil.copy2(source_path, dest_path)
     
-    # Compress file if it has a compressible extension
+    # Сжатие файла, если у него сжимаемое расширение
     if dest_path.suffix.lower() in COMPRESS_EXTENSIONS:
         compress_file(dest_path)
 
 def process_directory(source_dir, dest_dir):
-    """Process all files in a directory recursively."""
+    """Рекурсивная обработка всех файлов в директории."""
     tasks = []
     
     for root, dirs, files in os.walk(source_dir):
-        # Calculate relative path
+        # Вычисление относительного пути
         rel_path = os.path.relpath(root, source_dir)
         
-        # Create corresponding output directory
+        # Создание соответствующей выходной директории
         output_dir = os.path.join(dest_dir, rel_path)
         os.makedirs(output_dir, exist_ok=True)
         
-        # Process each file
+        # Обработка каждого файла
         for file in files:
             source_file = os.path.join(root, file)
             dest_file = os.path.join(output_dir, file)
             tasks.append((source_file, dest_file))
     
-    # Process files in parallel
+    # Параллельная обработка файлов
     with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
         for source_file, dest_file in tasks:
             executor.submit(process_file, source_file, dest_file)
 
 def main():
-    """Main function to optimize static files."""
+    """Основная функция для оптимизации статических файлов."""
     print("Starting static files optimization...")
     
-    # Process static directory
+    # Обработка статической директории
     process_directory(STATIC_DIR, OUTPUT_DIR)
     
-    # Print statistics
+    # Вывод статистики
     print("\nOptimization complete!")
     print(f"Processed {stats['css_files']} CSS files, {stats['js_files']} JS files, {stats['image_files']} images")
     print(f"Compressed {stats['compressed_files']} files")

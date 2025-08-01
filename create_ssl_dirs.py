@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-Script to create SSL certificate directories for development.
-This is a simplified version that just creates the directory structure
-without generating actual certificates.
+Скрипт для создания директорий SSL сертификатов для разработки.
+Это упрощенная версия, которая только создает структуру директорий
+без генерации реальных сертификатов.
 """
 
 import os
@@ -10,27 +10,27 @@ from pathlib import Path
 
 
 def create_ssl_dirs():
-    """Create SSL certificate directories."""
+    """Создание директорий для SSL сертификатов."""
     print("Creating SSL certificate directories...")
 
-    # Create directory for SSL certificates
+    # Создание директории для SSL сертификатов
     ssl_dir = Path("nginx/ssl")
     ssl_dir.mkdir(parents=True, exist_ok=True)
 
-    # Create empty certificate files
+    # Создание пустых файлов сертификатов
     key_path = ssl_dir / "key.pem"
     cert_path = ssl_dir / "cert.pem"
 
     if not key_path.exists():
         with open(key_path, 'w') as f:
-            f.write("# This is a placeholder for the SSL private key\n")
+            f.write("# Это заглушка для SSL приватного ключа\n")
         print(f"Created placeholder private key: {key_path}")
     else:
         print(f"Private key already exists: {key_path}")
 
     if not cert_path.exists():
         with open(cert_path, 'w') as f:
-            f.write("# This is a placeholder for the SSL certificate\n")
+            f.write("# Это заглушка для SSL сертификата\n")
         print(f"Created placeholder certificate: {cert_path}")
     else:
         print(f"Certificate already exists: {cert_path}")

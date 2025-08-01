@@ -20,16 +20,16 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
+    # Связи
     children = relationship("Child", backref="parent", lazy="dynamic")
 
     def __repr__(self):
         return f'<User {self.telegram_id}>'
 
-# Import child-related models
+# Импорт моделей, связанных с детьми
 from botapp.models_child import Child, Measurement
 
-# Import timer-related models
+# Импорт моделей таймеров
 from botapp.models_timers import (
     Contraction, ContractionEvent, 
     Kick, KickEvent, 
@@ -37,10 +37,10 @@ from botapp.models_timers import (
     FeedingSession
 )
 
-# Import vaccine-related models
+# Импорт моделей прививок
 from botapp.models_vaccine import Vaccine, ChildVaccine
 
-# Import notification-related models
+# Импорт моделей уведомлений
 from botapp.models_notification import NotificationPreference, NotificationLog
 
 # Утилитарные функции для работы с пользователями

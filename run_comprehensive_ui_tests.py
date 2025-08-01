@@ -18,7 +18,7 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
-# Check if required packages are installed
+# Проверка установки необходимых пакетов
 try:
     from selenium import webdriver
     from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -33,31 +33,31 @@ except ImportError:
     from selenium.webdriver.firefox.options import Options as FirefoxOptions
     import axe_selenium_python
 
-# Import webdriver managers
+# Импорт менеджеров веб-драйверов
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 
-# Set paths
+# Установка путей
 BASE_DIR = Path(__file__).resolve().parent
 REPORTS_DIR = BASE_DIR / "test_reports" / "ui"
 SCREENSHOTS_DIR = REPORTS_DIR / "screenshots"
 ACCESSIBILITY_DIR = REPORTS_DIR / "accessibility"
 
-# Create directories if they don't exist
+# Создание директорий, если они не существуют
 REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
 ACCESSIBILITY_DIR.mkdir(parents=True, exist_ok=True)
 
-# Test configuration
+# Конфигурация тестов
 BROWSERS = ["chrome", "firefox"]
 SCREEN_SIZES = {
     "mobile": (375, 667),      # iPhone 8
     "tablet": (768, 1024),     # iPad
-    "desktop": (1366, 768),    # Laptop
-    "large": (1920, 1080)      # Desktop
+    "desktop": (1366, 768),    # Ноутбук
+    "large": (1920, 1080)      # Настольный компьютер
 }
 
-# URLs to test
+# URL для тестирования
 URLS = [
     "/",
     "/pregnancy/",
@@ -73,7 +73,7 @@ URLS = [
 ]
 
 def setup_driver(browser, headless=True):
-    """Set up WebDriver for the specified browser."""
+    """Настройка WebDriver для указанного браузера."""
     if browser == "chrome":
         options = ChromeOptions()
         if headless:
@@ -92,7 +92,7 @@ def setup_driver(browser, headless=True):
     return driver
 
 def take_screenshot(driver, url, browser, size):
-    """Take a screenshot of the specified URL."""
+    """Создание скриншота указанного URL."""
     filename = f"{browser}_{size}_{url.replace('/', '_')}.png"
     if filename.endswith("_.png"):
         filename = filename.replace("_.png", "index.png")
@@ -102,7 +102,7 @@ def take_screenshot(driver, url, browser, size):
     return screenshot_path
 
 def run_accessibility_test(driver, url, browser, size):
-    """Run accessibility test using axe-core."""
+    """Запуск теста доступности с использованием axe-core."""
     axe = axe_selenium_python.Axe(driver)
     axe.inject()
     results = axe.run()
@@ -118,17 +118,17 @@ def run_accessibility_test(driver, url, browser, size):
     return results
 
 def test_url(driver, base_url, url_path, browser, size):
-    """Test a specific URL with the given browser and screen size."""
+    """Тестирование конкретного URL с заданным браузером и размером экрана."""
     full_url = f"{base_url}{url_path}"
     
     try:
         driver.get(full_url)
-        time.sleep(2)  # Wait for page to load
+        time.sleep(2)  # Ожидание загрузки страницы
         
-        # Take screenshot
+        # Создание скриншота
         screenshot_path = take_screenshot(driver, url_path, browser, size)
         
-        # Run accessibility test
+        # Запуск теста доступности
         a11y_results = run_accessibility_test(driver, url_path, browser, size)
         
         violations_count = len(a11y_results["violations"])
@@ -154,7 +154,7 @@ def test_url(driver, base_url, url_path, browser, size):
         }
 
 def run_tests(base_url, headless=True):
-    """Run UI tests for all combinations of browsers and screen sizes."""
+    """Запуск UI тестов для всех комбинаций браузеров и размеров экрана."""
     results = []
     
     for browser in BROWSERS:
@@ -180,10 +180,10 @@ def run_tests(base_url, headless=True):
     return results
 
 def generate_report(results):
-    """Generate a comprehensive HTML report."""
+    """Генерация подробного HTML отчета."""
     report_path = REPORTS_DIR / f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
     
-    # Count statistics
+    # Подсчет статистики
     total_tests = len(results)
     successful_tests = sum(1 for r in results if r["status"] == "success")
     failed_tests = total_tests - successful_tests
@@ -259,7 +259,7 @@ def generate_report(results):
     return report_path
 
 def main():
-    """Main function to run UI tests."""
+    """Основная функция для запуска UI тестов."""
     parser = argparse.ArgumentParser(description="Run comprehensive UI tests")
     parser.add_argument("--base-url", default="http://localhost:8000", help="Base URL for testing")
     parser.add_argument("--no-headless", action="store_true", help="Run browsers in non-headless mode")
@@ -274,7 +274,7 @@ def main():
     print(f"\nUI testing complete!")
     print(f"Report generated: {report_path}")
     
-    # Count statistics
+    # Подсчет статистики
     total_tests = len(results)
     successful_tests = sum(1 for r in results if r["status"] == "success")
     failed_tests = total_tests - successful_tests
@@ -286,7 +286,7 @@ def main():
     print(f"Failed Tests: {failed_tests}")
     print(f"Total Accessibility Violations: {total_violations}")
     
-    # Return non-zero exit code if there were failures
+    # Возврат ненулевого кода выхода при наличии ошибок
     return 1 if failed_tests > 0 else 0
 
 if __name__ == "__main__":

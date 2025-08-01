@@ -11,17 +11,17 @@ from pathlib import Path
 
 
 def find_openssl_executable():
-    """Find the OpenSSL executable on the system."""
-    # Check if OpenSSL path is provided as an argument
+    """Поиск исполняемого файла OpenSSL в системе."""
+    # Проверяем, передан ли путь к OpenSSL в качестве аргумента
     if len(sys.argv) > 1 and os.path.exists(sys.argv[1]):
         return sys.argv[1]
         
-    # Check if OpenSSL is in PATH
+    # Проверяем, доступен ли OpenSSL в PATH
     openssl_path = shutil.which("openssl")
     if openssl_path:
         return openssl_path
 
-    # Common Windows OpenSSL installation locations
+    # Стандартные пути установки OpenSSL в Windows
     windows_paths = [
         r"C:\Program Files\OpenSSL-Win64\bin\openssl.exe",
         r"C:\Program Files\OpenSSL\bin\openssl.exe",
@@ -38,10 +38,10 @@ def find_openssl_executable():
 
 
 def generate_ssl_certs():
-    """Generate self-signed SSL certificates for development."""
+    """Генерация самоподписанных SSL сертификатов для разработки."""
     print("Generating self-signed SSL certificates for development...")
 
-    # Find OpenSSL executable
+    # Поиск исполняемого файла OpenSSL
     openssl_path = find_openssl_executable()
     if not openssl_path:
         print("Error: OpenSSL executable not found.")
@@ -53,11 +53,11 @@ def generate_ssl_certs():
 
     print(f"Using OpenSSL from: {openssl_path}")
 
-    # Create directory for SSL certificates
+    # Создание директории для SSL сертификатов
     ssl_dir = Path("nginx/ssl")
     ssl_dir.mkdir(parents=True, exist_ok=True)
 
-    # Generate private key
+    # Генерация приватного ключа
     key_path = ssl_dir / "key.pem"
     if not key_path.exists():
         subprocess.run([
@@ -69,7 +69,7 @@ def generate_ssl_certs():
     else:
         print(f"Private key already exists: {key_path}")
 
-    # Generate certificate signing request
+    # Генерация запроса на подпись сертификата
     csr_path = ssl_dir / "csr.pem"
     if not csr_path.exists():
         subprocess.run([
@@ -83,7 +83,7 @@ def generate_ssl_certs():
     else:
         print(f"Certificate signing request already exists: {csr_path}")
 
-    # Generate self-signed certificate
+    # Генерация самоподписанного сертификата
     cert_path = ssl_dir / "cert.pem"
     if not cert_path.exists():
         subprocess.run([

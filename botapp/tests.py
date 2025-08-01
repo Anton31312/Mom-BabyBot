@@ -54,9 +54,9 @@ class UserModelTests(SQLAlchemyModelTestCase):
             self.assertEqual(user.username, 'testuser')
             self.assertEqual(user.first_name, 'Test')
             self.assertEqual(user.last_name, 'User')
-            self.assertFalse(user.is_pregnant)  # default value
-            self.assertFalse(user.is_premium)  # default value
-            self.assertFalse(user.is_admin)    # default value
+            self.assertFalse(user.is_pregnant)  # значение по умолчанию
+            self.assertFalse(user.is_premium)  # значение по умолчанию
+            self.assertFalse(user.is_admin)    # значение по умолчанию
             self.assertIsNotNone(user.created_at)
             self.assertIsNotNone(user.updated_at)
             
@@ -419,7 +419,7 @@ class DatabaseConnectionTests(SQLAlchemyModelTestCase):
             test_manager = SQLAlchemyManager()
             
             # Проверяем, что используется дефолтный URL
-            self.assertIn('mom_baby_bot.db', str(test_manager.engine.url))
+            self.assertIn('data/mom_baby_bot.db', str(test_manager.engine.url))
             
         finally:
             # Восстанавливаем оригинальное значение

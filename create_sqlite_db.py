@@ -1,12 +1,12 @@
 """
-Create SQLite database for local development.
+Создание базы данных SQLite для локальной разработки.
 """
 
 import sqlite3
 import os
 import logging
 
-# Configure logging
+# Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -14,16 +14,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def create_sqlite_db():
-    """Create SQLite database for local development."""
-    db_path = 'mom_baby_bot.db'
+    """Создание базы данных SQLite для локальной разработки."""
+    db_path = 'data/mom_baby_bot.db'
     logger.info(f"Creating SQLite database at: {db_path}")
     
     try:
-        # Connect to SQLite database (creates it if it doesn't exist)
+        # Подключение к базе данных SQLite (создает файл, если не существует)
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         
-        # Create basic tables needed for the bot
+        # Создание основных таблиц, необходимых для работы бота
         logger.info("Creating users table...")
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -94,7 +94,7 @@ def create_sqlite_db():
         );
         """)
         
-        # Commit changes and close connection
+        # Сохранение изменений и закрытие соединения
         conn.commit()
         cursor.close()
         conn.close()

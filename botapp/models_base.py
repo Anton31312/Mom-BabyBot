@@ -8,17 +8,17 @@ from sqlalchemy.orm import sessionmaker
 import os
 import logging
 
-# Configure logging
+# Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# SQLAlchemy setup
+# Настройка SQLAlchemy
 Base = declarative_base()
 
-# SQLAlchemy utilities for Django context
+# Утилиты SQLAlchemy для контекста Django
 class SQLAlchemyManager:
     """Утилиты для работы с SQLAlchemy в Django контексте"""
     
@@ -30,14 +30,14 @@ class SQLAlchemyManager:
     def _setup_engine(self):
         """Настройка SQLAlchemy engine"""
         try:
-            # Force SQLite for local development
-            database_url = 'sqlite:///mom_baby_bot.db'
+            # Принудительное использование SQLite для локальной разработки
+            database_url = 'sqlite:///data/mom_baby_bot.db'
             logger.info(f"Connecting to database: {database_url}")
             
             self.engine = create_engine(
                 database_url, 
                 echo=False,
-                connect_args={"check_same_thread": False}  # Required for SQLite in multi-threaded environment
+                connect_args={"check_same_thread": False}  # Необходимо для SQLite в многопоточной среде
             )
             self.Session = sessionmaker(bind=self.engine)
             logger.info("SQLAlchemy engine setup successful")

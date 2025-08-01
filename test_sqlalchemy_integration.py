@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-Test script to verify SQLAlchemy integration with Django.
+Тестовый скрипт для проверки интеграции SQLAlchemy с Django.
 
-This script tests the basic functionality of the SQLAlchemy integration
-to ensure everything is working properly.
+Этот скрипт тестирует базовую функциональность интеграции SQLAlchemy
+для обеспечения правильной работы всех компонентов.
 """
 
 import os
@@ -11,11 +11,11 @@ import sys
 import django
 from pathlib import Path
 
-# Add the project directory to Python path
+# Добавление директории проекта в Python path
 project_dir = Path(__file__).resolve().parent
 sys.path.insert(0, str(project_dir))
 
-# Setup Django
+# Настройка Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mom_baby_bot.settings')
 django.setup()
 
@@ -24,22 +24,22 @@ from mom_baby_bot.sqlalchemy_utils import get_sqlalchemy_session, check_database
 from botapp.models import User
 
 def test_database_connection():
-    """Test database connection."""
+    """Тестирование подключения к базе данных."""
     print("Testing database connection...")
     result = check_database_connection()
     print(f"Database connection: {'✅ PASSED' if result else '❌ FAILED'}")
     return result
 
 def test_sqlalchemy_session():
-    """Test SQLAlchemy session creation and basic operations."""
+    """Тестирование создания сессии SQLAlchemy и базовых операций."""
     print("Testing SQLAlchemy session...")
     try:
         with get_sqlalchemy_session() as session:
-            # Test basic query
+            # Тестирование базового запроса
             user_count = session.query(User).count()
             print(f"Current user count: {user_count}")
             
-            # Test creating a user (but don't commit to avoid test data)
+            # Тестирование создания пользователя (без коммита, чтобы избежать тестовых данных)
             test_user = User(
                 telegram_id=999999999,
                 username="test_user",
@@ -47,13 +47,13 @@ def test_sqlalchemy_session():
                 last_name="User"
             )
             session.add(test_user)
-            session.flush()  # Flush but don't commit
+            session.flush()  # Flush, но не коммитим
             
-            # Verify the user was added to the session
+            # Проверка добавления пользователя в сессию
             found_user = session.query(User).filter_by(telegram_id=999999999).first()
             if found_user:
                 print("✅ User creation and query test PASSED")
-                # Rollback to avoid saving test data
+                # Откат для избежания сохранения тестовых данных
                 session.rollback()
                 return True
             else:
@@ -65,7 +65,7 @@ def test_sqlalchemy_session():
         return False
 
 def test_sqlalchemy_engine():
-    """Test SQLAlchemy engine configuration."""
+    """Тестирование конфигурации движка SQLAlchemy."""
     print("Testing SQLAlchemy engine configuration...")
     try:
         engine = settings.SQLALCHEMY_ENGINE
@@ -78,7 +78,7 @@ def test_sqlalchemy_engine():
         return False
 
 def main():
-    """Run all tests."""
+    """Запуск всех тестов."""
     print("=" * 50)
     print("SQLAlchemy Integration Test")
     print("=" * 50)
@@ -99,7 +99,7 @@ def main():
             results.append(False)
         print("-" * 30)
     
-    # Summary
+    # Сводка
     passed = sum(results)
     total = len(results)
     

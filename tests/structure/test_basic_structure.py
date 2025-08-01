@@ -232,7 +232,7 @@ def test_database_compatibility():
     """Test database file and structure"""
     print("\n💾 Testing database compatibility...")
     
-    db_files = ['mom_baby_bot.db', 'db.sqlite3', 'instance/mom_baby_bot.db']
+    db_files = ['data/mom_baby_bot.db', 'db.sqlite3', 'instance/mom_baby_bot.db']
     db_found = False
     
     for db_file in db_files:
