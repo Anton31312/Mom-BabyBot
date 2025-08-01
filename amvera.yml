@@ -1,17 +1,20 @@
 meta:
   environment: python
-  toolchain: docker
-
+  toolchain:
+    name: pip
+    version: "3.11"
 build:
-  dockerfile: Dockerfile
-
+  requirementsPath: requirements.txt
 run:
-  containerPort: 8000
+  scriptName: app.py
+  command: null
+  persistenceMount: /data
+  containerPort: "80"
+  servicePort: "80"
 
 deploy:
   environment:
     DEBUG: "False"
-    DJANGO_SETTINGS_MODULE: "mom_baby_bot.settings_prod"
     ALLOWED_HOSTS: "*.amvera.ru,*.amvera.io"
     USE_HTTPS: "True"
     PYTHONUNBUFFERED: "1"
@@ -20,7 +23,3 @@ deploy:
     DJANGO_LOG_LEVEL: "INFO"
     BOT_LOG_LEVEL: "INFO"
     LOG_LEVEL: "INFO"
-
-
-services:
-  - type: redis

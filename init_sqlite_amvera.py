@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def find_writable_db_path():
     """Находит доступный для записи путь для базы данных"""
     possible_paths = [
-        '/app/data/mom_baby_bot.db',
+        '/data/mom_baby_bot.db',
         os.path.join(os.getcwd(), 'mom_baby_bot.db'),
         '/tmp/mom_baby_bot.db',
         '/var/tmp/mom_baby_bot.db'

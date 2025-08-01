@@ -36,8 +36,7 @@ def check_permissions():
     logger.info("🔐 Проверка прав доступа...")
     
     paths_to_check = [
-        '/app',
-        '/app/data',
+        '/data',
         '/tmp',
         '/var/tmp',
         os.getcwd()
@@ -74,7 +73,7 @@ def check_sqlite():
         
         # Тестируем создание базы данных
         test_paths = [
-            '/app/data/test.db',
+            '/data/test.db',
             os.path.join(os.getcwd(), 'test.db'),
             '/tmp/test.db',
             '/var/tmp/test.db'
