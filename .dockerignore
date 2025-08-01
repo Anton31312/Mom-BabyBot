@@ -43,6 +43,12 @@ media
 *.swo
 *~
 
+# SQLite database files (не нужны в production)
+*.db
+*.sqlite3
+*.sqlite3-journal
+data/
+
 # OS
 .DS_Store
 .DS_Store?

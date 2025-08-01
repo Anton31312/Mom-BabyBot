@@ -13,14 +13,15 @@ deploy:
     DEBUG: "False"
     DJANGO_SETTINGS_MODULE: "mom_baby_bot.settings_prod"
     ALLOWED_HOSTS: "*.amvera.ru,*.amvera.io"
-    # Переменные окружения будут настроены в панели Amvera
-    # DATABASE_URL: будет предоставлен Amvera для PostgreSQL
-    # REDIS_URL: будет предоставлен Amvera для Redis
-    # SECRET_KEY: должен быть установлен в панели управления
-    # TELEGRAM_BOT_TOKEN: должен быть установлен в панели управления
-    # WEBHOOK_URL: должен быть установлен в панели управления
-    # WEBAPP_URL: должен быть установлен в панели управления
-    # ADMIN_IDS: должен быть установлен в панели управления
+    USE_HTTPS: "True"
+    # Переменные окружения будут настроены в панели Amvera:
+    # DATABASE_URL: автоматически предоставляется Amvera для PostgreSQL
+    # REDIS_URL: автоматически предоставляется Amvera для Redis  
+    # SECRET_KEY: установите в панели управления
+    # TELEGRAM_BOT_TOKEN: установите в панели управления
+    # WEBHOOK_URL: установите в панели управления (https://ваш-домен.amvera.ru/webhook)
+    # WEBAPP_URL: установите в панели управления (https://ваш-домен.amvera.ru)
+    # ADMIN_IDS: установите в панели управления (ID через запятую)
 
 services:
   - type: postgresql

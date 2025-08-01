@@ -14,3 +14,4 @@ csscompressor==0.9.5
 jsmin==3.0.1
 Pillow==10.1.0
 brotli==1.1.0
+dj-database-url==2.1.0

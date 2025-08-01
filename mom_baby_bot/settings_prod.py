@@ -62,8 +62,17 @@ CACHE_TIMEOUT = 60 * 60 * 24  # 24 hours
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
 
-# Database settings - use PostgreSQL for production
-if os.getenv('DATABASE_URL', '').startswith('postgresql'):
+# Database settings - принудительно используем PostgreSQL для production
+DATABASE_URL = os.getenv('DATABASE_URL', '')
+
+if DATABASE_URL:
+    # Парсим DATABASE_URL для PostgreSQL
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    }
+else:
+    # Fallback конфигурация для PostgreSQL
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -72,12 +81,40 @@ if os.getenv('DATABASE_URL', '').startswith('postgresql'):
             'PASSWORD': os.getenv('DB_PASSWORD', ''),
             'HOST': os.getenv('DB_HOST', 'localhost'),
             'PORT': os.getenv('DB_PORT', '5432'),
-            'CONN_MAX_AGE': 600,  # 10 minutes
+            'CONN_MAX_AGE': 600,
             'OPTIONS': {
                 'connect_timeout': 10,
             }
         }
     }
+
+# SQLAlchemy настройки для production
+SQLALCHEMY_DATABASE_URL = DATABASE_URL if DATABASE_URL else f"postgresql://{os.getenv('DB_USER', 'mombabybot')}:{os.getenv('DB_PASSWORD', '')}@{os.getenv('DB_HOST', 'localhost')}:{os.getenv('DB_PORT', '5432')}/{os.getenv('DB_NAME', 'mombabybot')}"
+
+# Настройки SQLAlchemy engine для PostgreSQL
+SQLALCHEMY_ENGINE_OPTIONS = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
+    'pool_size': 5,
+    'max_overflow': 10,
+    'echo': False,  # Отключаем в production
+}
+
+# Пересоздаем SQLAlchemy engine с новыми настройками
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+SQLALCHEMY_ENGINE = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    **SQLALCHEMY_ENGINE_OPTIONS
+)
+
+SQLALCHEMY_SESSION_FACTORY = sessionmaker(
+    bind=SQLALCHEMY_ENGINE,
+    autocommit=False,
+    autoflush=True,
+    expire_on_commit=False
+)
 
 # Logging settings for production
 LOGGING = {
