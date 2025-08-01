@@ -158,10 +158,21 @@ def check_database_connection():
 
             # Создаем файл базы данных если не существует
             if not os.path.exists(db_path):
-                import sqlite3
-                conn = sqlite3.connect(db_path)
-                conn.close()
-                logger.info(f"Created SQLite database file: {db_path}")
+                try:
+                    import sqlite3
+                    conn = sqlite3.connect(db_path)
+                    conn.close()
+                    logger.info(f"Created SQLite database file: {db_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to create database at {db_path}: {e}")
+                    # Попробуем создать в текущей директории как fallback
+                    fallback_path = os.path.join(os.getcwd(), 'mom_baby_bot.db')
+                    logger.info(f"Trying fallback path: {fallback_path}")
+                    conn = sqlite3.connect(fallback_path)
+                    conn.close()
+                    # Обновляем URL для fallback
+                    database_url = f'sqlite:///{fallback_path}'
+                    logger.info(f"Using fallback database URL: {database_url}")
 
         # Теперь пытаемся подключиться
         engine_options = {

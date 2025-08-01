@@ -26,7 +26,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY . .
 
 # Создаем необходимые директории
-RUN mkdir -p /app/staticfiles /app/media /app/logs /app/data
+RUN mkdir -p /app/staticfiles /app/media /app/logs /app/data /tmp /var/tmp
 
 # Собираем статические файлы (только если есть статика)
 RUN python manage.py collectstatic --noinput --clear || true
@@ -36,7 +36,12 @@ RUN chmod +x start.sh start_simple.sh
 
 # Создаем пользователя для безопасности
 RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app
+    chown -R appuser:appuser /app && \
+    chown -R appuser:appuser /tmp /var/tmp
+
+# Устанавливаем права на запись в директории
+RUN chmod 755 /app/data /tmp /var/tmp
+
 USER appuser
 
 # Открываем порт (Amvera автоматически определяет порт из переменной PORT)

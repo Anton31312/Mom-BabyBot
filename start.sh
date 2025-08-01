@@ -7,10 +7,24 @@ echo "🚀 Запуск Mom&Baby Bot на Amvera..."
 
 # Проверяем готовность к запуску
 echo "🧪 Проверка готовности..."
-if python check_before_start.py; then
+if python check_amvera_ready.py; then
     echo "✅ Проверка готовности прошла успешно"
 else
     echo "❌ Проверка готовности не прошла, но продолжаем..."
+fi
+
+# Быстрый тест
+echo "⚡ Быстрый тест..."
+if python quick_test_amvera.py; then
+    echo "✅ Быстрый тест прошел успешно"
+else
+    echo "⚠️ Быстрый тест показал проблемы, но продолжаем..."
+fi
+
+# Полная диагностика (только в режиме отладки)
+if [ "$DEBUG" = "True" ]; then
+    echo "🔍 Полная диагностика..."
+    python diagnose_amvera.py || echo "⚠️ Диагностика показала проблемы"
 fi
 
 # Проверяем доступность SQLite базы данных
@@ -19,30 +33,41 @@ python -c "
 import os
 import sqlite3
 
-db_path = '/app/data/mom_baby_bot.db'
-db_dir = os.path.dirname(db_path)
+# Пробуем несколько путей для базы данных
+db_paths = [
+    '/app/data/mom_baby_bot.db',
+    os.path.join(os.getcwd(), 'mom_baby_bot.db'),
+    '/tmp/mom_baby_bot.db'
+]
 
-# Создаем директорию если не существует
-if not os.path.exists(db_dir):
-    os.makedirs(db_dir, exist_ok=True)
-    print(f'✅ Создана директория: {db_dir}')
-
-# Проверяем доступность SQLite
-try:
-    conn = sqlite3.connect(db_path, timeout=10)
-    cursor = conn.cursor()
-    cursor.execute('SELECT 1')
-    conn.close()
-    print('✅ SQLite база данных доступна!')
-except Exception as e:
-    print(f'⚠️ Проблема с SQLite: {e}')
-    print('🔧 Создаем новую базу данных...')
+for db_path in db_paths:
+    db_dir = os.path.dirname(db_path)
+    print(f'🔍 Проверяем путь: {db_path}')
+    
     try:
-        conn = sqlite3.connect(db_path)
+        # Создаем директорию если не существует
+        if not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+            print(f'✅ Создана директория: {db_dir}')
+        
+        # Проверяем доступность SQLite
+        conn = sqlite3.connect(db_path, timeout=10)
+        cursor = conn.cursor()
+        cursor.execute('SELECT 1')
         conn.close()
-        print('✅ SQLite база данных создана!')
-    except Exception as e2:
-        print(f'❌ Не удалось создать SQLite базу: {e2}')
+        print(f'✅ SQLite база данных доступна по пути: {db_path}')
+        
+        # Устанавливаем переменную окружения для использования этого пути
+        import os
+        os.environ['DATABASE_PATH'] = db_path
+        break
+        
+    except Exception as e:
+        print(f'⚠️ Проблема с SQLite по пути {db_path}: {e}')
+        continue
+else:
+    print('❌ Не удалось создать SQLite базу данных ни по одному пути')
+    exit(1)
 "
 
 # Применяем миграции Django
@@ -64,7 +89,7 @@ fi
 
 # Инициализируем SQLite базу данных
 echo "🗄️ Полная инициализация SQLite базы данных..."
-if python init_sqlite.py; then
+if python init_sqlite_amvera.py; then
     echo "✅ SQLite база данных полностью инициализирована"
 else
     echo "⚠️ Предупреждение: проблемы с инициализацией SQLite"

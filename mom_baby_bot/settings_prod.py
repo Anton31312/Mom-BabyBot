@@ -58,10 +58,21 @@ CACHE_TIMEOUT = 60 * 60 * 24  # 24 hours
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # Database settings - используем SQLite для production
+import os
+
+# Создаем директорию для базы данных если не существует
+# Используем переменную окружения если она установлена
+DB_PATH = os.getenv('DATABASE_PATH', '/app/data/mom_baby_bot.db')
+DB_DIR = os.path.dirname(DB_PATH)
+
+# Создаем директорию если не существует
+if not os.path.exists(DB_DIR):
+    os.makedirs(DB_DIR, exist_ok=True)
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '/app/data/mom_baby_bot.db',
+        'NAME': DB_PATH,
         'OPTIONS': {
             'timeout': 20,
         }
@@ -69,7 +80,7 @@ DATABASES = {
 }
 
 # SQLAlchemy настройки для production с SQLite
-SQLALCHEMY_DATABASE_URL = 'sqlite:////app/data/mom_baby_bot.db'
+SQLALCHEMY_DATABASE_URL = f'sqlite:///{DB_PATH}'
 
 # Настройки SQLAlchemy engine для SQLite
 SQLALCHEMY_ENGINE_OPTIONS = {
@@ -102,11 +113,24 @@ def get_sqlalchemy_engine():
             # Создаем директорию если не существует
             if not os.path.exists(db_dir):
                 os.makedirs(db_dir, exist_ok=True)
+                print(f"Created database directory: {db_dir}")
             
             # Создаем файл базы данных если не существует
             if not os.path.exists(db_path):
-                conn = sqlite3.connect(db_path)
-                conn.close()
+                try:
+                    conn = sqlite3.connect(db_path)
+                    conn.close()
+                    print(f"Created SQLite database file: {db_path}")
+                except Exception as e:
+                    print(f"Error creating SQLite database: {e}")
+                    # Попробуем создать в текущей директории как fallback
+                    fallback_path = os.path.join(os.getcwd(), 'mom_baby_bot.db')
+                    print(f"Trying fallback path: {fallback_path}")
+                    conn = sqlite3.connect(fallback_path)
+                    conn.close()
+                    # Обновляем URL для fallback
+                    global SQLALCHEMY_DATABASE_URL
+                    SQLALCHEMY_DATABASE_URL = f'sqlite:///{fallback_path}'
         
         SQLALCHEMY_ENGINE = create_engine(
             SQLALCHEMY_DATABASE_URL,

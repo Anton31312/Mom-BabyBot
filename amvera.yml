@@ -16,14 +16,13 @@ deploy:
     USE_HTTPS: "True"
     PYTHONUNBUFFERED: "1"
     DATABASE_URL: "sqlite:////app/data/mom_baby_bot.db"
-    # Переменные окружения для настройки в панели Amvera:
-    # SECRET_KEY: установите сильный секретный ключ
-    # TELEGRAM_BOT_TOKEN: токен вашего Telegram бота (опционально)
-    # WEBHOOK_URL: https://ваш-домен.amvera.ru/webhook (опционально)
-    # WEBAPP_URL: https://ваш-домен.amvera.ru (опционально)
-    # ADMIN_IDS: ID администраторов через запятую (опционально)
+    # Дополнительные настройки для стабильности
+    DJANGO_LOG_LEVEL: "INFO"
+    BOT_LOG_LEVEL: "INFO"
+    LOG_LEVEL: "INFO"
+
 
 # Убираем внешние сервисы - используем только SQLite
-# services:
+services:
 #   - type: postgresql
-#   - type: redis
+  - type: redis
