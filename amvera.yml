@@ -22,7 +22,5 @@ deploy:
     LOG_LEVEL: "INFO"
 
 
-# Убираем внешние сервисы - используем только SQLite
 services:
-#   - type: postgresql
   - type: redis
