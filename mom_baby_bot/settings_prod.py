@@ -95,7 +95,6 @@ SQLALCHEMY_ENGINE_OPTIONS = {
 
 def get_sqlalchemy_engine():
     """Ленивое создание SQLAlchemy engine для production"""
-    global SQLALCHEMY_ENGINE, SQLALCHEMY_DATABASE_URL
     
     if SQLALCHEMY_ENGINE is None:
         from sqlalchemy import create_engine
