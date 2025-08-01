@@ -35,14 +35,20 @@ def apply_django_migrations():
     print("\n📊 Применение Django миграций...")
     
     try:
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mom_baby_bot.settings_prod')
-        django.setup()
+        import subprocess
+        result = subprocess.run([
+            'python', 'manage.py', 'migrate', '--noinput'
+        ], capture_output=True, text=True, env={
+            **os.environ,
+            'DJANGO_SETTINGS_MODULE': 'mom_baby_bot.settings_prod'
+        })
         
-        from django.core.management import execute_from_command_line
-        execute_from_command_line(['manage.py', 'migrate', '--noinput'])
-        
-        print("✅ Django миграции применены")
-        return True
+        if result.returncode == 0:
+            print("✅ Django миграции применены")
+            return True
+        else:
+            print(f"❌ Ошибка применения миграций: {result.stderr}")
+            return False
         
     except Exception as e:
         print(f"❌ Ошибка применения миграций: {e}")
@@ -53,6 +59,16 @@ def create_sqlalchemy_tables():
     print("\n🏗️ Создание таблиц SQLAlchemy...")
     
     try:
+        # Настройка Django если еще не настроен
+        try:
+            from django.conf import settings
+            if not settings.configured:
+                os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mom_baby_bot.settings_prod')
+                django.setup()
+        except:
+            os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mom_baby_bot.settings_prod')
+            django.setup()
+        
         from botapp.models import Base
         from django.conf import settings
         

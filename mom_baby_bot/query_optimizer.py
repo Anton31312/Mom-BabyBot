@@ -34,25 +34,44 @@ class QueryOptimizer:
         """Инициализация оптимизатора запросов."""
         self.query_stats = {}
         self.slow_query_threshold = 0.5  # секунды
+        self._monitoring_setup = False
         
-        # Инициализация мониторинга запросов
-        self._setup_query_monitoring()
+        # Мониторинг будет настроен позже при первом использовании
     
     def _setup_query_monitoring(self):
         """Настройка мониторинга запросов."""
-        # Добавляем обработчик события before_cursor_execute
-        event.listen(
-            settings.SQLALCHEMY_ENGINE,
-            'before_cursor_execute',
-            self._before_cursor_execute
-        )
-        
-        # Добавляем обработчик события after_cursor_execute
-        event.listen(
-            settings.SQLALCHEMY_ENGINE,
-            'after_cursor_execute',
-            self._after_cursor_execute
-        )
+        if self._monitoring_setup:
+            return
+            
+        try:
+            # Получаем engine через ленивую инициализацию
+            if hasattr(settings, 'get_sqlalchemy_engine'):
+                engine = settings.get_sqlalchemy_engine()
+            else:
+                engine = settings.SQLALCHEMY_ENGINE
+                
+            if engine is None:
+                return  # Engine еще не создан
+            
+            # Добавляем обработчик события before_cursor_execute
+            event.listen(
+                engine,
+                'before_cursor_execute',
+                self._before_cursor_execute
+            )
+            
+            # Добавляем обработчик события after_cursor_execute
+            event.listen(
+                engine,
+                'after_cursor_execute',
+                self._after_cursor_execute
+            )
+            
+            self._monitoring_setup = True
+            
+        except Exception as e:
+            # Если не удалось настроить мониторинг, продолжаем без него
+            pass
     
     def _before_cursor_execute(self, conn, cursor, statement, parameters, context, executemany):
         """
@@ -100,10 +119,12 @@ class QueryOptimizer:
         Returns:
             dict: Статистика по запросам.
         """
+        self._setup_query_monitoring()  # Настраиваем мониторинг при первом использовании
         return self.query_stats
     
     def reset_query_stats(self):
         """Сброс статистики по запросам."""
+        self._setup_query_monitoring()  # Настраиваем мониторинг при первом использовании
         self.query_stats = {}
     
     def optimize_query(self, query, model_class, related_models=None):

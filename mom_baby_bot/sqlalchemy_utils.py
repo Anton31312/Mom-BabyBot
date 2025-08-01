@@ -18,10 +18,10 @@ logger = logging.getLogger(__name__)
 def get_sqlalchemy_session():
     """
     Context manager for SQLAlchemy sessions.
-    
+
     This provides a safe way to work with SQLAlchemy sessions outside of
     the request-response cycle (e.g., in management commands, background tasks).
-    
+
     Usage:
         with get_sqlalchemy_session() as session:
             user = session.query(User).first()
@@ -32,19 +32,19 @@ def get_sqlalchemy_session():
         session_factory = settings.get_sqlalchemy_session_factory()
     else:
         session_factory = settings.SQLALCHEMY_SESSION_FACTORY
-    
+
     session = session_factory()
-    
+
     try:
         yield session
         session.commit()
         logger.debug("SQLAlchemy session committed successfully")
-        
+
     except Exception as e:
         session.rollback()
         logger.warning(f"SQLAlchemy session rolled back due to exception: {e}")
         raise
-        
+
     finally:
         session.close()
         logger.debug("SQLAlchemy session closed")
@@ -53,24 +53,53 @@ def get_sqlalchemy_session():
 def create_tables():
     """
     Create all SQLAlchemy tables.
-    
+
     This function creates all tables defined in SQLAlchemy models.
     Should be called during application initialization.
     """
     try:
         # Import all models to ensure they are registered
         from botapp.models import Base
-        
-        # Используем ленивую инициализацию engine
-        if hasattr(settings, 'get_sqlalchemy_engine'):
-            engine = settings.get_sqlalchemy_engine()
-        else:
-            engine = settings.SQLALCHEMY_ENGINE
-        
+        from sqlalchemy import create_engine
+        import os
+
+        # Получаем URL базы данных
+        database_url = getattr(settings, 'SQLALCHEMY_DATABASE_URL', 'sqlite:////app/data/mom_baby_bot.db')
+
+        # Для SQLite убеждаемся что файл существует
+        if database_url.startswith('sqlite'):
+            db_path = database_url.replace('sqlite:///', '').replace('sqlite://', '')
+            db_dir = os.path.dirname(db_path)
+
+            # Создаем директорию если не существует
+            if not os.path.exists(db_dir):
+                os.makedirs(db_dir, exist_ok=True)
+
+            # Создаем файл базы данных если не существует
+            if not os.path.exists(db_path):
+                import sqlite3
+                conn = sqlite3.connect(db_path)
+                conn.close()
+
+        # Создаем engine
+        engine_options = {
+            'pool_pre_ping': True,
+            'pool_recycle': 300,
+            'echo': False,
+        }
+
+        if database_url.startswith('sqlite'):
+            engine_options['connect_args'] = {
+                'check_same_thread': False,
+                'timeout': 20,
+            }
+
+        engine = create_engine(database_url, **engine_options)
+
         # Create all tables
         Base.metadata.create_all(bind=engine)
         logger.info("SQLAlchemy tables created successfully")
-        
+
     except Exception as e:
         logger.error(f"Error creating SQLAlchemy tables: {e}")
         raise
@@ -79,24 +108,24 @@ def create_tables():
 def drop_tables():
     """
     Drop all SQLAlchemy tables.
-    
+
     WARNING: This will delete all data in the database!
     Use with caution, typically only in development or testing.
     """
     try:
         # Import all models to ensure they are registered
         from botapp.models import Base
-        
+
         # Используем ленивую инициализацию engine
         if hasattr(settings, 'get_sqlalchemy_engine'):
             engine = settings.get_sqlalchemy_engine()
         else:
             engine = settings.SQLALCHEMY_ENGINE
-        
+
         # Drop all tables
         Base.metadata.drop_all(bind=engine)
         logger.warning("SQLAlchemy tables dropped")
-        
+
     except Exception as e:
         logger.error(f"Error dropping SQLAlchemy tables: {e}")
         raise
@@ -105,24 +134,56 @@ def drop_tables():
 def check_database_connection():
     """
     Check if the database connection is working.
-    
+
     Returns:
         bool: True if connection is working, False otherwise
     """
     try:
-        from sqlalchemy import text
-        # Используем ленивую инициализацию engine
-        if hasattr(settings, 'get_sqlalchemy_engine'):
-            engine = settings.get_sqlalchemy_engine()
-        else:
-            engine = settings.SQLALCHEMY_ENGINE
-            
+        from sqlalchemy import text, create_engine
+        import os
+
+        # Получаем URL базы данных
+        database_url = getattr(settings, 'SQLALCHEMY_DATABASE_URL', 'sqlite:////app/data/mom_baby_bot.db')
+
+        # Для SQLite проверяем/создаем директорию и файл
+        if database_url.startswith('sqlite'):
+            # Извлекаем путь к файлу из URL
+            db_path = database_url.replace('sqlite:///', '').replace('sqlite://', '')
+            db_dir = os.path.dirname(db_path)
+
+            # Создаем директорию если не существует
+            if not os.path.exists(db_dir):
+                os.makedirs(db_dir, exist_ok=True)
+                logger.info(f"Created database directory: {db_dir}")
+
+            # Создаем файл базы данных если не существует
+            if not os.path.exists(db_path):
+                import sqlite3
+                conn = sqlite3.connect(db_path)
+                conn.close()
+                logger.info(f"Created SQLite database file: {db_path}")
+
+        # Теперь пытаемся подключиться
+        engine_options = {
+            'pool_pre_ping': True,
+            'pool_recycle': 300,
+            'echo': False,
+        }
+
+        if database_url.startswith('sqlite'):
+            engine_options['connect_args'] = {
+                'check_same_thread': False,
+                'timeout': 20,
+            }
+
+        engine = create_engine(database_url, **engine_options)
+
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
         logger.info("Database connection check passed")
         return True
-        
-    except SQLAlchemyError as e:
+
+    except Exception as e:
         logger.error(f"Database connection check failed: {e}")
         return False
 
@@ -130,15 +191,15 @@ def check_database_connection():
 class SQLAlchemyMixin:
     """
     Mixin class for Django views that need SQLAlchemy access.
-    
+
     This mixin provides convenient access to SQLAlchemy sessions
     in Django class-based views.
     """
-    
+
     def get_sqlalchemy_session(self):
         """
         Get the SQLAlchemy session from the request.
-        
+
         Returns:
             SQLAlchemy session object
         """
@@ -147,9 +208,9 @@ class SQLAlchemyMixin:
                 "No SQLAlchemy session found in request. "
                 "Make sure SQLAlchemySessionMiddleware is enabled."
             )
-        
+
         return self.request.sqlalchemy_session
-    
+
     def dispatch(self, request, *args, **kwargs):
         """
         Override dispatch to ensure SQLAlchemy session is available.
@@ -159,14 +220,14 @@ class SQLAlchemyMixin:
                 "SQLAlchemy session not found in request. "
                 "Make sure SQLAlchemySessionMiddleware is enabled."
             )
-        
+
         return super().dispatch(request, *args, **kwargs)
 
 
 def init_sqlalchemy():
     """
     Initialize SQLAlchemy for the Django application.
-    
+
     This function should be called during Django application startup
     to ensure SQLAlchemy is properly configured.
     """
@@ -174,12 +235,12 @@ def init_sqlalchemy():
         # Check database connection
         if not check_database_connection():
             raise Exception("Database connection failed")
-        
+
         # Create tables if they don't exist
         create_tables()
-        
+
         logger.info("SQLAlchemy initialized successfully")
-        
+
     except Exception as e:
         logger.error(f"Failed to initialize SQLAlchemy: {e}")
         raise

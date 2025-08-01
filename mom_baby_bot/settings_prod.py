@@ -91,6 +91,23 @@ def get_sqlalchemy_engine():
     global SQLALCHEMY_ENGINE
     if SQLALCHEMY_ENGINE is None:
         from sqlalchemy import create_engine
+        
+        # Для SQLite создаем файл базы данных если не существует
+        if SQLALCHEMY_DATABASE_URL.startswith('sqlite'):
+            import os
+            import sqlite3
+            db_path = SQLALCHEMY_DATABASE_URL.replace('sqlite:///', '').replace('sqlite://', '')
+            db_dir = os.path.dirname(db_path)
+            
+            # Создаем директорию если не существует
+            if not os.path.exists(db_dir):
+                os.makedirs(db_dir, exist_ok=True)
+            
+            # Создаем файл базы данных если не существует
+            if not os.path.exists(db_path):
+                conn = sqlite3.connect(db_path)
+                conn.close()
+        
         SQLALCHEMY_ENGINE = create_engine(
             SQLALCHEMY_DATABASE_URL,
             **SQLALCHEMY_ENGINE_OPTIONS
