@@ -93,9 +93,8 @@ def check_database_connection():
     """
     try:
         from sqlalchemy import text
-        # Force SQLite for local development
-        engine = create_engine('sqlite:///data/mom_baby_bot.db', connect_args={"check_same_thread": False})
-        with engine.connect() as connection:
+        # Используем engine из настроек Django
+        with settings.SQLALCHEMY_ENGINE.connect() as connection:
             connection.execute(text("SELECT 1"))
         logger.info("Database connection check passed")
         return True

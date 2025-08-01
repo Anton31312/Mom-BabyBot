@@ -52,14 +52,7 @@ python manage.py collectstatic --noinput --clear
 
 # Инициализируем SQLAlchemy базу данных
 echo "🗄️ Инициализация SQLAlchemy базы данных..."
-python -c "
-try:
-    from init_db import main as init_db_main
-    init_db_main()
-    print('✅ SQLAlchemy база данных инициализирована')
-except Exception as e:
-    print(f'⚠️ Предупреждение: не удалось инициализировать SQLAlchemy БД: {e}')
-"
+python manage.py init_sqlalchemy
 
 echo "🎉 Инициализация завершена! Запуск приложения..."
 

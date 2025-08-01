@@ -125,7 +125,14 @@ python manage.py collectstatic --noinput --clear
 ### Проблемы с SQLAlchemy
 Если SQLAlchemy не может инициализироваться:
 ```bash
-python init_db.py
+# Через Django management command
+python manage.py init_sqlalchemy
+
+# Принудительная пересоздание таблиц
+python manage.py init_sqlalchemy --force
+
+# Альтернативный способ
+python init_sqlalchemy_production.py
 ```
 
 ### Проверка логов

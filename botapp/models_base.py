@@ -30,15 +30,32 @@ class SQLAlchemyManager:
     def _setup_engine(self):
         """Настройка SQLAlchemy engine"""
         try:
-            # Принудительное использование SQLite для локальной разработки
-            database_url = 'sqlite:///data/mom_baby_bot.db'
+            # Получаем URL базы данных из переменных окружения
+            database_url = os.getenv('DATABASE_URL', 'sqlite:///data/mom_baby_bot.db')
             logger.info(f"Connecting to database: {database_url}")
             
-            self.engine = create_engine(
-                database_url, 
-                echo=False,
-                connect_args={"check_same_thread": False}  # Необходимо для SQLite в многопоточной среде
-            )
+            # Настройки для разных типов баз данных
+            if database_url.startswith('sqlite'):
+                engine_options = {
+                    'echo': False,
+                    'connect_args': {"check_same_thread": False}
+                }
+            elif database_url.startswith('postgresql'):
+                engine_options = {
+                    'echo': False,
+                    'pool_pre_ping': True,
+                    'pool_recycle': 300,
+                    'pool_size': 5,
+                    'max_overflow': 10
+                }
+            else:
+                engine_options = {
+                    'echo': False,
+                    'pool_pre_ping': True,
+                    'pool_recycle': 300
+                }
+            
+            self.engine = create_engine(database_url, **engine_options)
             self.Session = sessionmaker(bind=self.engine)
             logger.info("SQLAlchemy engine setup successful")
         except Exception as e:
