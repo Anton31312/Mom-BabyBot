@@ -107,10 +107,10 @@ def run_bot():
         print("🤖 Запуск Telegram бота...")
         
         # Импортируем и запускаем бота
-        from botapp.management.commands.runbot import Command
+        from django.core.management import execute_from_command_line
         
         # Запускаем бота через management команду
-        Command.run_bot()
+        execute_from_command_line(['manage.py', 'runbot'])
         
     except Exception as e:
         print(f"❌ Ошибка запуска бота: {e}")
