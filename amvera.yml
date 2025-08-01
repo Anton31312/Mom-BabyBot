@@ -25,7 +25,7 @@ deploy:
     BOT_LOG_LEVEL: "INFO"
     LOG_LEVEL: "INFO"
     # Режим запуска: gunicorn, web, bot, all
-    RUN_MODE: "gunicorn"
+    RUN_MODE: "all"
     # Порт для веб-приложения (если используется отдельно)
     WEBAPP_PORT: "8000"
     # Настройки Gunicorn
