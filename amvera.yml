@@ -1,0 +1,29 @@
+meta:
+  environment: python
+  toolchain: docker
+
+build:
+  dockerfile: Dockerfile
+
+run:
+  containerPort: 8000
+
+deploy:
+  environment:
+    DEBUG: "False"
+    DJANGO_SETTINGS_MODULE: "mom_baby_bot.settings_prod"
+    ALLOWED_HOSTS: "*.amvera.ru,*.amvera.io"
+    # Переменные окружения будут настроены в панели Amvera
+    # DATABASE_URL: будет предоставлен Amvera для PostgreSQL
+    # REDIS_URL: будет предоставлен Amvera для Redis
+    # SECRET_KEY: должен быть установлен в панели управления
+    # TELEGRAM_BOT_TOKEN: должен быть установлен в панели управления
+    # WEBHOOK_URL: должен быть установлен в панели управления
+    # WEBAPP_URL: должен быть установлен в панели управления
+    # ADMIN_IDS: должен быть установлен в панели управления
+
+services:
+  - type: postgresql
+    version: "15"
+  - type: redis
+    version: "7"

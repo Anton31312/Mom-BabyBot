@@ -16,10 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
 from botapp.admin import (
     admin_index_view, user_changelist_view, user_add_view, 
     user_change_view, user_delete_view
 )
+
+def health_check(request):
+    """Health check endpoint для мониторинга"""
+    return JsonResponse({'status': 'healthy', 'service': 'mom_baby_bot'})
 
 # Кастомные URL для SQLAlchemy админки
 sqlalchemy_admin_patterns = [
@@ -33,6 +38,7 @@ sqlalchemy_admin_patterns = [
 ]
 
 urlpatterns = [
+    path('health/', health_check, name='health_check'),
     path('admin/', include((sqlalchemy_admin_patterns, 'admin'), namespace='admin')),
     path('django-admin/', admin.site.urls),  # Стандартная Django админка для резерва
     path('', include('webapp.urls')),
