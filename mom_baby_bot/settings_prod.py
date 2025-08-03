@@ -5,8 +5,7 @@ Production settings for mom_baby_bot project.
 import os
 from .settings import *
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.getenv('DEBUG')
 
 # Allow all host headers that are configured in environment variables
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()]
@@ -18,8 +17,8 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
-# SSL настройки - включаем только если используется HTTPS
-USE_HTTPS = os.getenv('USE_HTTPS', 'True').lower() == 'true'
+# SSL настройки - отключаем для Amvera чтобы избежать redirect loop
+USE_HTTPS = os.getenv('USE_HTTPS', 'False').lower() == 'true'
 if USE_HTTPS:
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -27,6 +26,17 @@ if USE_HTTPS:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+# Настройки для работы за прокси (Amvera)
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Отключаем автоматическое добавление слеша для избежания redirect loop
+APPEND_SLASH = False
+
+# Дополнительные настройки безопасности для прокси
+SECURE_REDIRECT_EXEMPT = []
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
