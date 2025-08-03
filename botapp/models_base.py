@@ -32,7 +32,11 @@ class SQLAlchemyManager:
         try:
             # Получаем URL базы данных
             if database_url is None:
-                database_url = os.getenv('DATABASE_URL', 'sqlite:////data/mom_baby_bot.db')
+                database_url = os.getenv('DATABASE_URL', 'sqlite:////app/data/mom_baby_bot.db')
+            
+            # Дополнительная проверка на случай если передан None
+            if database_url is None:
+                database_url = 'sqlite:////app/data/mom_baby_bot.db'
             
             logger.info(f"Connecting to database: {database_url}")
             

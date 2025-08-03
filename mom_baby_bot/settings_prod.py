@@ -58,7 +58,6 @@ CACHE_TIMEOUT = 60 * 60 * 24  # 24 hours
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # Database settings - используем SQLite для production
-import os
 
 # Создаем директорию для базы данных если не существует
 # Используем переменную окружения если она установлена
@@ -93,25 +92,26 @@ SQLALCHEMY_ENGINE_OPTIONS = {
     }
 }
 
+
 def get_sqlalchemy_engine():
-    """Ленивое создание SQLAlchemy engine для production"""
+    """Cоздание SQLAlchemy engine для production"""
     global SQLALCHEMY_ENGINE, SQLALCHEMY_DATABASE_URL
-    
+
     if SQLALCHEMY_ENGINE is None:
         from sqlalchemy import create_engine
-        
+
         # Для SQLite создаем файл базы данных если не существует
         if SQLALCHEMY_DATABASE_URL.startswith('sqlite'):
             import os
             import sqlite3
             db_path = SQLALCHEMY_DATABASE_URL.replace('sqlite:///', '').replace('sqlite://', '')
             db_dir = os.path.dirname(db_path)
-            
+
             # Создаем директорию если не существует
             if not os.path.exists(db_dir):
                 os.makedirs(db_dir, exist_ok=True)
                 print(f"Created database directory: {db_dir}")
-            
+
             # Создаем файл базы данных если не существует
             if not os.path.exists(db_path):
                 try:
@@ -127,12 +127,13 @@ def get_sqlalchemy_engine():
                     conn.close()
                     # Обновляем URL для fallback
                     SQLALCHEMY_DATABASE_URL = f'sqlite:///{fallback_path}'
-        
+
         SQLALCHEMY_ENGINE = create_engine(
             SQLALCHEMY_DATABASE_URL,
             **SQLALCHEMY_ENGINE_OPTIONS
         )
     return SQLALCHEMY_ENGINE
+
 
 def get_sqlalchemy_session_factory():
     """Ленивое создание SQLAlchemy session factory для production"""
@@ -147,6 +148,7 @@ def get_sqlalchemy_session_factory():
         )
     return SQLALCHEMY_SESSION_FACTORY
 
+
 # Logging settings for production
 LOGGING = {
     'version': 1,
@@ -160,11 +162,16 @@ LOGGING = {
             'format': '{levelname} {message}',
             'style': '{',
         },
+        'safe': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+            'formatter': 'safe',
+            'stream': 'ext://sys.stdout',
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
@@ -172,25 +179,34 @@ LOGGING = {
             'maxBytes': 10 * 1024 * 1024,  # 10 MB
             'backupCount': 10,
             'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+        'null': {
+            'class': 'logging.NullHandler',
         },
     },
     'root': {
-        'handlers': ['console', 'file'],
+        'handlers': ['file'],
         'level': 'WARNING',
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'WARNING'),
+            'handlers': ['file'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'ERROR'),
+            'propagate': False,
+        },
+        'django.server': {
+            'handlers': ['null'],  # Отключаем логи сервера разработки
+            'level': 'ERROR',
             'propagate': False,
         },
         'sqlalchemy.engine': {
-            'handlers': ['console', 'file'],
-            'level': 'WARNING',
+            'handlers': ['file'],
+            'level': 'ERROR',
             'propagate': False,
         },
         'bot': {
-            'handlers': ['console', 'file'],
+            'handlers': ['file'],
             'level': os.getenv('BOT_LOG_LEVEL', 'WARNING'),
             'propagate': False,
         },
@@ -215,3 +231,20 @@ MIDDLEWARE = [
 
 # WhiteNoise configuration for static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Internationalization settings
+LANGUAGE_CODE = 'ru'
+USE_I18N = False
+USE_L10N = True
+USE_TZ = True
+
+# Поддерживаемые языки
+LANGUAGES = [
+    ('ru', 'Русский'),
+    ('en', 'English'),
+]
+
+# Путь к файлам локализации
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]

@@ -27,10 +27,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # См. https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # ПРЕДУПРЕЖДЕНИЕ БЕЗОПАСНОСТИ: держите секретный ключ в секрете в продакшене!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-064iw#8r5ybqa)e(7go1o*&t)udom@cg5uy_oj2x+6qria0qlm')
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # ПРЕДУПРЕЖДЕНИЕ БЕЗОПАСНОСТИ: не запускайте с включенной отладкой в продакшене!
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+DEBUG = os.getenv('DEBUG').lower() == 'true'
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
@@ -42,8 +42,8 @@ WEBAPP_URL = os.getenv('WEBAPP_URL')
 ADMIN_IDS = [int(id) for id in os.getenv('ADMIN_IDS', '').split(',') if id]
 
 # Конфигурация сервера
-HOST = os.getenv('HOST', '0.0.0.0')
-PORT = int(os.getenv('PORT', 8000))
+HOST = os.getenv('HOST')
+PORT = int(os.getenv('PORT'))
 
 
 # Определение приложений
@@ -127,7 +127,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Интернационализация
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 
 TIME_ZONE = 'Europe/Moscow'
 
@@ -282,26 +282,40 @@ LOGGING = {
             'format': '{levelname} {message}',
             'style': '{',
         },
+        'safe': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+            'formatter': 'safe',
+            'stream': 'ext://sys.stdout',
         },
         'file': {
             'class': 'logging.FileHandler',
             'filename': BASE_DIR / 'logs' / 'django.log',
             'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
+        'null': {
+            'class': 'logging.NullHandler',
         },
     },
     'root': {
-        'handlers': ['console'],
+        'handlers': ['console', 'file'],
         'level': LOG_LEVEL,
     },
     'loggers': {
         'django': {
             'handlers': ['console', 'file'],
             'level': LOG_LEVEL,
+            'propagate': False,
+        },
+        'django.server': {
+            'handlers': ['null'] if not DEBUG else ['console'],
+            'level': 'ERROR',
             'propagate': False,
         },
         'sqlalchemy.engine': {

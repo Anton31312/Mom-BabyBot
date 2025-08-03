@@ -3,6 +3,13 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import relationship
 from botapp.models_base import Base, db_manager
 
+def _ensure_db_manager_initialized():
+    """Убеждаемся что db_manager инициализирован"""
+    if db_manager.engine is None:
+        import os
+        database_url = os.getenv('DATABASE_URL', 'sqlite:////app/data/mom_baby_bot.db')
+        db_manager.setup_engine(database_url)
+
 class User(Base):
     """Модель пользователя"""
     __tablename__ = 'users'
@@ -46,10 +53,13 @@ from botapp.models_notification import NotificationPreference, NotificationLog
 # Утилитарные функции для работы с пользователями
 def get_sqlalchemy_session():
     """Получение новой сессии SQLAlchemy для использования в handlers"""
+    _ensure_db_manager_initialized()
     return db_manager.get_session()
 
 async def get_user(telegram_id: int) -> User:
     """Получение пользователя по telegram_id"""
+    _ensure_db_manager_initialized()
+    
     session = db_manager.get_session()
     try:
         user = session.query(User).filter_by(telegram_id=telegram_id).first()
@@ -60,6 +70,8 @@ async def get_user(telegram_id: int) -> User:
 def create_user(telegram_id: int, username: str = None, first_name: str = None, 
                 last_name: str = None, **kwargs) -> User:
     """Создание нового пользователя"""
+    _ensure_db_manager_initialized()
+    
     session = db_manager.get_session()
     try:
         user = User(

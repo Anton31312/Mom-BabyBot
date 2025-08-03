@@ -24,10 +24,7 @@ deploy:
     DJANGO_LOG_LEVEL: "INFO"
     BOT_LOG_LEVEL: "INFO"
     LOG_LEVEL: "INFO"
-    # Режим запуска: gunicorn, web, bot, all
-    RUN_MODE: "all"
-    # Порт для веб-приложения (если используется отдельно)
-    WEBAPP_PORT: "8000"
+    WEBAPP_PORT: "80"
     # Настройки Gunicorn
     GUNICORN_WORKERS: "2"
     GUNICORN_TIMEOUT: "120"

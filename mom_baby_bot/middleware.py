@@ -103,17 +103,26 @@ class SQLAlchemyHealthCheckMiddleware:
     
     def __init__(self, get_response):
         self.get_response = get_response
-        self.engine = settings.SQLALCHEMY_ENGINE
+        self.engine = None  # Будет инициализирован при первом использовании
         
     def __call__(self, request):
         # Perform a simple health check
         try:
+            # Инициализируем engine при первом использовании
+            if self.engine is None:
+                if hasattr(settings, 'get_sqlalchemy_engine'):
+                    self.engine = settings.get_sqlalchemy_engine()
+                else:
+                    # Fallback - пропускаем health check
+                    return self.get_response(request)
+            
             # Test the connection with a simple query
+            from sqlalchemy import text
             with self.engine.connect() as connection:
-                connection.execute("SELECT 1")
+                connection.execute(text("SELECT 1"))
             logger.debug("SQLAlchemy database health check passed")
             
-        except SQLAlchemyError as e:
+        except Exception as e:
             logger.error(f"SQLAlchemy database health check failed: {e}")
             # You might want to return a 503 Service Unavailable response here
             # For now, we'll just log the error and continue

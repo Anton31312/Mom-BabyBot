@@ -15,7 +15,14 @@ def get_db_manager():
     Returns:
         object: Экземпляр db_manager из botapp.models.
     """
-    from botapp.models import db_manager
+    from botapp.models_base import db_manager
+    
+    # Инициализируем db_manager если не инициализирован
+    if db_manager.engine is None:
+        import os
+        database_url = os.getenv('DATABASE_URL')
+        db_manager.setup_engine(database_url)
+    
     return db_manager
 
 def with_db_session(func):

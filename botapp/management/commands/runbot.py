@@ -40,6 +40,18 @@ class Command(BaseCommand):
     async def run_bot(self):
         """Запуск бота"""
         try:
+            # Инициализируем SQLAlchemy db_manager
+            self.stdout.write('Инициализация базы данных...')
+            from botapp.models_base import db_manager
+            import os
+            
+            database_url = os.getenv('DATABASE_URL')
+            db_manager.setup_engine(database_url)
+            
+            # Создаем таблицы если не существуют
+            db_manager.create_tables()
+            self.stdout.write('База данных инициализирована')
+            
             # Создаем экземпляры бота и диспетчера
             bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
             storage = MemoryStorage()
