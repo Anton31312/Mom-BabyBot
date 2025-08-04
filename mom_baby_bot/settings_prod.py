@@ -236,7 +236,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',  # Для поддержки русского языка
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -257,15 +257,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# Поддерживаемые языки - только русский
-LANGUAGES = [
-    ('ru', 'Русский'),
-]
 
-# Путь к файлам локализации
-LOCALE_PATHS = [
-    BASE_DIR / 'locale',
-]
 
 # Инициализация SQLAlchemy компонентов
 SQLALCHEMY_ENGINE = None

@@ -145,33 +145,149 @@ function selectBreast(breast) {
 /**
  * Начинает сессию кормления
  */
-async function startFeeding() {
-    try {
-        // Создаем новую сессию на сервере
-        const response = await fetch(`/api/users/${userId}/children/${childId}/feeding/timer/start/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken()
-            },
-            body: JSON.stringify({
-                feeding_type: 'breast',
-                breast_side: currentBreast
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Не удалось начать сессию кормления');
-        }
-        
-        currentSession = await response.json();
-        
-        // Обновляем состояние
+function startFeeding() {
+    // Создаем новую сессию
+    currentSession = {
+        id: `temp-${Date.now()}`,
+        start_time: new Date().toISOString(),
+        feeding_type: 'breast',
+        current_breast: currentBreast
+    };
+    
+    // Сохраняем в localStorage
+    localStorage.setItem('activeFeedingSession', JSON.stringify(currentSession));
+    
+    // Обновляем состояние
+    isTimerRunning = true;
+    isPaused = false;
+    elapsedTime = 0;
+    leftBreastTime = 0;
+    rightBreastTime = 0;
+    
+    // Обновляем UI
+    if (startButton) startButton.disabled = true;
+    if (pauseButton) pauseButton.disabled = false;
+    if (stopButton) stopButton.disabled = false;
+    if (switchButton) switchButton.disabled = false;
+    
+    // Запускаем таймер
+    timerInterval = setInterval(updateTimer, 1000);
+    
+    // Обновляем отображение
+    updateDisplay();
+    
+    // Показываем уведомление
+    showNotification('Кормление начато', 'success');
+}
+
+/**
+ * Приостанавливает/возобновляет кормление
+ */
+function pauseFeeding() {
+    if (!currentSession) return;
+    
+    // Переключаем состояние паузы
+    isPaused = !isPaused;
+    
+    // Обновляем кнопку
+    if (pauseButton) {
+        pauseButton.textContent = isPaused ? 'Продолжить' : 'Пауза';
+    }
+    
+    // Показываем уведомление
+    showNotification(isPaused ? 'Кормление приостановлено' : 'Кормление возобновлено', 'info');
+}
+
+/**
+ * Переключает грудь во время кормления
+ */
+function switchBreast() {
+    if (!currentSession || !isTimerRunning) return;
+    
+    const newBreast = currentBreast === 'left' ? 'right' : 'left';
+    
+    // Переключаем грудь
+    selectBreast(newBreast);
+    
+    // Обновляем сессию
+    currentSession.current_breast = newBreast;
+    localStorage.setItem('activeFeedingSession', JSON.stringify(currentSession));
+    
+    // Показываем уведомление
+    showNotification(`Переключено на ${newBreast === 'left' ? 'левую' : 'правую'} грудь`, 'info');
+}
+
+/**
+ * Завершает сессию кормления
+ */
+function stopFeeding() {
+    if (!currentSession) return;
+    
+    // Завершаем сессию
+    currentSession.end_time = new Date().toISOString();
+    currentSession.duration = elapsedTime;
+    currentSession.left_breast_time = leftBreastTime;
+    currentSession.right_breast_time = rightBreastTime;
+    
+    // Сохраняем в историю
+    const feedingSessions = JSON.parse(localStorage.getItem('feedingSessions') || '[]');
+    feedingSessions.unshift(currentSession);
+    localStorage.setItem('feedingSessions', JSON.stringify(feedingSessions.slice(0, 50)));
+    
+    // Удаляем активную сессию
+    localStorage.removeItem('activeFeedingSession');
+    
+    // Останавливаем таймер
+    clearInterval(timerInterval);
+    isTimerRunning = false;
+    isPaused = false;
+    
+    // Обновляем UI
+    if (startButton) startButton.disabled = false;
+    if (pauseButton) {
+        pauseButton.disabled = true;
+        pauseButton.textContent = 'Пауза';
+    }
+    if (stopButton) stopButton.disabled = true;
+    if (switchButton) switchButton.disabled = true;
+    
+    // Показываем результаты
+    const totalMinutes = Math.round(elapsedTime / 60);
+    showNotification(`Кормление завершено: ${totalMinutes} мин`, 'success');
+    
+    // Обновляем историю
+    loadFeedingHistory();
+    
+    // Сбрасываем сессию
+    currentSession = null;
+    elapsedTime = 0;
+    leftBreastTime = 0;
+    rightBreastTime = 0;
+    updateDisplay();
+}
+
+/**
+ * Проверяет наличие активной сессии кормления
+ */
+function checkActiveSession() {
+    const activeSession = localStorage.getItem('activeFeedingSession');
+    if (activeSession) {
+        currentSession = JSON.parse(activeSession);
         isTimerRunning = true;
-        isPaused = false;
-        elapsedTime = 0;
-        leftBreastTime = 0;
-        rightBreastTime = 0;
+        
+        // Рассчитываем прошедшее время
+        const startTime = new Date(currentSession.start_time);
+        const now = new Date();
+        elapsedTime = Math.floor((now - startTime) / 1000);
+        
+        // Восстанавливаем время для каждой груди
+        leftBreastTime = currentSession.left_breast_time || 0;
+        rightBreastTime = currentSession.right_breast_time || 0;
+        
+        // Устанавливаем текущую грудь
+        if (currentSession.current_breast) {
+            selectBreast(currentSession.current_breast);
+        }
         
         // Обновляем UI
         if (startButton) startButton.disabled = true;
@@ -185,266 +301,68 @@ async function startFeeding() {
         // Обновляем отображение
         updateDisplay();
         
-        // Показываем уведомление
-        showNotification('Кормление начато', 'success');
-    } catch (error) {
-        console.error('Ошибка при начале кормления:', error);
-        showNotification('Ошибка при начале кормления', 'error');
+        showNotification('Восстановлена активная сессия кормления', 'info');
     }
 }
 
 /**
- * Приостанавливает/возобновляет кормление
+ * Загружает историю кормления из localStorage
  */
-async function pauseFeeding() {
-    if (!currentSession) return;
+function loadFeedingHistory() {
+    // Получаем сессии из localStorage
+    const sessions = JSON.parse(localStorage.getItem('feedingSessions') || '[]');
     
-    try {
-        const action = isPaused ? 'resume' : 'pause';
+    // Очищаем историю
+    if (feedingHistory) {
+        feedingHistory.innerHTML = '';
         
-        const response = await fetch(`/api/users/${userId}/children/${childId}/feeding/${currentSession.id}/timer/pause/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken()
-            },
-            body: JSON.stringify({ action })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Не удалось ${action === 'pause' ? 'приостановить' : 'возобновить'} кормление`);
+        if (sessions.length === 0) {
+            feedingHistory.innerHTML = '<p class="text-center text-dark-gray">История кормления будет отображаться здесь</p>';
+            return;
         }
         
-        // Переключаем состояние паузы
-        isPaused = !isPaused;
+        // Отображаем последние 10 сессий
+        const recentSessions = sessions.slice(0, 10);
         
-        // Обновляем кнопку
-        if (pauseButton) {
-            pauseButton.textContent = isPaused ? 'Продолжить' : 'Пауза';
-        }
-        
-        // Показываем уведомление
-        showNotification(isPaused ? 'Кормление приостановлено' : 'Кормление возобновлено', 'info');
-    } catch (error) {
-        console.error('Ошибка при паузе кормления:', error);
-        showNotification('Ошибка при изменении состояния кормления', 'error');
-    }
-}
-
-/**
- * Переключает грудь во время кормления
- */
-async function switchBreast() {
-    if (!currentSession || !isTimerRunning) return;
-    
-    try {
-        const newBreast = currentBreast === 'left' ? 'right' : 'left';
-        
-        const response = await fetch(`/api/users/${userId}/children/${childId}/feeding/${currentSession.id}/timer/switch/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken()
-            },
-            body: JSON.stringify({
-                new_breast: newBreast
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Не удалось переключить грудь');
-        }
-        
-        // Переключаем грудь
-        selectBreast(newBreast);
-        
-        // Показываем уведомление
-        showNotification(`Переключено на ${newBreast === 'left' ? 'левую' : 'правую'} грудь`, 'info');
-    } catch (error) {
-        console.error('Ошибка при переключении груди:', error);
-        showNotification('Ошибка при переключении груди', 'error');
-    }
-}
-
-/**
- * Завершает сессию кормления
- */
-async function stopFeeding() {
-    if (!currentSession) return;
-    
-    try {
-        const response = await fetch(`/api/users/${userId}/children/${childId}/feeding/${currentSession.id}/timer/stop/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken()
-            },
-            body: JSON.stringify({
-                left_breast_time: leftBreastTime,
-                right_breast_time: rightBreastTime,
-                total_time: elapsedTime
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Не удалось завершить сессию кормления');
-        }
-        
-        // Останавливаем таймер
-        clearInterval(timerInterval);
-        isTimerRunning = false;
-        isPaused = false;
-        
-        // Обновляем UI
-        if (startButton) startButton.disabled = false;
-        if (pauseButton) {
-            pauseButton.disabled = true;
-            pauseButton.textContent = 'Пауза';
-        }
-        if (stopButton) stopButton.disabled = true;
-        if (switchButton) switchButton.disabled = true;
-        
-        // Показываем результаты
-        const totalMinutes = Math.round(elapsedTime / 60);
-        showNotification(`Кормление завершено: ${totalMinutes} мин`, 'success');
-        
-        // Обновляем историю
-        loadFeedingHistory();
-        
-        // Сбрасываем сессию
-        currentSession = null;
-        elapsedTime = 0;
-        leftBreastTime = 0;
-        rightBreastTime = 0;
-        updateDisplay();
-    } catch (error) {
-        console.error('Ошибка при завершении кормления:', error);
-        showNotification('Ошибка при завершении кормления', 'error');
-    }
-}
-
-/**
- * Проверяет наличие активной сессии кормления
- */
-async function checkActiveSession() {
-    try {
-        const response = await fetch(`/api/users/${userId}/children/${childId}/feeding/active/`);
-        
-        if (!response.ok) {
-            return; // Нет активной сессии
-        }
-        
-        const activeSession = await response.json();
-        
-        if (activeSession && activeSession.id) {
-            // Восстанавливаем активную сессию
-            currentSession = activeSession;
-            isTimerRunning = true;
+        recentSessions.forEach(session => {
+            const sessionElement = document.createElement('div');
+            sessionElement.className = 'glass-card p-4 mb-4';
             
-            // Рассчитываем прошедшее время
-            const startTime = new Date(activeSession.start_time);
-            const now = new Date();
-            elapsedTime = Math.floor((now - startTime) / 1000);
+            const startTime = formatDateTime(session.start_time);
+            const duration = session.duration ? Math.round(session.duration / 60) : 0;
+            const feedingType = session.feeding_type === 'breast' ? 'Грудное' : 'Бутылочка';
             
-            // Восстанавливаем время для каждой груди (если доступно)
-            leftBreastTime = activeSession.left_breast_time || 0;
-            rightBreastTime = activeSession.right_breast_time || 0;
-            
-            // Устанавливаем текущую грудь
-            if (activeSession.current_breast) {
-                selectBreast(activeSession.current_breast);
-            }
-            
-            // Обновляем UI
-            if (startButton) startButton.disabled = true;
-            if (pauseButton) pauseButton.disabled = false;
-            if (stopButton) stopButton.disabled = false;
-            if (switchButton) switchButton.disabled = false;
-            
-            // Запускаем таймер
-            timerInterval = setInterval(updateTimer, 1000);
-            
-            // Обновляем отображение
-            updateDisplay();
-            
-            showNotification('Восстановлена активная сессия кормления', 'info');
-        }
-    } catch (error) {
-        console.error('Ошибка при проверке активной сессии:', error);
-    }
-}
-
-/**
- * Загружает историю кормления с сервера
- */
-async function loadFeedingHistory() {
-    try {
-        const response = await fetch(`/api/users/${userId}/children/${childId}/feeding/`);
-        
-        if (!response.ok) {
-            throw new Error('Не удалось загрузить историю кормления');
-        }
-        
-        const data = await response.json();
-        const sessions = data.feeding_sessions || [];
-        
-        // Очищаем историю
-        if (feedingHistory) {
-            feedingHistory.innerHTML = '';
-            
-            if (sessions.length === 0) {
-                feedingHistory.innerHTML = '<p class="text-center text-dark-gray">История кормления будет отображаться здесь</p>';
-                return;
-            }
-            
-            // Отображаем последние 10 сессий
-            const recentSessions = sessions.slice(0, 10);
-            
-            recentSessions.forEach(session => {
-                const sessionElement = document.createElement('div');
-                sessionElement.className = 'glass-card p-4 mb-4';
-                
-                const startTime = formatDateTime(session.start_time);
-                const duration = session.duration ? Math.round(session.duration / 60) : 0;
-                const feedingType = session.feeding_type === 'breast' ? 'Грудное' : 'Бутылочка';
-                
-                let breastInfo = '';
-                if (session.feeding_type === 'breast') {
-                    const leftTime = session.left_breast_time ? Math.round(session.left_breast_time / 60) : 0;
-                    const rightTime = session.right_breast_time ? Math.round(session.right_breast_time / 60) : 0;
-                    breastInfo = `
-                        <div class="grid grid-cols-2 gap-2 mt-2 text-sm">
-                            <div>Левая грудь: ${leftTime} мин</div>
-                            <div>Правая грудь: ${rightTime} мин</div>
-                        </div>
-                    `;
-                }
-                
-                sessionElement.innerHTML = `
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-semibold">${feedingType}</span>
-                        <span class="text-sm text-dark-gray">${startTime}</span>
+            let breastInfo = '';
+            if (session.feeding_type === 'breast') {
+                const leftTime = session.left_breast_time ? Math.round(session.left_breast_time / 60) : 0;
+                const rightTime = session.right_breast_time ? Math.round(session.right_breast_time / 60) : 0;
+                breastInfo = `
+                    <div class="grid grid-cols-2 gap-2 mt-2 text-sm">
+                        <div>Левая грудь: ${leftTime} мин</div>
+                        <div>Правая грудь: ${rightTime} мин</div>
                     </div>
-                    <div class="text-sm">
-                        <span class="text-dark-gray">Продолжительность:</span>
-                        <span>${duration} мин</span>
-                    </div>
-                    ${breastInfo}
                 `;
-                
-                feedingHistory.appendChild(sessionElement);
-            });
-        }
-        
-        // Обновляем график, если есть данные
-        if (sessions.length > 0) {
-            initializeFeedingChart(sessions);
-        }
-    } catch (error) {
-        console.error('Ошибка при загрузке истории кормления:', error);
-        if (feedingHistory) {
-            feedingHistory.innerHTML = '<p class="text-center text-dark-gray">Не удалось загрузить историю кормления</p>';
-        }
+            }
+            
+            sessionElement.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-semibold">${feedingType}</span>
+                    <span class="text-sm text-dark-gray">${startTime}</span>
+                </div>
+                <div class="text-sm">
+                    <span class="text-dark-gray">Продолжительность:</span>
+                    <span>${duration} мин</span>
+                </div>
+                ${breastInfo}
+            `;
+            
+            feedingHistory.appendChild(sessionElement);
+        });
+    }
+    
+    // Обновляем график, если есть данные
+    if (sessions.length > 0) {
+        initializeFeedingChart(sessions);
     }
 }
 

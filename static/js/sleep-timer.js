@@ -1,6 +1,5 @@
 /**
  * Модуль для работы с таймером сна
- * Использует TimerManager для фоновой работы и синхронизации
  */
 
 // Глобальные переменные
@@ -12,6 +11,7 @@ let startTime = null;
 let sleepType = 'day';
 let sleepQuality = 3;
 let chart = null;
+let elapsedSeconds = 0;
 
 // DOM элементы
 let timerElement;
@@ -83,34 +83,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
   
-  // Обработчики событий от TimerManager
-  document.addEventListener('timerManager:timerStarted', (event) => {
-    const { timerId, startTime: timerStartTime, timerType } = event.detail;
-    
-    // Проверяем, что это таймер сна для текущего ребенка
-    if (timerType === 'sleep' && timerId.includes(`sleep-${childId}`)) {
-      updateUIForActiveTimer(timerId, timerStartTime);
-    }
-  });
-  
-  document.addEventListener('timerManager:timerStopped', (event) => {
-    const { timerId } = event.detail;
-    
-    // Проверяем, что это таймер сна для текущего ребенка
-    if (timerId.includes(`sleep-${childId}`)) {
-      resetUI();
-      loadSleepHistory();
-      loadSleepStatistics();
-    }
-  });
-  
   // Проверка наличия активной сессии
   checkForActiveSleepSession();
 });
 
 // Функция для форматирования времени
 function formatTime(seconds) {
-  return TimerManager.formatTime(seconds);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  return [
+    hours.toString().padStart(2, '0'),
+    minutes.toString().padStart(2, '0'),
+    secs.toString().padStart(2, '0')
+  ].join(':');
 }
 
 // Функция для форматирования даты и времени
@@ -146,69 +133,33 @@ function formatDuration(minutes) {
 
 // Функция для запуска таймера сна
 function startSleepTimer() {
-  // Используем dataSync для создания сессии сна с поддержкой офлайн-режима
-  window.dataSync.request({
-    url: `/api/users/${userId}/children/${childId}/sleep/`,
-    method: 'POST',
-    data: {
-      type: sleepType
-    },
-    entityType: 'sleep',
-    onSuccess: (data) => {
-      currentSessionId = data.id;
-      startTime = new Date(data.start_time);
-      
-      // Запускаем таймер через TimerManager
-      const timerId = `sleep-${childId}-${currentSessionId}`;
-      window.timerManager.startTimer(timerId, 'sleep', {
-        userId: userId,
-        childId: childId,
-        sessionId: currentSessionId,
-        sleepType: sleepType
-      });
-      
-      // Обновляем UI
-      updateUIForActiveTimer(timerId, startTime.getTime());
-    },
-    onError: (error) => {
-      console.error('Ошибка при запуске таймера:', error);
-      
-      // Если мы в офлайн-режиме, создаем временный ID и запускаем таймер
-      if (!navigator.onLine) {
-        const tempId = `temp-${Date.now()}`;
-        currentSessionId = tempId;
-        startTime = new Date();
-        
-        // Запускаем таймер через TimerManager
-        const timerId = `sleep-${childId}-${tempId}`;
-        window.timerManager.startTimer(timerId, 'sleep', {
-          userId: userId,
-          childId: childId,
-          sessionId: tempId,
-          sleepType: sleepType,
-          isOffline: true
-        });
-        
-        // Обновляем UI
-        updateUIForActiveTimer(timerId, startTime.getTime());
-        
-        // Показываем уведомление о работе в офлайн-режиме
-        const offlineNotice = document.createElement('div');
-        offlineNotice.className = 'mt-4 p-2 bg-yellow-100 text-yellow-800 rounded text-center text-sm';
-        offlineNotice.textContent = 'Таймер запущен в офлайн-режиме. Данные будут синхронизированы с сервером при восстановлении соединения.';
-        document.querySelector('.timer-container').appendChild(offlineNotice);
-        
-        // Удаляем уведомление через 5 секунд
-        setTimeout(() => {
-          if (offlineNotice.parentNode) {
-            offlineNotice.parentNode.removeChild(offlineNotice);
-          }
-        }, 5000);
-      } else {
-        alert('Произошла ошибка при запуске таймера сна');
-      }
-    }
-  });
+  // Создаем временную сессию
+  currentSessionId = `temp-${Date.now()}`;
+  startTime = new Date();
+  elapsedSeconds = 0;
+  
+  // Сохраняем активную сессию в localStorage
+  const activeSession = {
+    id: currentSessionId,
+    type: sleepType,
+    start_time: startTime.toISOString()
+  };
+  localStorage.setItem('activeSleepSession', JSON.stringify(activeSession));
+  
+  // Обновляем UI
+  startButton.disabled = true;
+  stopButton.disabled = false;
+  startTimeElement.textContent = formatDateTime(startTime);
+  currentSleepTypeElement.textContent = sleepType === 'day' ? 'Дневной' : 'Ночной';
+  
+  // Запускаем таймер
+  timerInterval = setInterval(() => {
+    elapsedSeconds++;
+    timerElement.textContent = formatTime(elapsedSeconds);
+  }, 1000);
+  
+  // Показываем уведомление
+  showNotification('Таймер сна запущен', 'success');
 }
 
 // Функция для остановки таймера сна
@@ -219,211 +170,129 @@ function stopSleepTimer() {
   // Останавливаем таймер
   clearInterval(timerInterval);
   
-  // Проверяем, является ли сессия временной (созданной в офлайн-режиме)
-  const isOfflineSession = currentSessionId && currentSessionId.toString().startsWith('temp-');
+  // Создаем запись о сне
+  const sleepSession = {
+    id: currentSessionId,
+    type: sleepType,
+    start_time: startTime.toISOString(),
+    end_time: new Date().toISOString(),
+    duration: elapsedSeconds,
+    quality: sleepQuality
+  };
   
-  // Используем dataSync для завершения сессии сна с поддержкой офлайн-режима
-  window.dataSync.request({
-    url: `/api/users/${userId}/children/${childId}/sleep/${currentSessionId}/`,
-    method: 'PUT',
-    data: {
-      end_session: true,
-      quality: sleepQuality
-    },
-    entityType: 'sleep',
-    entityId: currentSessionId,
-    onSuccess: (data) => {
-      // Останавливаем таймер в TimerManager
-      const timerId = `sleep-${childId}-${currentSessionId}`;
-      window.timerManager.stopTimer(timerId);
-      
-      // Сбрасываем UI
-      resetUI();
-      
-      // Перезагружаем историю сна и статистику
-      loadSleepHistory();
-      loadSleepStatistics();
-      
-      // Скрываем контейнер для выбора качества сна через 3 секунды
-      setTimeout(() => {
-        sleepQualityContainer.classList.add('hidden');
-      }, 3000);
-      
-      // Отправляем уведомление через Telegram, если интеграция доступна
-      if (window.telegramIntegration) {
-        window.telegramIntegration.sendSleepCompletedNotification(data);
-      }
-    },
-    onError: (error) => {
-      console.error('Ошибка при остановке таймера:', error);
-      
-      // Если мы в офлайн-режиме, сохраняем данные локально
-      if (!navigator.onLine || isOfflineSession) {
-        // Останавливаем таймер в TimerManager
-        const timerId = `sleep-${childId}-${currentSessionId}`;
-        window.timerManager.stopTimer(timerId);
-        
-        // Сбрасываем UI
-        resetUI();
-        
-        // Перезагружаем историю сна и статистику
-        loadSleepHistory();
-        loadSleepStatistics();
-        
-        // Скрываем контейнер для выбора качества сна через 3 секунды
-        setTimeout(() => {
-          sleepQualityContainer.classList.add('hidden');
-        }, 3000);
-        
-        // Показываем уведомление о работе в офлайн-режиме
-        const offlineNotice = document.createElement('div');
-        offlineNotice.className = 'mt-4 p-2 bg-yellow-100 text-yellow-800 rounded text-center text-sm';
-        offlineNotice.textContent = 'Данные сохранены локально и будут синхронизированы с сервером при восстановлении соединения.';
-        document.querySelector('.timer-container').appendChild(offlineNotice);
-        
-        // Удаляем уведомление через 5 секунд
-        setTimeout(() => {
-          if (offlineNotice.parentNode) {
-            offlineNotice.parentNode.removeChild(offlineNotice);
-          }
-        }, 5000);
-      } else {
-        alert('Произошла ошибка при завершении таймера сна');
-      }
-    }
-  });
+  // Сохраняем в localStorage
+  const existingSessions = JSON.parse(localStorage.getItem('sleepSessions') || '[]');
+  existingSessions.unshift(sleepSession);
+  localStorage.setItem('sleepSessions', JSON.stringify(existingSessions.slice(0, 50))); // Храним только последние 50
+  
+  // Сбрасываем UI
+  resetUI();
+  
+  // Перезагружаем историю сна и статистику
+  loadSleepHistory();
+  loadSleepStatistics();
+  
+  // Скрываем контейнер для выбора качества сна через 3 секунды
+  setTimeout(() => {
+    sleepQualityContainer.classList.add('hidden');
+  }, 3000);
+  
+  // Показываем уведомление
+  const durationMinutes = Math.round(elapsedSeconds / 60);
+  showNotification(`Сон завершен: ${durationMinutes} мин`, 'success');
 }
 
 // Функция для загрузки истории сна
 function loadSleepHistory() {
-  // Используем dataSync для загрузки данных с поддержкой офлайн-режима
-  window.dataSync.request({
-    url: `/api/users/${userId}/children/${childId}/sleep/`,
-    method: 'GET',
-    entityType: 'sleep',
-    useCache: true,
-    onSuccess: (data) => {
-      const sleepSessions = data.sleep_sessions || [];
-      
-      // Очищаем историю
-      sleepHistoryElement.innerHTML = '';
-      
-      if (sleepSessions.length === 0) {
-        sleepHistoryElement.innerHTML = '<p class="text-center text-dark-gray">История сна пуста</p>';
-        return;
-      }
-      
-      // Сортируем сессии по дате (новые сверху)
-      sleepSessions.sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
-      
-      // Отображаем последние 10 сессий
-      const recentSessions = sleepSessions.slice(0, 10);
-      
-      recentSessions.forEach(session => {
-        const sessionElement = document.createElement('div');
-        sessionElement.className = 'glass-card p-4';
-        
-        const typeLabel = session.type === 'day' ? 'Дневной сон' : 'Ночной сон';
-        const startTime = formatDateTime(session.start_time);
-        const endTime = session.end_time ? formatDateTime(session.end_time) : 'В процессе';
-        const duration = session.end_time ? formatDuration(calculateDuration(session.start_time, session.end_time)) : 'В процессе';
-        
-        let qualityStars = '';
-        if (session.quality) {
-          for (let i = 1; i <= 5; i++) {
-            if (i <= session.quality) {
-              qualityStars += '★';
-            } else {
-              qualityStars += '☆';
-            }
-          }
+  // Загружаем данные из localStorage
+  const sleepSessions = JSON.parse(localStorage.getItem('sleepSessions') || '[]');
+  
+  // Очищаем историю
+  sleepHistoryElement.innerHTML = '';
+  
+  if (sleepSessions.length === 0) {
+    sleepHistoryElement.innerHTML = '<p class="text-center text-dark-gray">История сна будет отображаться здесь</p>';
+    return;
+  }
+  
+  // Отображаем последние 10 сессий
+  const recentSessions = sleepSessions.slice(0, 10);
+  
+  recentSessions.forEach(session => {
+    const sessionElement = document.createElement('div');
+    sessionElement.className = 'glass-card p-4 mb-4';
+    
+    const typeLabel = session.type === 'day' ? 'Дневной сон' : 'Ночной сон';
+    const startTime = formatDateTime(session.start_time);
+    const endTime = session.end_time ? formatDateTime(session.end_time) : 'В процессе';
+    const duration = session.end_time ? formatDuration(calculateDuration(session.start_time, session.end_time)) : 'В процессе';
+    
+    let qualityStars = '';
+    if (session.quality) {
+      for (let i = 1; i <= 5; i++) {
+        if (i <= session.quality) {
+          qualityStars += '★';
+        } else {
+          qualityStars += '☆';
         }
-        
-        // Добавляем индикатор офлайн-режима, если данные не синхронизированы
-        const offlineIndicator = session.offline ? 
-          '<span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded ml-2">Не синхронизировано</span>' : '';
-        
-        sessionElement.innerHTML = `
-          <div class="flex justify-between items-center mb-2">
-            <span class="font-semibold">${typeLabel}${offlineIndicator}</span>
-            <span class="text-sm text-dark-gray">${startTime}</span>
-          </div>
-          <div class="grid grid-cols-2 gap-2 text-sm">
-            <div>
-              <span class="text-dark-gray">Окончание:</span>
-              <span>${endTime}</span>
-            </div>
-            <div>
-              <span class="text-dark-gray">Продолжительность:</span>
-              <span>${duration}</span>
-            </div>
-            ${session.quality ? `
-            <div>
-              <span class="text-dark-gray">Качество:</span>
-              <span class="text-yellow-500">${qualityStars}</span>
-            </div>
-            ` : ''}
-          </div>
-        `;
-        
-        sleepHistoryElement.appendChild(sessionElement);
-      });
-      
-      // Если данные загружены из офлайн-кэша, показываем уведомление
-      if (data.offline) {
-        const offlineNotice = document.createElement('div');
-        offlineNotice.className = 'mt-4 p-2 bg-yellow-100 text-yellow-800 rounded text-center text-sm';
-        offlineNotice.textContent = 'Данные загружены из локального кэша. Они будут синхронизированы с сервером при восстановлении соединения.';
-        sleepHistoryElement.appendChild(offlineNotice);
       }
-    },
-    onError: (error) => {
-      console.error('Ошибка при загрузке истории сна:', error);
-      sleepHistoryElement.innerHTML = '<p class="text-center text-dark-gray">Не удалось загрузить историю сна</p>';
     }
+    
+    sessionElement.innerHTML = `
+      <div class="flex justify-between items-center mb-2">
+        <span class="font-semibold">${typeLabel}</span>
+        <span class="text-sm text-dark-gray">${startTime}</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-sm">
+        <div>
+          <span class="text-dark-gray">Окончание:</span>
+          <span>${endTime}</span>
+        </div>
+        <div>
+          <span class="text-dark-gray">Продолжительность:</span>
+          <span>${duration}</span>
+        </div>
+        ${session.quality ? `
+        <div>
+          <span class="text-dark-gray">Качество:</span>
+          <span class="text-yellow-500">${qualityStars}</span>
+        </div>
+        ` : ''}
+      </div>
+    `;
+    
+    sleepHistoryElement.appendChild(sessionElement);
   });
 }
 
 // Функция для загрузки статистики сна
 function loadSleepStatistics() {
-  // Используем dataSync для загрузки статистики с поддержкой офлайн-режима
-  window.dataSync.request({
-    url: `/api/users/${userId}/children/${childId}/sleep/statistics/`,
-    method: 'GET',
-    entityType: 'sleep_statistics',
-    useCache: true,
-    onSuccess: (data) => {
-      // Создаем график
-      createSleepChart(data);
-      
-      // Если данные загружены из офлайн-кэша, показываем уведомление
-      if (data.offline) {
-        const chartContainer = document.getElementById('sleepChart');
-        const offlineNotice = document.createElement('div');
-        offlineNotice.className = 'mt-2 p-2 bg-yellow-100 text-yellow-800 rounded text-center text-xs';
-        offlineNotice.textContent = 'Статистика загружена из локального кэша и может быть неактуальной.';
-        chartContainer.appendChild(offlineNotice);
-      }
-    },
-    onError: (error) => {
-      console.error('Ошибка при загрузке статистики сна:', error);
-      document.getElementById('sleepChart').innerHTML = '<p class="text-center text-dark-gray">Не удалось загрузить статистику сна</p>';
-      
-      // Если мы в офлайн-режиме, показываем заглушку
-      if (!navigator.onLine) {
-        createSleepChart({
-          avg_day_sleep: 0,
-          avg_night_sleep: 0,
-          offline: true
-        });
-        
-        const chartContainer = document.getElementById('sleepChart');
-        const offlineNotice = document.createElement('div');
-        offlineNotice.className = 'mt-2 p-2 bg-yellow-100 text-yellow-800 rounded text-center text-xs';
-        offlineNotice.textContent = 'Статистика недоступна в офлайн-режиме. Данные будут обновлены при восстановлении соединения.';
-        chartContainer.appendChild(offlineNotice);
+  // Загружаем данные из localStorage и рассчитываем статистику
+  const sleepSessions = JSON.parse(localStorage.getItem('sleepSessions') || '[]');
+  
+  let dayTotal = 0, dayCount = 0;
+  let nightTotal = 0, nightCount = 0;
+  
+  sleepSessions.forEach(session => {
+    if (session.duration) {
+      const durationMinutes = Math.round(session.duration / 60);
+      if (session.type === 'day') {
+        dayTotal += durationMinutes;
+        dayCount++;
+      } else {
+        nightTotal += durationMinutes;
+        nightCount++;
       }
     }
+  });
+  
+  const avgDaySleep = dayCount > 0 ? Math.round(dayTotal / dayCount) : 0;
+  const avgNightSleep = nightCount > 0 ? Math.round(nightTotal / nightCount) : 0;
+  
+  // Создаем график
+  createSleepChart({
+    avg_day_sleep: avgDaySleep,
+    avg_night_sleep: avgNightSleep
   });
 }
 
@@ -486,94 +355,41 @@ function createSleepChart(data) {
 
 // Функция для проверки наличия активной сессии
 function checkForActiveSleepSession() {
-  // Проверяем наличие активных таймеров сна для текущего ребенка
-  const activeTimers = window.timerManager.getAllActiveTimers();
-  
-  for (const timer of activeTimers) {
-    if (timer.type === 'sleep' && timer.metadata?.childId == childId) {
-      currentSessionId = timer.metadata.sessionId;
-      startTime = new Date(timer.startTime);
-      sleepType = timer.metadata.sleepType;
-      
-      // Обновляем UI
-      updateUIForActiveTimer(timer.timerId, timer.startTime);
-      return;
-    }
-  }
-  
-  // Если активный таймер не найден, проверяем API
-  checkActiveSessionFromAPI();
-}
-
-// Функция для проверки активной сессии через API
-function checkActiveSessionFromAPI() {
-  // Используем dataSync для проверки активной сессии с поддержкой офлайн-режима
-  window.dataSync.request({
-    url: `/api/users/${userId}/children/${childId}/sleep/active/`,
-    method: 'GET',
-    entityType: 'active_sleep',
-    useCache: true,
-    onSuccess: (data) => {
-      if (data && data.id) {
-        currentSessionId = data.id;
-        startTime = new Date(data.start_time);
-        sleepType = data.type;
-        
-        // Запускаем таймер через TimerManager
-        const timerId = `sleep-${childId}-${currentSessionId}`;
-        window.timerManager.startTimer(timerId, 'sleep', {
-          userId: userId,
-          childId: childId,
-          sessionId: currentSessionId,
-          sleepType: sleepType
-        });
-        
-        // Обновляем UI
-        updateUIForActiveTimer(timerId, startTime.getTime());
+  // Проверяем localStorage на наличие активной сессии
+  const activeSession = localStorage.getItem('activeSleepSession');
+  if (activeSession) {
+    const sessionData = JSON.parse(activeSession);
+    currentSessionId = sessionData.id;
+    startTime = new Date(sessionData.start_time);
+    sleepType = sessionData.type;
+    
+    // Рассчитываем прошедшее время
+    elapsedSeconds = Math.floor((Date.now() - startTime.getTime()) / 1000);
+    
+    // Обновляем UI
+    startButton.disabled = true;
+    stopButton.disabled = false;
+    startTimeElement.textContent = formatDateTime(startTime);
+    currentSleepTypeElement.textContent = sleepType === 'day' ? 'Дневной' : 'Ночной';
+    
+    // Устанавливаем правильную вкладку
+    document.querySelectorAll('.neo-tab').forEach(tab => {
+      tab.classList.remove('active');
+      if ((tab.dataset.tabTarget === 'day-sleep' && sleepType === 'day') || 
+          (tab.dataset.tabTarget === 'night-sleep' && sleepType === 'night')) {
+        tab.classList.add('active');
       }
-    },
-    onError: (error) => {
-      console.error('Ошибка при проверке активной сессии:', error);
-      
-      // В офлайн-режиме не показываем ошибку, просто продолжаем работу
-      if (!navigator.onLine) {
-        console.log('Работа в офлайн-режиме, активные сессии будут проверены при восстановлении соединения');
-      }
-    }
-  });
-}
-
-// Функция для обновления UI при активном таймере
-function updateUIForActiveTimer(timerId, timerStartTime) {
-  // Обновляем UI
-  startButton.disabled = true;
-  stopButton.disabled = false;
-  startTimeElement.textContent = formatDateTime(new Date(timerStartTime));
-  
-  // Устанавливаем правильный тип сна
-  document.querySelectorAll('.neo-tab').forEach(tab => {
-    tab.classList.remove('active');
-    if ((tab.dataset.tabTarget === 'day-sleep' && sleepType === 'day') || 
-        (tab.dataset.tabTarget === 'night-sleep' && sleepType === 'night')) {
-      tab.classList.add('active');
-    }
-  });
-  
-  currentSleepTypeElement.textContent = sleepType === 'day' ? 'Дневной' : 'Ночной';
-  
-  // Запускаем таймер для обновления отображения
-  clearInterval(timerInterval);
-  
-  const updateTimerDisplay = () => {
-    const elapsedSeconds = TimerManager.getElapsedSeconds(timerStartTime);
+    });
+    
+    // Запускаем таймер
+    timerInterval = setInterval(() => {
+      elapsedSeconds++;
+      timerElement.textContent = formatTime(elapsedSeconds);
+    }, 1000);
+    
+    // Обновляем отображение сразу
     timerElement.textContent = formatTime(elapsedSeconds);
-  };
-  
-  // Обновляем отображение сразу
-  updateTimerDisplay();
-  
-  // Запускаем интервал для обновления отображения
-  timerInterval = setInterval(updateTimerDisplay, 1000);
+  }
 }
 
 // Функция для сброса UI
@@ -585,4 +401,39 @@ function resetUI() {
   startTimeElement.textContent = '-';
   currentSessionId = null;
   startTime = null;
+  elapsedSeconds = 0;
+  
+  // Удаляем активную сессию из localStorage
+  localStorage.removeItem('activeSleepSession');
+}
+
+// Функция для показа уведомлений
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+    type === 'success' ? 'bg-green-100 text-green-800' : 
+    type === 'error' ? 'bg-red-100 text-red-800' : 
+    'bg-blue-100 text-blue-800'
+  }`;
+  notification.innerHTML = `
+    <div class="flex items-center">
+      <span class="mr-2">
+        ${type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ'}
+      </span>
+      <span>${message}</span>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.classList.add('opacity-0');
+    notification.style.transition = 'opacity 0.5s ease';
+    
+    setTimeout(() => {
+      if (document.body.contains(notification)) {
+        document.body.removeChild(notification);
+      }
+    }, 500);
+  }, 3000);
 }
