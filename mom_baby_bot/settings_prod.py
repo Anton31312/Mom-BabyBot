@@ -236,6 +236,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',  # Для поддержки русского языка
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -252,14 +253,13 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Internationalization settings
 LANGUAGE_CODE = 'ru'
-USE_I18N = False
+USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# Поддерживаемые языки
+# Поддерживаемые языки - только русский
 LANGUAGES = [
     ('ru', 'Русский'),
-    ('en', 'English'),
 ]
 
 # Путь к файлам локализации

@@ -1,339 +1,83 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Mom&BabyBot - Отслеживание кормления{% endblock %}
+{% block title %}Mom&BabyBot - Трекер кормления{% endblock %}
 
 {% block content %}
 <div class="glass-container mb-6">
-    <h1 class="text-2xl font-bold mb-4">Отслеживание кормления</h1>
-    <p class="text-dark-gray mb-4">Записывайте и анализируйте режим кормления вашего ребенка.</p>
+    <h1 class="text-2xl font-bold mb-4">Трекер кормления</h1>
+    <p class="text-dark-gray mb-4">Отслеживайте режим кормления вашего ребенка для здорового развития.</p>
 </div>
 
 <div class="neo-container mb-6">
-    <div class="glass-tabs" data-tab-group="feeding-type">
-        <div class="glass-tab active" data-tab-target="breast-feeding">Грудное вскармливание</div>
-        <div class="glass-tab" data-tab-target="bottle-feeding">Кормление из бутылочки</div>
-    </div>
-    
-    <div class="mt-6" data-tab-group="feeding-type">
-        <div id="breast-feeding" class="tab-content">
-            <!-- Dual Timer Interface -->
-            <div id="feedingTimerInterface" class="mb-8">
-                <div class="glass-container p-6">
-                    <h3 class="text-xl font-bold mb-6 text-center">Таймеры кормления</h3>
-                    
-                    <!-- Active Session Info -->
-                    <div id="activeSessionInfo" class="mb-6 p-4 bg-blue-50 rounded-lg" style="display: none;">
-                        <div class="flex justify-between items-center">
-                            <span class="font-semibold">Активная сессия кормления</span>
-                            <span id="sessionStartTime" class="text-sm text-gray-600"></span>
-                        </div>
-                        <div class="mt-2 text-sm">
-                            <span>Общее время: </span>
-                            <span id="totalSessionTime" class="font-semibold">00:00</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Timer Controls -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Left Breast Timer -->
-                        <div class="timer-container">
-                            <div class="glass-card p-6 text-center">
-                                <h4 class="text-lg font-semibold mb-4">Левая грудь</h4>
-                                <div class="timer-display mb-4">
-                                    <span id="leftTimer" class="text-3xl font-mono font-bold">00:00</span>
-                                </div>
-                                <div class="timer-controls space-y-2">
-                                    <button id="leftStartBtn" class="neo-button bg-green-500 text-white w-full">Начать</button>
-                                    <button id="leftPauseBtn" class="neo-button bg-yellow-500 text-white w-full" style="display: none;">Пауза</button>
-                                </div>
-                                <div class="mt-3 text-sm text-gray-600">
-                                    <div>Всего: <span id="leftTotalTime">00:00</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Right Breast Timer -->
-                        <div class="timer-container">
-                            <div class="glass-card p-6 text-center">
-                                <h4 class="text-lg font-semibold mb-4">Правая грудь</h4>
-                                <div class="timer-display mb-4">
-                                    <span id="rightTimer" class="text-3xl font-mono font-bold">00:00</span>
-                                </div>
-                                <div class="timer-controls space-y-2">
-                                    <button id="rightStartBtn" class="neo-button bg-green-500 text-white w-full">Начать</button>
-                                    <button id="rightPauseBtn" class="neo-button bg-yellow-500 text-white w-full" style="display: none;">Пауза</button>
-                                </div>
-                                <div class="mt-3 text-sm text-gray-600">
-                                    <div>Всего: <span id="rightTotalTime">00:00</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Quick Switch and Session Controls -->
-                    <div class="mt-6 space-y-4">
-                        <div class="flex justify-center space-x-4">
-                            <button id="switchToLeftBtn" class="neo-button bg-blue-500 text-white" style="display: none;">← Переключить на левую</button>
-                            <button id="switchToRightBtn" class="neo-button bg-blue-500 text-white" style="display: none;">Переключить на правую →</button>
-                        </div>
-                        
-                        <div class="flex justify-center space-x-4">
-                            <button id="stopSessionBtn" class="neo-button bg-red-500 text-white" style="display: none;">Завершить сессию</button>
-                        </div>
-                    </div>
+    <div class="flex flex-col items-center justify-center py-6">
+        <!-- Основной таймер -->
+        <div id="timer" class="text-4xl font-bold mb-6">00:00</div>
+        
+        <!-- Выбор груди -->
+        <div class="mb-6">
+            <div class="flex items-center justify-center space-x-4 mb-4">
+                <span>Грудь:</span>
+                <div class="neo-tabs" data-tab-group="breast-side">
+                    <div id="leftBreastButton" class="neo-tab active" data-tab-target="left-breast">Левая</div>
+                    <div id="rightBreastButton" class="neo-tab" data-tab-target="right-breast">Правая</div>
                 </div>
-            </div>
-            
-            <!-- Manual Entry Form -->
-            <div class="glass-container p-6">
-                <h3 class="text-lg font-semibold mb-4">Ручной ввод данных</h3>
-                <form id="breastFeedingForm" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-dark-gray mb-2" for="breastFeedingDate">Дата и время</label>
-                            <input type="datetime-local" id="breastFeedingDate" class="neo-input w-full" required>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-dark-gray mb-2" for="breastFeedingDuration">Продолжительность (мин)</label>
-                            <input type="number" id="breastFeedingDuration" class="neo-input w-full" min="1" required>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-dark-gray mb-2">Грудь</label>
-                        <div class="flex space-x-4">
-                            <label class="flex items-center">
-                                <input type="radio" name="breast" value="left" class="mr-2" checked>
-                                <span>Левая</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="radio" name="breast" value="right" class="mr-2">
-                                <span>Правая</span>
-                            </label>
-                            <label class="flex items-center">
-                                <input type="radio" name="breast" value="both" class="mr-2">
-                                <span>Обе</span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-dark-gray mb-2" for="breastFeedingNotes">Заметки</label>
-                        <textarea id="breastFeedingNotes" class="neo-input w-full" rows="3"></textarea>
-                    </div>
-                    
-                    <button type="submit" class="neo-button bg-primary w-full">Сохранить</button>
-                </form>
             </div>
         </div>
         
-        <div id="bottle-feeding" class="tab-content" style="display: none;">
-            <form id="bottleFeedingForm" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-dark-gray mb-2" for="bottleFeedingDate">Дата и время</label>
-                        <input type="datetime-local" id="bottleFeedingDate" class="neo-input w-full" required>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-dark-gray mb-2" for="bottleFeedingAmount">Количество (мл)</label>
-                        <input type="number" id="bottleFeedingAmount" class="neo-input w-full" min="1" required>
-                    </div>
+        <!-- Кнопки управления -->
+        <div class="flex space-x-4 mb-6">
+            <button id="startButton" class="neo-button bg-accent-secondary px-8 py-3">Начать</button>
+            <button id="pauseButton" class="neo-button bg-primary px-8 py-3" disabled>Пауза</button>
+            <button id="switchButton" class="neo-button bg-accent px-6 py-3" disabled>Переключить</button>
+            <button id="stopButton" class="neo-button bg-red-400 px-8 py-3" disabled>Завершить</button>
+        </div>
+        
+        <!-- Статистика текущей сессии -->
+        <div id="stats" class="w-full max-w-md">
+            <div class="flex justify-between mb-2">
+                <span>Текущая грудь:</span>
+                <span id="currentBreast">Левая грудь</span>
+            </div>
+            <div class="flex justify-between mb-2">
+                <span>Общее время:</span>
+                <span id="sessionTime">00:00</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                <div class="text-center">
+                    <div class="text-sm text-dark-gray">Левая грудь</div>
+                    <div id="leftTime" class="font-semibold">00:00</div>
                 </div>
-                
-                <div>
-                    <label class="block text-dark-gray mb-2">Тип молока/смеси</label>
-                    <div class="flex space-x-4">
-                        <label class="flex items-center">
-                            <input type="radio" name="milkType" value="formula" class="mr-2" checked>
-                            <span>Смесь</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="radio" name="milkType" value="expressed" class="mr-2">
-                            <span>Сцеженное молоко</span>
-                        </label>
-                    </div>
+                <div class="text-center">
+                    <div class="text-sm text-dark-gray">Правая грудь</div>
+                    <div id="rightTime" class="font-semibold">00:00</div>
                 </div>
-                
-                <div>
-                    <label class="block text-dark-gray mb-2" for="bottleFeedingNotes">Заметки</label>
-                    <textarea id="bottleFeedingNotes" class="neo-input w-full" rows="3"></textarea>
-                </div>
-                
-                <button type="submit" class="neo-button bg-primary w-full">Сохранить</button>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 
 <div class="glass-container mb-6">
-    <h2 class="text-xl font-bold mb-4">История кормлений</h2>
+    <h2 class="text-xl font-bold mb-4">История кормления</h2>
     <div id="feedingHistory" class="space-y-4">
-        <p class="text-center text-dark-gray">История кормлений будет отображаться здесь</p>
+        <p id="noHistoryMessage" class="text-center text-dark-gray">История кормления будет отображаться здесь</p>
     </div>
 </div>
 
 <div class="neo-container">
-    <h2 class="text-xl font-bold mb-4">Статистика кормлений</h2>
-    
-    <!-- Общая статистика -->
-    <div id="feedingStats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <div class="glass-card p-4">
-            <h3 class="text-lg font-semibold mb-2">Сегодня</h3>
-            <div class="space-y-2">
-                <div class="flex justify-between">
-                    <span>Всего кормлений:</span>
-                    <span id="todayFeedingCount">0</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Грудное вскармливание:</span>
-                    <span id="todayBreastCount">0</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Из бутылочки:</span>
-                    <span id="todayBottleCount">0</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Общая продолжительность:</span>
-                    <span id="todayFeedingDuration">0 мин</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Общий объем:</span>
-                    <span id="todayFeedingAmount">0 мл</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="glass-card p-4">
-            <h3 class="text-lg font-semibold mb-2">За неделю (среднее)</h3>
-            <div class="space-y-2">
-                <div class="flex justify-between">
-                    <span>Кормлений в день:</span>
-                    <span id="weeklyFeedingAvg">0</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Продолжительность:</span>
-                    <span id="weeklyDurationAvg">0 мин</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Объем:</span>
-                    <span id="weeklyAmountAvg">0 мл</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Длительность сессии:</span>
-                    <span id="weeklyAvgSessionDuration">0 мин</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="glass-card p-4">
-            <h3 class="text-lg font-semibold mb-2">Рекорды недели</h3>
-            <div class="space-y-2">
-                <div class="flex justify-between">
-                    <span>Самая долгая сессия:</span>
-                    <span id="weeklyLongestSession">0 мин</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Самая короткая сессия:</span>
-                    <span id="weeklyShortestSession">0 мин</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Всего сессий:</span>
-                    <span id="weeklyTotalCount">0</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Детальная статистика по грудям -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div class="glass-card p-4">
-            <h3 class="text-lg font-semibold mb-4">Статистика по грудям - Сегодня</h3>
-            <div class="space-y-3">
-                <div class="flex justify-between items-center">
-                    <span>Левая грудь:</span>
-                    <div class="text-right">
-                        <div id="todayLeftBreastDuration" class="font-semibold">0 мин</div>
-                        <div id="todayLeftBreastPercentage" class="text-sm text-gray-600">0%</div>
-                    </div>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div id="todayLeftBreastBar" class="bg-pink-400 h-2 rounded-full" style="width: 0%"></div>
-                </div>
-                
-                <div class="flex justify-between items-center">
-                    <span>Правая грудь:</span>
-                    <div class="text-right">
-                        <div id="todayRightBreastDuration" class="font-semibold">0 мин</div>
-                        <div id="todayRightBreastPercentage" class="text-sm text-gray-600">0%</div>
-                    </div>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div id="todayRightBreastBar" class="bg-blue-400 h-2 rounded-full" style="width: 0%"></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="glass-card p-4">
-            <h3 class="text-lg font-semibold mb-4">Статистика по грудям - За неделю</h3>
-            <div class="space-y-3">
-                <div class="flex justify-between items-center">
-                    <span>Левая грудь:</span>
-                    <div class="text-right">
-                        <div id="weeklyLeftBreastDuration" class="font-semibold">0 мин</div>
-                        <div id="weeklyLeftBreastPercentage" class="text-sm text-gray-600">0%</div>
-                    </div>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div id="weeklyLeftBreastBar" class="bg-pink-400 h-2 rounded-full" style="width: 0%"></div>
-                </div>
-                
-                <div class="flex justify-between items-center">
-                    <span>Правая грудь:</span>
-                    <div class="text-right">
-                        <div id="weeklyRightBreastDuration" class="font-semibold">0 мин</div>
-                        <div id="weeklyRightBreastPercentage" class="text-sm text-gray-600">0%</div>
-                    </div>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div id="weeklyRightBreastBar" class="bg-blue-400 h-2 rounded-full" style="width: 0%"></div>
-                </div>
-                
-                <div class="mt-4 pt-3 border-t border-gray-200">
-                    <div class="flex justify-between text-sm">
-                        <span>Среднее в день (левая):</span>
-                        <span id="weeklyAvgLeftBreastDuration">0 мин</span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span>Среднее в день (правая):</span>
-                        <span id="weeklyAvgRightBreastDuration">0 мин</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- График статистики -->
-    <div class="glass-card p-4">
-        <h3 class="text-lg font-semibold mb-4">График кормлений за неделю</h3>
-        <div id="feedingChart" class="h-64">
-            <canvas id="feedingChartCanvas"></canvas>
-        </div>
+    <h2 class="text-xl font-bold mb-4">Статистика кормления</h2>
+    <div id="feedingChart" class="h-64 bg-white rounded-lg p-4">
+        <canvas id="feedingChartCanvas"></canvas>
     </div>
 </div>
+
+
 {% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{% load static %}
-<link rel="stylesheet" href="{% static 'css/feeding-timer.css' %}">
 {% endblock %}
 
 {% block extra_js %}
-<!-- Скрытые поля для хранения ID пользователя и ребенка -->
-<input type="hidden" id="userId" value="{{ user_id }}">
-<input type="hidden" id="childId" value="{{ child_id }}">
-
-{% include 'tools/feeding_tracker/feeding_tracker.js' %}
+<script src="{% static 'js/feeding-timer.js' %}"></script>
 {% endblock %}
