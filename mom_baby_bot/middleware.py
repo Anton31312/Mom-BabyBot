@@ -29,14 +29,35 @@ class SQLAlchemySessionMiddleware:
     
     def __init__(self, get_response):
         self.get_response = get_response
-        self.session_factory = settings.SQLALCHEMY_SESSION_FACTORY
+        self.session_factory = None
+        
+        # Инициализируем session factory
+        try:
+            if hasattr(settings, 'SQLALCHEMY_SESSION_FACTORY') and settings.SQLALCHEMY_SESSION_FACTORY:
+                self.session_factory = settings.SQLALCHEMY_SESSION_FACTORY
+            elif hasattr(settings, 'get_sqlalchemy_session_factory'):
+                self.session_factory = settings.get_sqlalchemy_session_factory()
+            else:
+                logger.warning("SQLAlchemy session factory not found in settings")
+        except Exception as e:
+            logger.error(f"Failed to initialize SQLAlchemy session factory: {e}")
+            self.session_factory = None
         
     def __call__(self, request):
         # Measure request start time
         request_start_time = time.time()
         
+        # Check if session factory is available
+        if self.session_factory is None:
+            logger.warning("SQLAlchemy session factory not available, skipping session management")
+            return self.get_response(request)
+        
         # Create a new SQLAlchemy session for this request
-        session = self.session_factory()
+        try:
+            session = self.session_factory()
+        except Exception as e:
+            logger.error(f"Failed to create SQLAlchemy session: {e}")
+            return self.get_response(request)
         
         # Store the session in the request object for access in views
         request.sqlalchemy_session = session

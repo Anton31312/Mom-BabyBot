@@ -5,12 +5,20 @@ Production settings for mom_baby_bot project.
 import os
 from .settings import *
 
-DEBUG = os.getenv('DEBUG')
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 # Allow all host headers that are configured in environment variables
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()]
 if not ALLOWED_HOSTS:
     ALLOWED_HOSTS = ['*']  # Fallback для Amvera
+
+# Добавляем localhost и 127.0.0.1 для тестирования
+if 'localhost' not in ALLOWED_HOSTS and '*' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1'])
+
+# Добавляем домен Amvera
+if 'mombabybot-fedas.amvera.io' not in ALLOWED_HOSTS and '*' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('mombabybot-fedas.amvera.io')
 
 # Security settings (адаптированы для Amvera)
 SECURE_BROWSER_XSS_FILTER = True
@@ -233,14 +241,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # SQLAlchemy middleware для управления сессиями
-    'mom_baby_bot.middleware.SQLAlchemySessionMiddleware',
-    # Middleware для кэширования
-    'mom_baby_bot.cache_manager.CacheMiddleware',
+    # SQLAlchemy middleware для управления сессиями (временно отключен)
+    # 'mom_baby_bot.middleware.SQLAlchemySessionMiddleware',
+    # Middleware для кэширования (временно отключен)
+    # 'mom_baby_bot.cache_manager.CacheMiddleware',
 ]
 
-# WhiteNoise configuration for static files
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# WhiteNoise configuration for static files - используем простое хранилище для избежания ошибок манифеста
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Internationalization settings
 LANGUAGE_CODE = 'ru'
@@ -258,3 +266,22 @@ LANGUAGES = [
 LOCALE_PATHS = [
     BASE_DIR / 'locale',
 ]
+
+# Инициализация SQLAlchemy компонентов
+SQLALCHEMY_ENGINE = None
+SQLALCHEMY_SESSION_FACTORY = None
+
+# Инициализируем session factory при загрузке настроек
+def init_sqlalchemy():
+    """Инициализация SQLAlchemy компонентов"""
+    global SQLALCHEMY_SESSION_FACTORY
+    if SQLALCHEMY_SESSION_FACTORY is None:
+        SQLALCHEMY_SESSION_FACTORY = get_sqlalchemy_session_factory()
+    return SQLALCHEMY_SESSION_FACTORY
+
+# Инициализируем при импорте настроек
+try:
+    SQLALCHEMY_SESSION_FACTORY = init_sqlalchemy()
+except Exception as e:
+    print(f"Warning: Could not initialize SQLAlchemy session factory: {e}")
+    SQLALCHEMY_SESSION_FACTORY = None
