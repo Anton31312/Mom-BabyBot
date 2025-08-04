@@ -1,9 +1,9 @@
 /**
- * Трекер кормления грудью
+ * Трекер кормления грудью с поддержкой одновременного кормления
  * 
  * Этот скрипт обеспечивает функциональность трекера кормления, включая:
- * - Запуск и остановку таймера кормления
- * - Переключение между грудями
+ * - Независимые таймеры для каждой груди
+ * - Одновременное кормление с двух грудей
  * - Запись сессий кормления
  * - Отображение статистики и истории кормления
  * - Синхронизацию с сервером
@@ -11,32 +11,48 @@
 
 // Глобальные переменные
 let currentSession = null;
-let timerInterval = null;
-let elapsedTime = 0;
-let currentBreast = 'left'; // 'left' или 'right'
-let isTimerRunning = false;
-let isPaused = false;
+let leftTimerInterval = null;
+let rightTimerInterval = null;
+let sessionInterval = null;
 let userId = null;
 let childId = null;
 let feedingChart = null;
 
-// DOM элементы
-const timerDisplay = document.getElementById('timer');
-const startButton = document.getElementById('startButton');
-const pauseButton = document.getElementById('pauseButton');
-const stopButton = document.getElementById('stopButton');
-const switchButton = document.getElementById('switchButton');
-const leftBreastButton = document.getElementById('leftBreastButton');
-const rightBreastButton = document.getElementById('rightBreastButton');
-const currentBreastDisplay = document.getElementById('currentBreast');
-const sessionTimeDisplay = document.getElementById('sessionTime');
-const leftTimeDisplay = document.getElementById('leftTime');
-const rightTimeDisplay = document.getElementById('rightTime');
-const feedingHistory = document.getElementById('feedingHistory');
+// Состояние таймеров
+let leftTimer = {
+    isRunning: false,
+    isPaused: false,
+    elapsedTime: 0,
+    startTime: null,
+    pausedTime: 0
+};
 
-// Время для каждой груди
-let leftBreastTime = 0;
-let rightBreastTime = 0;
+let rightTimer = {
+    isRunning: false,
+    isPaused: false,
+    elapsedTime: 0,
+    startTime: null,
+    pausedTime: 0
+};
+
+// DOM элементы
+const leftTimerDisplay = document.getElementById('leftTimer');
+const rightTimerDisplay = document.getElementById('rightTimer');
+const leftStartButton = document.getElementById('leftStartButton');
+const leftPauseButton = document.getElementById('leftPauseButton');
+const leftStopButton = document.getElementById('leftStopButton');
+const rightStartButton = document.getElementById('rightStartButton');
+const rightPauseButton = document.getElementById('rightPauseButton');
+const rightStopButton = document.getElementById('rightStopButton');
+const startBothButton = document.getElementById('startBothButton');
+const pauseBothButton = document.getElementById('pauseBothButton');
+const stopAllButton = document.getElementById('stopAllButton');
+const leftStatus = document.getElementById('leftStatus');
+const rightStatus = document.getElementById('rightStatus');
+const totalSessionTimeDisplay = document.getElementById('totalSessionTime');
+const leftTotalTimeDisplay = document.getElementById('leftTotalTime');
+const rightTotalTimeDisplay = document.getElementById('rightTotalTime');
+const feedingHistory = document.getElementById('feedingHistory');
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
@@ -47,24 +63,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (userIdElement) userId = userIdElement.value;
     if (childIdElement) childId = childIdElement.value;
     
-    if (!userId || !childId) {
-        console.error('Не удалось получить ID пользователя или ребенка');
-        return;
-    }
-    
     // Настройка обработчиков событий
-    if (startButton) startButton.addEventListener('click', startFeeding);
-    if (pauseButton) pauseButton.addEventListener('click', pauseFeeding);
-    if (stopButton) stopButton.addEventListener('click', stopFeeding);
-    if (switchButton) switchButton.addEventListener('click', switchBreast);
-    if (leftBreastButton) leftBreastButton.addEventListener('click', () => selectBreast('left'));
-    if (rightBreastButton) rightBreastButton.addEventListener('click', () => selectBreast('right'));
+    if (leftStartButton) leftStartButton.addEventListener('click', () => startTimer('left'));
+    if (leftPauseButton) leftPauseButton.addEventListener('click', () => pauseTimer('left'));
+    if (leftStopButton) leftStopButton.addEventListener('click', () => stopTimer('left'));
+    if (rightStartButton) rightStartButton.addEventListener('click', () => startTimer('right'));
+    if (rightPauseButton) rightPauseButton.addEventListener('click', () => pauseTimer('right'));
+    if (rightStopButton) rightStopButton.addEventListener('click', () => stopTimer('right'));
+    if (startBothButton) startBothButton.addEventListener('click', startBothTimers);
+    if (pauseBothButton) pauseBothButton.addEventListener('click', pauseBothTimers);
+    if (stopAllButton) stopAllButton.addEventListener('click', stopAllTimers);
     
     // Загрузка истории кормления
     loadFeedingHistory();
     
     // Проверка активной сессии
     checkActiveSession();
+    
+    // Запуск обновления общего времени сессии
+    sessionInterval = setInterval(updateSessionTime, 1000);
 });
 
 /**
@@ -95,139 +112,237 @@ function formatDateTime(date) {
 }
 
 /**
- * Обновляет отображение таймера
+ * Запускает таймер для указанной груди
+ * @param {string} side - 'left' или 'right'
  */
-function updateTimer() {
-    if (!isTimerRunning || isPaused) return;
+function startTimer(side) {
+    const timer = side === 'left' ? leftTimer : rightTimer;
     
-    elapsedTime++;
+    if (timer.isRunning) return;
     
-    // Увеличиваем время для текущей груди
-    if (currentBreast === 'left') {
-        leftBreastTime++;
+    // Создаем сессию если её нет
+    if (!currentSession) {
+        currentSession = {
+            id: `temp-${Date.now()}`,
+            start_time: new Date().toISOString(),
+            feeding_type: 'breast',
+            left_breast_time: 0,
+            right_breast_time: 0
+        };
+        localStorage.setItem('activeFeedingSession', JSON.stringify(currentSession));
+    }
+    
+    timer.isRunning = true;
+    timer.isPaused = false;
+    timer.startTime = Date.now() - timer.pausedTime;
+    
+    // Запускаем интервал для этой груди
+    const interval = setInterval(() => updateTimerDisplay(side), 1000);
+    if (side === 'left') {
+        leftTimerInterval = interval;
     } else {
-        rightBreastTime++;
+        rightTimerInterval = interval;
     }
-    
-    // Обновляем отображение
-    updateDisplay();
-}
-
-/**
- * Обновляет отображение времени
- */
-function updateDisplay() {
-    if (timerDisplay) timerDisplay.textContent = formatTime(elapsedTime);
-    if (sessionTimeDisplay) sessionTimeDisplay.textContent = formatTime(elapsedTime);
-    if (leftTimeDisplay) leftTimeDisplay.textContent = formatTime(leftBreastTime);
-    if (rightTimeDisplay) rightTimeDisplay.textContent = formatTime(rightBreastTime);
-    if (currentBreastDisplay) {
-        currentBreastDisplay.textContent = currentBreast === 'left' ? 'Левая грудь' : 'Правая грудь';
-    }
-}
-
-/**
- * Выбирает грудь для кормления
- * @param {string} breast - 'left' или 'right'
- */
-function selectBreast(breast) {
-    currentBreast = breast;
-    
-    // Обновляем активную кнопку
-    if (leftBreastButton && rightBreastButton) {
-        leftBreastButton.classList.toggle('active', breast === 'left');
-        rightBreastButton.classList.toggle('active', breast === 'right');
-    }
-    
-    updateDisplay();
-}
-
-/**
- * Начинает сессию кормления
- */
-function startFeeding() {
-    // Создаем новую сессию
-    currentSession = {
-        id: `temp-${Date.now()}`,
-        start_time: new Date().toISOString(),
-        feeding_type: 'breast',
-        current_breast: currentBreast
-    };
-    
-    // Сохраняем в localStorage
-    localStorage.setItem('activeFeedingSession', JSON.stringify(currentSession));
-    
-    // Обновляем состояние
-    isTimerRunning = true;
-    isPaused = false;
-    elapsedTime = 0;
-    leftBreastTime = 0;
-    rightBreastTime = 0;
     
     // Обновляем UI
-    if (startButton) startButton.disabled = true;
-    if (pauseButton) pauseButton.disabled = false;
-    if (stopButton) stopButton.disabled = false;
-    if (switchButton) switchButton.disabled = false;
+    updateButtonStates(side);
+    updateStatus(side, 'Кормление...');
     
-    // Запускаем таймер
-    timerInterval = setInterval(updateTimer, 1000);
-    
-    // Обновляем отображение
-    updateDisplay();
-    
-    // Показываем уведомление
-    showNotification('Кормление начато', 'success');
+    showNotification(`Начато кормление ${side === 'left' ? 'левой' : 'правой'} грудью`, 'success');
 }
 
 /**
- * Приостанавливает/возобновляет кормление
+ * Приостанавливает/возобновляет таймер для указанной груди
+ * @param {string} side - 'left' или 'right'
  */
-function pauseFeeding() {
-    if (!currentSession) return;
+function pauseTimer(side) {
+    const timer = side === 'left' ? leftTimer : rightTimer;
     
-    // Переключаем состояние паузы
-    isPaused = !isPaused;
+    if (!timer.isRunning) return;
     
-    // Обновляем кнопку
-    if (pauseButton) {
-        pauseButton.textContent = isPaused ? 'Продолжить' : 'Пауза';
+    timer.isPaused = !timer.isPaused;
+    
+    if (timer.isPaused) {
+        timer.pausedTime = timer.elapsedTime;
+        updateStatus(side, 'Пауза');
+    } else {
+        timer.startTime = Date.now() - timer.pausedTime;
+        updateStatus(side, 'Кормление...');
     }
     
-    // Показываем уведомление
-    showNotification(isPaused ? 'Кормление приостановлено' : 'Кормление возобновлено', 'info');
+    updateButtonStates(side);
+    showNotification(`${timer.isPaused ? 'Приостановлено' : 'Возобновлено'} кормление ${side === 'left' ? 'левой' : 'правой'} грудью`, 'info');
 }
 
 /**
- * Переключает грудь во время кормления
+ * Останавливает таймер для указанной груди
+ * @param {string} side - 'left' или 'right'
  */
-function switchBreast() {
-    if (!currentSession || !isTimerRunning) return;
+function stopTimer(side) {
+    const timer = side === 'left' ? leftTimer : rightTimer;
+    const interval = side === 'left' ? leftTimerInterval : rightTimerInterval;
     
-    const newBreast = currentBreast === 'left' ? 'right' : 'left';
+    if (!timer.isRunning) return;
     
-    // Переключаем грудь
-    selectBreast(newBreast);
+    // Останавливаем таймер
+    clearInterval(interval);
+    if (side === 'left') {
+        leftTimerInterval = null;
+    } else {
+        rightTimerInterval = null;
+    }
     
-    // Обновляем сессию
-    currentSession.current_breast = newBreast;
-    localStorage.setItem('activeFeedingSession', JSON.stringify(currentSession));
+    // Сохраняем финальное время
+    if (currentSession) {
+        if (side === 'left') {
+            currentSession.left_breast_time = timer.elapsedTime;
+        } else {
+            currentSession.right_breast_time = timer.elapsedTime;
+        }
+        localStorage.setItem('activeFeedingSession', JSON.stringify(currentSession));
+    }
     
-    // Показываем уведомление
-    showNotification(`Переключено на ${newBreast === 'left' ? 'левую' : 'правую'} грудь`, 'info');
+    // Сбрасываем состояние таймера
+    timer.isRunning = false;
+    timer.isPaused = false;
+    timer.elapsedTime = 0;
+    timer.startTime = null;
+    timer.pausedTime = 0;
+    
+    // Обновляем UI
+    updateButtonStates(side);
+    updateStatus(side, 'Завершено');
+    updateTimerDisplay(side);
+    
+    const minutes = Math.round(timer.elapsedTime / 60);
+    showNotification(`Завершено кормление ${side === 'left' ? 'левой' : 'правой'} грудью: ${minutes} мин`, 'success');
+    
+    // Проверяем, нужно ли завершить всю сессию
+    if (!leftTimer.isRunning && !rightTimer.isRunning && currentSession) {
+        setTimeout(() => {
+            if (confirm('Завершить всю сессию кормления?')) {
+                finishSession();
+            }
+        }, 1000);
+    }
 }
 
 /**
- * Завершает сессию кормления
+ * Обновляет отображение таймера для указанной груди
+ * @param {string} side - 'left' или 'right'
  */
-function stopFeeding() {
+function updateTimerDisplay(side) {
+    const timer = side === 'left' ? leftTimer : rightTimer;
+    const display = side === 'left' ? leftTimerDisplay : rightTimerDisplay;
+    
+    if (!timer.isRunning || timer.isPaused) return;
+    
+    timer.elapsedTime = Math.floor((Date.now() - timer.startTime) / 1000);
+    
+    if (display) {
+        display.textContent = formatTime(timer.elapsedTime);
+    }
+    
+    // Обновляем общее время
+    if (side === 'left') {
+        if (leftTotalTimeDisplay) leftTotalTimeDisplay.textContent = formatTime(timer.elapsedTime);
+    } else {
+        if (rightTotalTimeDisplay) rightTotalTimeDisplay.textContent = formatTime(timer.elapsedTime);
+    }
+}
+
+/**
+ * Обновляет общее время сессии
+ */
+function updateSessionTime() {
+    if (!currentSession) return;
+    
+    const totalTime = leftTimer.elapsedTime + rightTimer.elapsedTime;
+    if (totalSessionTimeDisplay) {
+        totalSessionTimeDisplay.textContent = formatTime(totalTime);
+    }
+}
+
+/**
+ * Обновляет состояние кнопок для указанной груди
+ * @param {string} side - 'left' или 'right'
+ */
+function updateButtonStates(side) {
+    const timer = side === 'left' ? leftTimer : rightTimer;
+    const startBtn = side === 'left' ? leftStartButton : rightStartButton;
+    const pauseBtn = side === 'left' ? leftPauseButton : rightPauseButton;
+    const stopBtn = side === 'left' ? leftStopButton : rightStopButton;
+    
+    if (startBtn) startBtn.disabled = timer.isRunning;
+    if (pauseBtn) {
+        pauseBtn.disabled = !timer.isRunning;
+        pauseBtn.textContent = timer.isPaused ? 'Продолжить' : 'Пауза';
+    }
+    if (stopBtn) stopBtn.disabled = !timer.isRunning;
+    
+    // Обновляем общие кнопки
+    const anyRunning = leftTimer.isRunning || rightTimer.isRunning;
+    if (startBothButton) startBothButton.disabled = anyRunning;
+    if (pauseBothButton) pauseBothButton.disabled = !anyRunning;
+    if (stopAllButton) stopAllButton.disabled = !anyRunning;
+}
+
+/**
+ * Обновляет статус для указанной груди
+ * @param {string} side - 'left' или 'right'
+ * @param {string} status - Текст статуса
+ */
+function updateStatus(side, status) {
+    const statusElement = side === 'left' ? leftStatus : rightStatus;
+    if (statusElement) {
+        statusElement.textContent = status;
+    }
+}
+
+/**
+ * Запускает оба таймера одновременно
+ */
+function startBothTimers() {
+    startTimer('left');
+    startTimer('right');
+    showNotification('Начато кормление с обеих грудей', 'success');
+}
+
+/**
+ * Приостанавливает/возобновляет оба таймера
+ */
+function pauseBothTimers() {
+    const leftPaused = leftTimer.isPaused;
+    const rightPaused = rightTimer.isPaused;
+    
+    if (leftTimer.isRunning) pauseTimer('left');
+    if (rightTimer.isRunning) pauseTimer('right');
+    
+    const action = (leftPaused && rightPaused) ? 'возобновлено' : 'приостановлено';
+    showNotification(`Кормление ${action} для обеих грудей`, 'info');
+}
+
+/**
+ * Останавливает все таймеры и завершает сессию
+ */
+function stopAllTimers() {
+    if (leftTimer.isRunning) stopTimer('left');
+    if (rightTimer.isRunning) stopTimer('right');
+    
+    setTimeout(() => {
+        finishSession();
+    }, 500);
+}
+
+/**
+ * Завершает всю сессию кормления
+ */
+function finishSession() {
     if (!currentSession) return;
     
     // Завершаем сессию
     currentSession.end_time = new Date().toISOString();
-    currentSession.duration = elapsedTime;
-    currentSession.left_breast_time = leftBreastTime;
-    currentSession.right_breast_time = rightBreastTime;
+    currentSession.duration = currentSession.left_breast_time + currentSession.right_breast_time;
     
     // Сохраняем в историю
     const feedingSessions = JSON.parse(localStorage.getItem('feedingSessions') || '[]');
@@ -237,33 +352,40 @@ function stopFeeding() {
     // Удаляем активную сессию
     localStorage.removeItem('activeFeedingSession');
     
-    // Останавливаем таймер
-    clearInterval(timerInterval);
-    isTimerRunning = false;
-    isPaused = false;
+    // Останавливаем все интервалы
+    if (leftTimerInterval) clearInterval(leftTimerInterval);
+    if (rightTimerInterval) clearInterval(rightTimerInterval);
+    leftTimerInterval = null;
+    rightTimerInterval = null;
+    
+    // Сбрасываем состояние
+    leftTimer = { isRunning: false, isPaused: false, elapsedTime: 0, startTime: null, pausedTime: 0 };
+    rightTimer = { isRunning: false, isPaused: false, elapsedTime: 0, startTime: null, pausedTime: 0 };
     
     // Обновляем UI
-    if (startButton) startButton.disabled = false;
-    if (pauseButton) {
-        pauseButton.disabled = true;
-        pauseButton.textContent = 'Пауза';
-    }
-    if (stopButton) stopButton.disabled = true;
-    if (switchButton) switchButton.disabled = true;
+    updateButtonStates('left');
+    updateButtonStates('right');
+    updateStatus('left', 'Готов к началу');
+    updateStatus('right', 'Готов к началу');
+    
+    if (leftTimerDisplay) leftTimerDisplay.textContent = '00:00';
+    if (rightTimerDisplay) rightTimerDisplay.textContent = '00:00';
+    if (leftTotalTimeDisplay) leftTotalTimeDisplay.textContent = '00:00';
+    if (rightTotalTimeDisplay) rightTotalTimeDisplay.textContent = '00:00';
+    if (totalSessionTimeDisplay) totalSessionTimeDisplay.textContent = '00:00';
     
     // Показываем результаты
-    const totalMinutes = Math.round(elapsedTime / 60);
-    showNotification(`Кормление завершено: ${totalMinutes} мин`, 'success');
+    const totalMinutes = Math.round(currentSession.duration / 60);
+    const leftMinutes = Math.round(currentSession.left_breast_time / 60);
+    const rightMinutes = Math.round(currentSession.right_breast_time / 60);
+    
+    showNotification(`Сессия завершена: ${totalMinutes} мин (Л: ${leftMinutes}, П: ${rightMinutes})`, 'success');
     
     // Обновляем историю
     loadFeedingHistory();
     
     // Сбрасываем сессию
     currentSession = null;
-    elapsedTime = 0;
-    leftBreastTime = 0;
-    rightBreastTime = 0;
-    updateDisplay();
 }
 
 /**
@@ -273,33 +395,35 @@ function checkActiveSession() {
     const activeSession = localStorage.getItem('activeFeedingSession');
     if (activeSession) {
         currentSession = JSON.parse(activeSession);
-        isTimerRunning = true;
         
-        // Рассчитываем прошедшее время
-        const startTime = new Date(currentSession.start_time);
+        // Восстанавливаем состояние таймеров
+        const sessionStartTime = new Date(currentSession.start_time);
         const now = new Date();
-        elapsedTime = Math.floor((now - startTime) / 1000);
+        const totalElapsed = Math.floor((now - sessionStartTime) / 1000);
         
-        // Восстанавливаем время для каждой груди
-        leftBreastTime = currentSession.left_breast_time || 0;
-        rightBreastTime = currentSession.right_breast_time || 0;
+        // Восстанавливаем левый таймер
+        if (currentSession.left_breast_time > 0) {
+            leftTimer.isRunning = true;
+            leftTimer.elapsedTime = currentSession.left_breast_time;
+            leftTimer.startTime = now.getTime() - (currentSession.left_breast_time * 1000);
+            leftTimerInterval = setInterval(() => updateTimerDisplay('left'), 1000);
+            updateStatus('left', 'Кормление...');
+        }
         
-        // Устанавливаем текущую грудь
-        if (currentSession.current_breast) {
-            selectBreast(currentSession.current_breast);
+        // Восстанавливаем правый таймер
+        if (currentSession.right_breast_time > 0) {
+            rightTimer.isRunning = true;
+            rightTimer.elapsedTime = currentSession.right_breast_time;
+            rightTimer.startTime = now.getTime() - (currentSession.right_breast_time * 1000);
+            rightTimerInterval = setInterval(() => updateTimerDisplay('right'), 1000);
+            updateStatus('right', 'Кормление...');
         }
         
         // Обновляем UI
-        if (startButton) startButton.disabled = true;
-        if (pauseButton) pauseButton.disabled = false;
-        if (stopButton) stopButton.disabled = false;
-        if (switchButton) switchButton.disabled = false;
-        
-        // Запускаем таймер
-        timerInterval = setInterval(updateTimer, 1000);
-        
-        // Обновляем отображение
-        updateDisplay();
+        updateButtonStates('left');
+        updateButtonStates('right');
+        updateTimerDisplay('left');
+        updateTimerDisplay('right');
         
         showNotification('Восстановлена активная сессия кормления', 'info');
     }
@@ -336,10 +460,22 @@ function loadFeedingHistory() {
             if (session.feeding_type === 'breast') {
                 const leftTime = session.left_breast_time ? Math.round(session.left_breast_time / 60) : 0;
                 const rightTime = session.right_breast_time ? Math.round(session.right_breast_time / 60) : 0;
+                const totalTime = leftTime + rightTime;
                 breastInfo = `
-                    <div class="grid grid-cols-2 gap-2 mt-2 text-sm">
-                        <div>Левая грудь: ${leftTime} мин</div>
-                        <div>Правая грудь: ${rightTime} мин</div>
+                    <div class="mt-2">
+                        <div class="grid grid-cols-2 gap-2 text-sm mb-2">
+                            <div class="text-center">
+                                <div class="font-medium">Левая грудь</div>
+                                <div class="text-accent-secondary">${leftTime} мин</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="font-medium">Правая грудь</div>
+                                <div class="text-accent-secondary">${rightTime} мин</div>
+                            </div>
+                        </div>
+                        <div class="text-center text-sm border-t pt-2">
+                            <span class="font-medium">Общее время: ${totalTime} мин</span>
+                        </div>
                     </div>
                 `;
             }

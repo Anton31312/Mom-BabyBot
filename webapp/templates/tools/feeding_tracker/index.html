@@ -4,53 +4,66 @@
 {% block title %}Mom&BabyBot - Трекер кормления{% endblock %}
 
 {% block content %}
+<!-- Скрытые поля для JavaScript -->
+<input type="hidden" id="userId" value="{{ user.id|default:'1' }}">
+<input type="hidden" id="childId" value="{{ child_id|default:'1' }}">
+
 <div class="glass-container mb-6">
     <h1 class="text-2xl font-bold mb-4">Трекер кормления</h1>
-    <p class="text-dark-gray mb-4">Отслеживайте режим кормления вашего ребенка для здорового развития.</p>
+    <p class="text-dark-gray mb-4">Отслеживайте режим кормления вашего ребенка для здорового развития. Теперь с поддержкой одновременного кормления с двух грудей!</p>
 </div>
 
 <div class="neo-container mb-6">
     <div class="flex flex-col items-center justify-center py-6">
-        <!-- Основной таймер -->
-        <div id="timer" class="text-4xl font-bold mb-6">00:00</div>
-        
-        <!-- Выбор груди -->
-        <div class="mb-6">
-            <div class="flex items-center justify-center space-x-4 mb-4">
-                <span>Грудь:</span>
-                <div class="neo-tabs" data-tab-group="breast-side">
-                    <div id="leftBreastButton" class="neo-tab active" data-tab-target="left-breast">Левая</div>
-                    <div id="rightBreastButton" class="neo-tab" data-tab-target="right-breast">Правая</div>
+        <!-- Двойные таймеры для каждой груди -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 w-full max-w-4xl">
+            <!-- Левая грудь -->
+            <div class="neo-card p-6 text-center">
+                <h3 class="text-lg font-semibold mb-4">Левая грудь</h3>
+                <div id="leftTimer" class="text-3xl font-bold mb-4">00:00</div>
+                <div class="flex justify-center space-x-2 mb-4">
+                    <button id="leftStartButton" class="neo-button bg-accent-secondary px-4 py-2">Начать</button>
+                    <button id="leftPauseButton" class="neo-button bg-primary px-4 py-2" disabled>Пауза</button>
+                    <button id="leftStopButton" class="neo-button bg-red-400 px-4 py-2" disabled>Стоп</button>
                 </div>
+                <div id="leftStatus" class="text-sm text-dark-gray">Готов к началу</div>
+            </div>
+            
+            <!-- Правая грудь -->
+            <div class="neo-card p-6 text-center">
+                <h3 class="text-lg font-semibold mb-4">Правая грудь</h3>
+                <div id="rightTimer" class="text-3xl font-bold mb-4">00:00</div>
+                <div class="flex justify-center space-x-2 mb-4">
+                    <button id="rightStartButton" class="neo-button bg-accent-secondary px-4 py-2">Начать</button>
+                    <button id="rightPauseButton" class="neo-button bg-primary px-4 py-2" disabled>Пауза</button>
+                    <button id="rightStopButton" class="neo-button bg-red-400 px-4 py-2" disabled>Стоп</button>
+                </div>
+                <div id="rightStatus" class="text-sm text-dark-gray">Готов к началу</div>
             </div>
         </div>
         
-        <!-- Кнопки управления -->
+        <!-- Общие кнопки управления -->
         <div class="flex space-x-4 mb-6">
-            <button id="startButton" class="neo-button bg-accent-secondary px-8 py-3">Начать</button>
-            <button id="pauseButton" class="neo-button bg-primary px-8 py-3" disabled>Пауза</button>
-            <button id="switchButton" class="neo-button bg-accent px-6 py-3" disabled>Переключить</button>
-            <button id="stopButton" class="neo-button bg-red-400 px-8 py-3" disabled>Завершить</button>
+            <button id="startBothButton" class="neo-button bg-accent px-6 py-3">Начать обе</button>
+            <button id="pauseBothButton" class="neo-button bg-primary px-6 py-3" disabled>Пауза обе</button>
+            <button id="stopAllButton" class="neo-button bg-red-400 px-6 py-3" disabled>Завершить сессию</button>
         </div>
         
         <!-- Статистика текущей сессии -->
         <div id="stats" class="w-full max-w-md">
-            <div class="flex justify-between mb-2">
-                <span>Текущая грудь:</span>
-                <span id="currentBreast">Левая грудь</span>
+            <div class="text-center mb-4">
+                <h3 class="text-lg font-semibold mb-2">Текущая сессия</h3>
+                <div class="text-2xl font-bold" id="totalSessionTime">00:00</div>
+                <div class="text-sm text-dark-gray">Общее время</div>
             </div>
-            <div class="flex justify-between mb-2">
-                <span>Общее время:</span>
-                <span id="sessionTime">00:00</span>
-            </div>
-            <div class="grid grid-cols-2 gap-4 mt-4">
+            <div class="grid grid-cols-2 gap-4">
                 <div class="text-center">
                     <div class="text-sm text-dark-gray">Левая грудь</div>
-                    <div id="leftTime" class="font-semibold">00:00</div>
+                    <div id="leftTotalTime" class="font-semibold text-lg">00:00</div>
                 </div>
                 <div class="text-center">
                     <div class="text-sm text-dark-gray">Правая грудь</div>
-                    <div id="rightTime" class="font-semibold">00:00</div>
+                    <div id="rightTotalTime" class="font-semibold text-lg">00:00</div>
                 </div>
             </div>
         </div>
